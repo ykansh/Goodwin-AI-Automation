@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goodwin Batteries — ERP + Ledger Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0f2340;
+    --navy2: #16325c;
+    --navy-dark: #091527;
+    --accent: #f5a623;
+    --accent2: #ffb840;
+    --accent-dim: #fdecc8;
+    --bg: #f3f5f8;
+    --card: #ffffff;
+    --line: #e3e7ee;
+    --text: #1c2733;
+    --muted: #6b7889;
+    --green: #10b981;
+    --green-dim: #e6f4ea;
+    --red: #ef4444;
+    --red-dim: #fce8e6;
+    --amber: #f59e0b;
+    --amber-dim: #fef3c7;
+    --blue: #3b82f6;
+    --blue-dim: #eff6ff;
+    --radius: 10px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13.5px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font-family: inherit; font-size: 13px; }
+  button { cursor: pointer; }
+
+  /* Shell Layout */
+  #app { display: flex; min-height: 100vh; }
+  
+  /* Sidebar */
+  #sidebar {
+    width: 240px;
+    background: linear-gradient(180deg, var(--navy), var(--navy2));
+    color: #fff;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 60;
+    transition: left .25s ease;
+  }
+  #sidebar .brand {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #sidebar .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), #d98a12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+  #sidebar .brand .name { font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: .2px; }
+  #sidebar .brand .tag { font-size: 10.5px; color: var(--accent2); margin-top: 1px; letter-spacing: .3px; text-transform: uppercase; }
+  
+  #sidebar .quick-new { padding: 12px 14px 4px; }
+  #sidebar .quick-new button {
+    width: 100%;
+    border: none;
+    background: var(--accent);
+    color: var(--navy);
+    font-family: var(--font-display);
+    font-weight: 700;
+    padding: 10px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: .15s;
+  }
+  #sidebar .quick-new button:hover { background: var(--accent2); }
+
+  #sidebar nav { flex: 1; overflow-y: auto; padding: 10px 0; }
+  #sidebar nav .navitem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9.5px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #cfd9e8;
+    border-left: 3px solid transparent;
+    transition: .12s;
+  }
+  #sidebar nav .navitem:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+  #sidebar nav .navitem.active {
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  #sidebar nav .navitem .badge-count {
+    margin-left: auto;
+    background: rgba(245, 166, 35, .25);
+    color: var(--accent2);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  #sidebar .foot {
+    padding: 14px 18px;
+    font-size: 11px;
+    color: #93a2b8;
+    border-top: 1px solid rgba(255, 255, 255, .12);
+  }
+  #sidebar select#roleSelect {
+    width: 100%;
+    margin-top: 6px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(255, 255, 255, .15);
+    color: #fff;
+    font-size: 11.5px;
+    outline: none;
+  }
+  #sidebar select#roleSelect option { background: var(--navy); color: #fff; }
+
+  /* Main Content Area */
+  #main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  
+  header.topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  header.topbar h1 { font-family: var(--font-display); font-size: 18px; color: var(--navy); margin: 0; }
+  header.topbar .sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  #content { padding: 22px 24px 60px; flex: 1; overflow-y: auto; }
+
+  /* Panels, Cards & Grids */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.02);
+  }
+  .kpi .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .kpi .value { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--navy); margin-top: 6px; }
+  .kpi .value.red { color: var(--red); }
+  .kpi .value.green { color: var(--green); }
+  .kpi .value.amber { color: var(--amber); }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.02);
+  }
+  .panel h2 { font-family: var(--font-display); font-size: 15px; margin: 0 0 14px; color: var(--navy); }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .row > .panel { flex: 1; min-width: 300px; }
+
+  /* Tables */
+  .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--line); -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    background: #f8fafc;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid #eef1f6; vertical-align: middle; }
+  tr:hover td { background: #fafcff; }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+
+  /* Buttons */
+  button, .btn {
+    border: none;
+    border-radius: 7px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-primary:hover { background: var(--navy2); }
+  .btn-accent { background: var(--accent); color: var(--navy); }
+  .btn-accent:hover { background: var(--accent2); }
+  .btn-ghost { background: #eef1f6; color: var(--text); border: 1px solid var(--line); }
+  .btn-ghost:hover { background: #e2e7ee; }
+  .btn-danger { background: var(--red-dim); color: var(--red); }
+  .btn-danger:hover { background: #f8d7d7; }
+  .btn-success { background: var(--green-dim); color: var(--green); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+    justify-content: space-between;
+  }
+  .toolbar .left { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  /* Form Elements & Inputs - FIXED OVERFLOW & RELIABLE RESPONSIVENESS */
+  input, select, textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: block;
+    padding: 8.5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+  label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+  .field {
+    margin-bottom: 12px;
+    width: 100%;
+    min-width: 0; /* CRITICAL FIX: prevents CSS grid child elements from expanding and overlapping */
+    box-sizing: border-box;
+  }
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Responsive Grid Columns */
+  @media (min-width: 768px) {
+    .field-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .field-grid.col-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .field-grid, .field-grid.col-4 {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .2px; }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-gray { background: #eef1f6; color: var(--muted); }
+  .badge-navy { background: #e7ecf5; color: var(--navy); }
+
+  /* Modal Layout */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 35, 64, .55);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 14px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 740px;
+    width: 100%;
+    padding: 24px;
+    margin: auto;
+    box-shadow: 0 15px 35px rgba(0,0,0,.2);
+    box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .modal h3 { margin: 0 0 16px; color: var(--navy); font-family: var(--font-display); font-size: 17px; }
+  .modal .close-x { float: right; cursor: pointer; color: var(--muted); font-size: 24px; line-height: 1; margin-top: -4px; }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  /* Toast Notifications */
+  #toastWrap { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--navy);
+    color: #fff;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .2);
+    animation: slidein .2s ease;
+  }
+  .toast.error { background: var(--red); }
+  .toast.success { background: var(--green); }
+  @keyframes slidein { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-state .big { font-size: 36px; margin-bottom: 8px; }
+
+  /* App Switcher - single unified Goodwin ERP + Ledger Pro application */
+  .app-switcher {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  .app-switcher-label {
+    font-size: 10px; color: #93a2b8; text-transform: uppercase;
+    letter-spacing: .6px; margin-bottom: 7px; font-weight: 700;
+  }
+  .app-switcher-box {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+    background: rgba(255,255,255,.07); padding: 4px; border-radius: 9px;
+  }
+  .app-switcher-btn {
+    border: 1px solid transparent; background: transparent; color: #cfd9e8;
+    padding: 7px 6px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    justify-content: center; white-space: nowrap;
+  }
+  .app-switcher-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .app-switcher-btn.active {
+    background: var(--accent); color: var(--navy); border-color: rgba(255,255,255,.1);
+  }
+  .mode-pill {
+    display:inline-flex; align-items:center; gap:5px; font-size:10px;
+    padding:3px 7px; border-radius:10px; background:var(--accent-dim); color:var(--navy);
+    font-weight:700; margin-left:7px; vertical-align:middle;
+  }
+  /* Mobile Responsive Breakpoints */
+  @media (max-width: 780px) {
+    #sidebar {
+      position: fixed;
+      left: -240px;
+      top: 0;
+      bottom: 0;
+      z-index: 2000;
+      box-shadow: 4px 0 20px rgba(0,0,0,.25);
+    }
+    #sidebar.open { left: 0; }
+    .mobile-menu-btn { display: inline-flex !important; }
+    #content { padding: 16px 14px 40px; }
+    header.topbar { padding: 10px 14px; }
+    .topbar-actions { gap: 6px; }
+    .topbar-actions button { font-size: 11.5px; padding: 5px 8px; }
+  }
+  @media (min-width: 781px) {
+    .mobile-menu-btn { display: none !important; }
+  }
+  @media (max-width: 600px) {
+    .modal-backdrop { padding: 10px 8px; }
+    .modal { padding: 18px 14px; max-height: 94vh; }
+    .modal-actions { flex-direction: column-reverse; }
+    .modal-actions button { width: 100%; justify-content: center; }
+  }
+
+  @media print {
+    #sidebar, header.topbar, .toolbar, .no-print { display: none !important; }
+    #content { padding: 0; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">GB</div>
+      <div>
+        <div class="name">⚡ GOODWIN ERP</div>
+        <div class="tag">Ledger & Inventory Pro</div>
+      </div>
+    </div>
+    
+    <div class="quick-new">
+      <button onclick="app.openNewInvoiceModal()">⚡ + New Invoice / Order</button>
+    </div>
+
+    <nav id="navList"></nav>
+
+    <div class="foot">
+      <div>Role Mode:</div>
+      <select id="roleSelect"></select>
+      <div class="app-switcher">
+        <div class="app-switcher-label">Application</div>
+        <div class="app-switcher-box">
+          <button id="modeGoodwin" class="app-switcher-btn" onclick="app.switchMode('goodwin')">⚡ Goodwin ERP</button>
+          <button id="modeLedger" class="app-switcher-btn" onclick="app.switchMode('ledger')">📒 Ledger Pro</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        Persistence: <b id="storageModeLabel">—</b>
+        <div style="font-size:10.5px;color:#93a2b8;margin-top:2px;" id="dataModeNote"></div>
+      </div>
+      <button class="btn-ghost btn-sm" style="width:100%;margin-top:10px;background:rgba(255,255,255,.1);color:#fff;border:none;" onclick="app.openSupabaseModal()">⚡ Supabase Cloud / DB</button>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div id="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-ghost btn-sm mobile-menu-btn" onclick="app.toggleSidebar()">☰ Menu</button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="sub" id="pageSub">Overview of sales, inventory & ledger</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button id="supabaseHeaderBtn" class="btn-ghost btn-sm" onclick="app.openSupabaseModal()">
+          <span id="supaStatusDot">⚡</span> <span id="supaHeaderLabel">Supabase DB</span>
+        </button>
+        <div id="authUserBadge" class="user-badge" style="display:none;"></div>
+        <button class="btn-ghost btn-sm" onclick="app.openAuthModal()" id="authBtn">👤 Sign In</button>
+        <button class="btn-ghost btn-sm" onclick="app.exportBackup()">⇩ Backup JSON</button>
+      </div>
+    </header>
+
+    <div id="content"></div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastWrap"></div>
+
+<script>
+/* =========================================================================
+   GOODWIN BATTERIES — ENTERPRISE ERP & LEDGER PRO (SUPABASE CONNECTED)
+   ========================================================================= */
+
+/* -------------------------- SUPABASE & STORAGE ADAPTER ----------------------- */
+// Shared cloud layer for BOTH Goodwin ERP and Ledger Pro workspaces.
+// Both modes read/write the same erp_store table and therefore see the same live records.
+
+const SupabaseStore = (() => {
+  let client = null;
+  let config = {
+    url: localStorage.getItem('gw_supabase_url') || '',
+    key: localStorage.getItem('gw_supabase_key') || '',
+    tableName: 'erp_store'
+  };
+
+  function init() {
+    if (config.url && config.key && typeof window.supabase !== 'undefined') {
+      try {
+        client = window.supabase.createClient(config.url, config.key);
+        return true;
+      } catch (e) {
+        console.error('Supabase init failed:', e);
+        client = null;
+        return false;
+      }
+    }
+    client = null;
+    return false;
+  }
+
+  function isConfigured() { return !!(config.url && config.key); }
+  function isConnected() { return !!client; }
+
+  function saveConfig(url, key) {
+    config.url = (url || '').trim();
+    config.key = (key || '').trim();
+    localStorage.setItem('gw_supabase_url', config.url);
+    localStorage.setItem('gw_supabase_key', config.key);
+    return init();
+  }
+
+  function disconnect() {
+    config.url = '';
+    config.key = '';
+    localStorage.removeItem('gw_supabase_url');
+    localStorage.removeItem('gw_supabase_key');
+    client = null;
+  }
+
+  async function testConnection() {
+    if (!config.url || !config.key) return { success: false, error: 'Please enter both Supabase Project URL and Anon Key.' };
+    if (typeof window.supabase === 'undefined') return { success: false, error: 'Supabase JS SDK library not loaded. Check internet connection.' };
+    try {
+      const tempClient = window.supabase.createClient(config.url, config.key);
+      const { data, error } = await tempClient.from(config.tableName).select('key').limit(1);
+      if (error) {
+        if (error.code === '42P01' || (error.message && error.message.includes('does not exist'))) {
+          return { success: false, needTable: true, error: 'Connected to Supabase project, but "erp_store" table was not found. Copy and run the SQL setup script below!' };
+        }
+        return { success: false, error: `Supabase Error (${error.code || 'DB'}): ${error.message}` };
+      }
+      client = tempClient;
+      return { success: true, message: 'Successfully connected to your Supabase PostgreSQL database!' };
+    } catch (e) {
+      return { success: false, error: e.message || 'Network error connecting to Supabase' };
+    }
+  }
+
+  async function get(key) {
+    if (!client) return null;
+    try {
+      const { data, error } = await client.from(config.tableName).select('value').eq('key', key).maybeSingle();
+      if (error || !data) return null;
+      return typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+    } catch (e) { return null; }
+  }
+
+  async function set(key, value) {
+    if (!client) return false;
+    try {
+      const payload = { key: key, value: value, updated_at: new Date().toISOString() };
+      const { error } = await client.from(config.tableName).upsert(payload, { onConflict: 'key' });
+      return !error;
+    } catch (e) { return false; }
+  }
+
+  async function pushAll() {
+    if (!client) return { success: false, error: 'Supabase client not connected' };
+    try {
+      for (const c of COLLECTIONS) await set('gw:' + c, DB[c]);
+      await set('gw:counters', COUNTERS);
+      await set('gw:settings', SETTINGS);
+      await set('gw:seeded', true);
+      return { success: true };
+    } catch (e) { return { success: false, error: e.message }; }
+  }
+
+  async function pullAll() {
+    if (!client) return { success: false, error: 'Supabase client not connected' };
+    try {
+      for (const c of COLLECTIONS) {
+        const val = await get('gw:' + c);
+        if (val) DB[c] = val;
+      }
+      const cnt = await get('gw:counters');
+      if (cnt) COUNTERS = cnt;
+      const st = await get('gw:settings');
+      if (st) SETTINGS = st;
+      return { success: true };
+    } catch (e) { return { success: false, error: e.message }; }
+  }
+
+  init();
+  return {
+    init, isConfigured, isConnected, saveConfig, disconnect, testConnection,
+    get, set, pushAll, pullAll, getConfig: () => ({ ...config }), getClient: () => client
+  };
+})();
+
+/* Storage Layer Router */
+const Store = (() => {
+  let memory = {};
+  const hasRealStorage = () => (typeof window !== 'undefined' && !!window.storage);
+
+  async function get(key) {
+    if (SupabaseStore.isConnected()) {
+      const val = await SupabaseStore.get(key);
+      if (val !== null) return val;
+    }
+    if (hasRealStorage()) {
+      try {
+        const res = await window.storage.get(key, false);
+        if (res && res.value) return JSON.parse(res.value);
+      } catch (e) {}
+    }
+    try {
+      const ls = localStorage.getItem(key);
+      if (ls) return JSON.parse(ls);
+    } catch(e) {}
+    return memory[key] !== undefined ? JSON.parse(JSON.stringify(memory[key])) : null;
+  }
+
+  async function set(key, value) {
+    let saved = false;
+    if (SupabaseStore.isConnected()) {
+      if (await SupabaseStore.set(key, value)) saved = true;
+    }
+    if (hasRealStorage()) {
+      try { await window.storage.set(key, JSON.stringify(value), false); saved = true; } catch (e) {}
+    }
+    try { localStorage.setItem(key, JSON.stringify(value)); saved = true; } catch(e) {}
+    memory[key] = JSON.parse(JSON.stringify(value));
+    return saved;
+  }
+
+  function getModeLabel() {
+    if (SupabaseStore.isConnected()) return '🟢 Supabase Cloud (PostgreSQL)';
+    if (hasRealStorage()) return '🔵 window.storage (Local)';
+    return '🟠 Browser LocalStorage';
+  }
+  function getModeDescription() {
+    if (SupabaseStore.isConnected()) return 'Connected to Supabase Cloud Database. Records sync in real-time.';
+    if (hasRealStorage()) return 'Saved to sandboxed window.storage.';
+    return 'Saved to browser LocalStorage.';
+  }
+
+  return { get, set, usingRealStorage: () => SupabaseStore.isConnected() || hasRealStorage(), getModeLabel, getModeDescription };
+})();
+
+/* ------------------------------- DATA MODEL ------------------------------ */
+const COLLECTIONS = [
+  'customers','suppliers','products','salesInvoices','purchaseInvoices',
+  'receipts','payments','expenses','salesReturns','purchaseReturns',
+  'stockTx','warranties','orders','auditLog'
+];
+
+let DB = {};
+let COUNTERS = {};
+let SETTINGS = {};
+let CURRENT_ROLE = 'Admin';
+let CURRENT_USER = null;
+
+function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function nowISO() { return new Date().toISOString(); }
+function inr(n) {
+  n = Number(n) || 0;
+  const neg = n < 0; n = Math.abs(n);
+  let s = n.toFixed(2);
+  let [int, dec] = s.split('.');
+  let last3 = int.slice(-3), rest = int.slice(0, -3);
+  if (rest !== '') last3 = ',' + last3;
+  let formatted = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + last3;
+  return (neg ? '-' : '') + '₹' + formatted + '.' + dec;
+}
+function num(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function nextNumber(seriesKey, prefix) {
+  const year = new Date().getFullYear();
+  const ck = `${seriesKey}-${year}`;
+  COUNTERS[ck] = (COUNTERS[ck] || 0) + 1;
+  const n = String(COUNTERS[ck]).padStart(4, '0');
+  return `${prefix}-${year}-${n}`;
+}
+
+function logAudit(action, entity, entityId, summary, before, after) {
+  DB.auditLog.unshift({
+    id: uid('AL'), ts: nowISO(), user: CURRENT_USER ? CURRENT_USER.email : CURRENT_ROLE, action, entity, entityId, summary,
+    before: before || null, after: after || null
+  });
+  if (DB.auditLog.length > 500) DB.auditLog.length = 500;
+  persist('auditLog');
+}
+
+/* ------------------------------ PERSISTENCE ------------------------------ */
+async function loadAll() {
+  for (const c of COLLECTIONS) {
+    const v = await Store.get('gw:' + c);
+    DB[c] = v || [];
+  }
+  COUNTERS = (await Store.get('gw:counters')) || {};
+  SETTINGS = (await Store.get('gw:settings')) || defaultSettings();
+  if (!DB.customers.length && !DB.products.length && !(await Store.get('gw:seeded'))) {
+    seedDemoData();
+    await persistAll();
+    await Store.set('gw:seeded', true);
+  }
+}
+async function persist(collection) { await Store.set('gw:' + collection, DB[collection]); }
+async function persistAll() {
+  for (const c of COLLECTIONS) await persist(c);
+  await Store.set('gw:counters', COUNTERS);
+  await Store.set('gw:settings', SETTINGS);
+}
+async function persistCounters(){ await Store.set('gw:counters', COUNTERS); }
+async function persistSettings(){ await Store.set('gw:settings', SETTINGS); }
+
+function defaultSettings() {
+  return {
+    companyName: 'Goodwin Batteries Pvt. Ltd.',
+    companyState: 'Maharashtra',
+    companyStateCode: '27',
+    companyGSTIN: '27ABCDE1234F1Z5',
+    companyAddress: 'Plot 14, MIDC Industrial Area, Pune, Maharashtra 411019',
+    companyPhone: '+91 98765 43210',
+    companyEmail: 'accounts@goodwinbatteries.example',
+    bankDetails: 'HDFC Bank, A/c 5020XXXXXXXX, IFSC HDFC0001234',
+    defaultGSTRate: 18,
+    defaultCreditDays: 30,
+    creditPolicy: 'warn',
+    terms: 'Goods once sold will not be taken back except under warranty terms. Interest @18% p.a. charged on overdue payments.'
+  };
+}
+
+/* ------------------------------ SEED DEMO DATA ---------------------------- */
+function seedDemoData() {
+  const custNames = [
+    ['ABC Battery Dealer','Rakesh Shah','Pune, Maharashtra','Maharashtra',500000],
+    ['Sunrise Auto Traders','Meena Kulkarni','Nashik, Maharashtra','Maharashtra',300000],
+    ['Patel Power Solutions','Jignesh Patel','Ahmedabad, Gujarat','Gujarat',400000],
+    ['Karnataka Battery Hub','Suresh Rao','Bengaluru, Karnataka','Karnataka',250000],
+    ['Metro Distributors','Anil Deshmukh','Mumbai, Maharashtra','Maharashtra',600000],
+  ];
+  custNames.forEach(([name,contact,addr,state,limit],i) => {
+    DB.customers.push({
+      id: uid('CUS'), name, company: name, contact, mobile: '98'+String(100000000+i*11111).slice(0,8),
+      email: name.toLowerCase().replace(/[^a-z]/g,'') + '@example.com', address: addr, city: addr.split(',')[0],
+      state, pin: '400001', gstin: state==='Maharashtra' ? '27AAAAA0000A1Z'+i : '24AAAAA0000A1Z'+i,
+      pan: 'AAAAA0000A', customerType: i%2===0?'Dealer':'Distributor', creditLimit: limit,
+      creditDays: 30, openingBalance: 0, createdAt: nowISO(), status: 'active'
+    });
+  });
+
+  const suppliers = [
+    ['Exide Industries Ltd','Supply Desk','Kolkata, West Bengal','West Bengal','19AAAAA0000A1Z1'],
+    ['Amara Raja Batteries','Supply Desk','Tirupati, Andhra Pradesh','Andhra Pradesh','37AAAAA0000A1Z2'],
+  ];
+  suppliers.forEach(([name,contact,addr,state,gstin]) => {
+    DB.suppliers.push({
+      id: uid('SUP'), name, company: name, contact, mobile:'99887766'+String(Math.floor(Math.random()*90+10)),
+      email: name.toLowerCase().replace(/[^a-z]/g,'')+'@example.com', address: addr, state, gstin,
+      creditDays: 45, creditLimit: 1000000, openingBalance: 0, createdAt: nowISO()
+    });
+  });
+
+  const products = [
+    ['GW-N150','Goodwin','Endura N150','Automotive','12V','150Ah','Flooded (Lead-Acid)',18,'8507',9500,12500,13500,42,10,'Main Warehouse'],
+    ['GW-N100','Goodwin','Endura N100','Automotive','12V','100Ah','Flooded (Lead-Acid)',18,'8507',6800,8900,9600,60,15,'Main Warehouse'],
+    ['GW-IT550','Goodwin','InverTuff 550','Inverter','12V','150Ah','Tubular',18,'8507',10200,13200,14200,25,8,'Main Warehouse'],
+    ['GW-SMF35','Goodwin','SealTech SMF35','Two-Wheeler','12V','35Ah','SMF (Sealed)',18,'8507',2300,3100,3400,80,20,'Pune Depot'],
+  ];
+  products.forEach(([sku,brand,model,cat,volt,ah,type,gst,hsn,pp,sp,mrp,open,min,wh]) => {
+    DB.products.push({
+      id: uid('PRD'), name: model, brand, model, sku, category: cat, voltage: volt, ah, batteryType: type,
+      gstRate: gst, hsn, purchasePrice: pp, sellingPrice: sp, mrp, openingStock: open, minStock: min,
+      warehouse: wh, warrantyMonths: cat==='Automotive'?18:30, createdAt: nowISO(), status: 'active'
+    });
+  });
+
+  DB.stockTx = [];
+  DB.products.forEach(p => {
+    DB.stockTx.push({ id: uid('STX'), date: todayISO(), productId: p.id, type: 'Opening Stock',
+      qty: p.openingStock, before: 0, after: p.openingStock, refType: 'Opening', refId: '-', user: 'System' });
+  });
+
+  const cust = DB.customers[0];
+  const prod = DB.products[0];
+  const inv = createSalesInvoiceObj({
+    customerId: cust.id, date: todayISO(), dueDate: addDays(todayISO(), cust.creditDays),
+    paymentMode: 'Credit', status: 'Confirmed', docType: 'GST Tax Invoice',
+    lines: [{ productId: prod.id, qty: 10, rate: prod.sellingPrice, discountPct: 2 }], freight: 500
+  });
+  DB.salesInvoices.push(inv);
+  applyStockForSale(inv);
+
+  const rec = {
+    id: uid('RCT'), number: nextNumber('RCT','GW-RCT'), date: todayISO(), customerId: cust.id,
+    amount: 50000, mode: 'Bank Transfer', reference: 'NEFT/DEMO/001', allocations: [{ invoiceId: inv.id, amount: 50000 }],
+    createdAt: nowISO()
+  };
+  DB.receipts.push(rec);
+
+  DB.expenses = [{
+    id: uid('EXP'), number: 'EXP-2026-0001', date: todayISO(), category: 'Logistics / Freight',
+    paidTo: 'VRL Logistics', amount: 1500, mode: 'UPI', status: 'Paid', notes: 'Warehouse transport', createdAt: nowISO()
+  }];
+}
+function addDays(iso, days) { const d = new Date(iso); d.setDate(d.getDate()+ (days||0)); return d.toISOString().slice(0,10); }
+
+/* ============================ ACCOUNTING ENGINE ========================== */
+function calcLine(qty, rate, discountPct, gstRate, sameState) {
+  qty = num(qty); rate = num(rate); discountPct = num(discountPct); gstRate = num(gstRate);
+  const gross = qty * rate;
+  const discount = gross * discountPct / 100;
+  const taxable = gross - discount;
+  let cgst = 0, sgst = 0, igst = 0;
+  if (sameState) { cgst = taxable * gstRate / 200; sgst = taxable * gstRate / 200; }
+  else { igst = taxable * gstRate / 100; }
+  const total = taxable + cgst + sgst + igst;
+  return { gross, discount, taxable, cgst, sgst, igst, total };
+}
+
+function invoiceTotals(lines, freight, sameState) {
+  let taxable=0, cgst=0, sgst=0, igst=0;
+  const computed = lines.map(l => {
+    const c = calcLine(l.qty, l.rate, l.discountPct, l.gstRate, sameState);
+    taxable += c.taxable; cgst += c.cgst; sgst += c.sgst; igst += c.igst;
+    return { ...l, ...c };
+  });
+  const grandTotal = taxable + cgst + sgst + igst + num(freight);
+  return { lines: computed, taxable, cgst, sgst, igst, freight: num(freight), grandTotal };
+}
+
+function invoiceAllocatedAmount(invoiceId) {
+  let sum = 0;
+  DB.receipts.forEach(r => (r.allocations||[]).forEach(a => { if (a.invoiceId === invoiceId) sum += num(a.amount); }));
+  return sum;
+}
+function invoiceCreditNoteAmount(invoiceId) {
+  let sum = 0;
+  DB.salesReturns.forEach(sr => { if (sr.invoiceId === invoiceId && sr.status !== 'Cancelled') sum += num(sr.creditNoteAmount); });
+  return sum;
+}
+function invoiceOutstanding(inv) {
+  if (inv.status === 'Cancelled' || inv.status === 'Draft') return 0;
+  const allocated = invoiceAllocatedAmount(inv.id);
+  const cn = invoiceCreditNoteAmount(inv.id);
+  return round2(inv.grandTotal - allocated - cn);
+}
+function round2(n){ return Math.round((num(n)+Number.EPSILON)*100)/100; }
+
+function customerUnallocatedCredit(customerId) {
+  let sum = 0;
+  DB.receipts.filter(r => r.customerId === customerId).forEach(r => {
+    const allocated = (r.allocations||[]).reduce((s,a)=>s+num(a.amount),0);
+    sum += Math.max(0, num(r.amount) - allocated);
+  });
+  return round2(sum);
+}
+function customerOutstanding(customerId) {
+  const invs = DB.salesInvoices.filter(i => i.customerId === customerId && i.status !== 'Cancelled' && i.status !== 'Draft');
+  const total = invs.reduce((s,i)=> s + invoiceOutstanding(i), 0);
+  return round2(total - customerUnallocatedCredit(customerId));
+}
+function supplierOutstanding(supplierId) {
+  const purs = DB.purchaseInvoices.filter(p => p.supplierId === supplierId && p.status !== 'Cancelled' && p.status !== 'Draft');
+  const total = purs.reduce((s,p)=> s + purchaseOutstanding(p), 0);
+  return round2(total - supplierUnallocatedCredit(supplierId));
+}
+function purchaseAllocatedAmount(purchaseId) {
+  let sum = 0;
+  DB.payments.forEach(p => (p.allocations||[]).forEach(a => { if (a.purchaseId === purchaseId) sum += num(a.amount); }));
+  return sum;
+}
+function purchaseOutstanding(p) {
+  if (p.status === 'Cancelled' || p.status === 'Draft') return 0;
+  return round2(p.grandTotal - purchaseAllocatedAmount(p.id));
+}
+
+function stock(productId) {
+  return round2((DB.stockTx||[]).filter(t => t.productId === productId).reduce((s, t) => s + num(t.qty), 0));
+}
+function recordStockTx(productId, delta, type, refType, refId, note) {
+  const before = stock(productId);
+  const after = round2(before + delta);
+  DB.stockTx.push({
+    id: uid('STX'), date: todayISO(), productId, type, qty: delta, before, after,
+    refType, refId, note: note || '', user: CURRENT_ROLE
+  });
+  persist('stockTx');
+  return after;
+}
+
+function createSalesInvoiceObj({customerId, date, dueDate, paymentMode, status, lines, freight, notes, docType}) {
+  const cust = DB.customers.find(c => c.id === customerId);
+  const sameState = cust && cust.state === SETTINGS.companyState;
+  const enriched = lines.map(l => {
+    const p = DB.products.find(pp => pp.id === l.productId);
+    return { productId: l.productId, sku: p?p.sku:'', name: p?p.name:l.name, hsn: p?p.hsn:'', qty: num(l.qty), rate: num(l.rate), discountPct: num(l.discountPct||0), gstRate: p?p.gstRate:18 };
+  });
+  const totals = invoiceTotals(enriched, freight||0, sameState);
+  const prefix = docType === 'Quotation' ? 'GW-QT' : docType === 'Proforma Invoice' ? 'GW-PI' : 'GW-INV';
+  return {
+    id: uid('INV'), number: nextNumber(docType||'SALES', prefix), date, dueDate, customerId, paymentMode: paymentMode||'Credit',
+    status: status||'Confirmed', docType: docType||'GST Tax Invoice', sameState, lines: totals.lines, taxable: round2(totals.taxable),
+    cgst: round2(totals.cgst), sgst: round2(totals.sgst), igst: round2(totals.igst), freight: round2(totals.freight), grandTotal: round2(totals.grandTotal),
+    notes: notes||'', createdAt: nowISO(), createdBy: CURRENT_ROLE
+  };
+}
+function applyStockForSale(inv) {
+  if (inv.docType === 'Quotation' || inv.docType === 'Proforma Invoice') return;
+  inv.lines.forEach(l => recordStockTx(l.productId, -Math.abs(l.qty), 'Sale', 'Sale', inv.id, inv.number));
+}
+
+/* ------------------------------- TOAST & MODAL ---------------------------- */
+function toast(msg, type) {
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3200);
+}
+function openModal(html, onMount) {
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `<div class="modal-backdrop" id="mbackdrop"><div class="modal">${html}</div></div>`;
+  document.getElementById('mbackdrop').addEventListener('click', (e)=>{ if(e.target.id==='mbackdrop') closeModal(); });
+  if (onMount) onMount();
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+/* -------------------------------- ROUTING --------------------------------- */
+// One application, two workspaces. Both modes use the same DB, records, auth and Supabase connection.
+let APP_MODE = localStorage.getItem('gw_app_mode') || 'goodwin';
+const MODE_META = {
+  goodwin: { name:'Goodwin ERP', tag:'ERP • Sales • Inventory', icon:'⚡' },
+  ledger: { name:'Ledger Pro', tag:'Accounts • Ledger • Finance', icon:'📒' }
+};
+const MODE_NAV = {
+  goodwin: ['dashboard','customers','suppliers','products','sales','purchases','returns','warranty','reports','settings'],
+  ledger: ['dashboard','customers','sales','receipts','payments']
+};
+
+const NAV = [
+  {id:'dashboard', label:'📊 Dashboard', roles:['Admin','Manager','Sales','Accounts','Inventory']},
+  {id:'customers', label:'👥 Customers & Dealers', roles:['Admin','Manager','Sales']},
+  {id:'suppliers', label:'🚚 Suppliers & Vendors', roles:['Admin','Manager']},
+  {id:'products', label:'🔋 Products & Inventory', roles:['Admin','Manager','Inventory']},
+  {id:'sales', label:'🧾 Sales / GST Invoices', roles:['Admin','Manager','Sales']},
+  {id:'purchases', label:'📦 Purchases & POs', roles:['Admin','Manager']},
+  {id:'returns', label:'↩️ Returns (Credit/Debit)', roles:['Admin','Manager','Sales']},
+  {id:'receipts', label:'💰 Payment In (Receipts)', roles:['Admin','Manager','Accounts']},
+  {id:'payments', label:'💸 Payment Out (Payments)', roles:['Admin','Manager','Accounts']},
+  {id:'partyledger', label:'📑 Party-wise Ledger', roles:['Admin','Manager','Accounts']},
+  {id:'expenses', label:'💸 Expenses Tracker', roles:['Admin','Manager','Accounts']},
+  {id:'cashbank', label:'💵 Cash & Bank Book', roles:['Admin','Manager','Accounts']},
+  {id:'warranty', label:'🛡️ Battery Warranty', roles:['Admin','Manager','Inventory']},
+  {id:'reports', label:'📈 Reports & Analytics', roles:['Admin','Manager','Accounts']},
+  {id:'auditlog', label:'📜 Audit Log', roles:['Admin']},
+  {id:'settings', label:'⚙️ Settings & Cloud DB', roles:['Admin']},
+];
+let currentPage = 'dashboard';
+const app = {};
+
+app.toggleSidebar = () => {
+  const sb = document.getElementById('sidebar');
+  if (sb) sb.classList.toggle('open');
+};
+
+function appNavItems() {
+  const allowed = MODE_NAV[APP_MODE] || MODE_NAV.goodwin;
+  return NAV.filter(n => allowed.includes(n.id) && n.roles.includes(CURRENT_ROLE));
+}
+function updateModeUI() {
+  const meta = MODE_META[APP_MODE] || MODE_META.goodwin;
+  const g = document.getElementById('modeGoodwin');
+  const l = document.getElementById('modeLedger');
+  if (g) g.classList.toggle('active', APP_MODE === 'goodwin');
+  if (l) l.classList.toggle('active', APP_MODE === 'ledger');
+  const brand = document.querySelector('#sidebar .brand .name');
+  const tag = document.querySelector('#sidebar .brand .tag');
+  if (brand) brand.innerHTML = `${meta.icon} ${meta.name}`;
+  if (tag) tag.textContent = meta.tag;
+}
+app.switchMode = (mode) => {
+  if (!MODE_META[mode] || APP_MODE === mode) return;
+  APP_MODE = mode;
+  localStorage.setItem('gw_app_mode', APP_MODE);
+  currentPage = 'dashboard';
+  updateModeUI();
+  renderNav();
+  route();
+  const sb = document.getElementById('sidebar');
+  if (sb && window.innerWidth <= 780) sb.classList.remove('open');
+  toast(`Switched to ${MODE_META[APP_MODE].name}`, 'success');
+};
+function renderSidebar() {
+  const roleSel = document.getElementById('roleSelect');
+  roleSel.innerHTML = ['Admin','Manager','Sales','Accounts','Inventory'].map(r=>`<option value="${r}" ${r===CURRENT_ROLE?'selected':''}>${r}</option>`).join('');
+  roleSel.onchange = (e) => { CURRENT_ROLE = e.target.value; if (!appNavItems().some(n=>n.id===currentPage)) currentPage='dashboard'; renderNav(); route(); };
+  updateModeUI();
+  renderNav();
+  document.getElementById('storageModeLabel').textContent = Store.getModeLabel();
+  document.getElementById('dataModeNote').textContent = Store.getModeDescription();
+  updateSupabaseHeaderBtn();
+}
+function renderNav() {
+  const nav = document.getElementById('navList');
+  nav.innerHTML = appNavItems().map(n => {
+    let label = n.label;
+    if (APP_MODE === 'ledger') {
+      if (n.id === 'customers') label = '👥 Parties';
+      if (n.id === 'sales') label = '🧾 Sales / Invoices';
+      if (n.id === 'receipts') label = '💰 Payment In';
+      if (n.id === 'payments') label = '💸 Payment Out';
+    }
+    return `<div class="navitem ${n.id===currentPage?'active':''}" data-nav="${n.id}">
+      <span>${label}</span>
+      ${n.id==='sales'?`<span class="badge-count">${DB.salesInvoices?DB.salesInvoices.length:0}</span>`:''}
+    </div>`;
+  }).join('');
+  nav.querySelectorAll('.navitem').forEach(el => el.addEventListener('click', () => {
+    currentPage = el.dataset.nav;
+    renderNav();
+    route();
+    const sb = document.getElementById('sidebar');
+    if (sb && window.innerWidth <= 780) sb.classList.remove('open');
+  }));
+}
+
+const TITLES = {
+  dashboard:['Dashboard','Live overview of sales, collections, stock & ledger'],
+  customers:['Customers & Dealers','Manage customer profiles, credit limits & ledgers'],
+  suppliers:['Suppliers & Vendors','Manage vendors and purchase records'],
+  products:['Products & Battery Inventory','Stock levels, specifications & stock movements'],
+  sales:['Sales & GST Invoices','Create sales invoices, quotations, proforma & challans'],
+  purchases:['Purchases & Orders','Supplier invoices & Purchase Orders'],
+  returns:['Returns & Notes','Sales returns (Credit notes) & Purchase returns (Debit notes)'],
+  receipts:['Payment In (Receipts)','Log payments received from customers'],
+  payments:['Payment Out (Payments)','Log payments made to vendors'],
+  partyledger:['Party-wise Ledger','Detailed transaction statement for any party'],
+  expenses:['Expenses Tracker','Operational expenses and office disbursements'],
+  cashbank:['Cash & Bank Book','Cash in hand & Bank accounts reconciliation'],
+  warranty:['Battery Warranty Tracking','Serial number registration & warranty claims'],
+  reports:['Reports & Analytics','GSTR-1, GSTR-2, P&L summary & stock valuation'],
+  auditlog:['Audit Log','Activity history of database changes'],
+  settings:['Settings & Cloud DB','Company profile, GST & Supabase connection'],
+};
+
+function route() {
+  const meta = MODE_META[APP_MODE] || MODE_META.goodwin;
+  let title = TITLES[currentPage];
+  if (APP_MODE === 'ledger') {
+    const ledgerTitles = {
+      dashboard:['Dashboard','Ledger Pro overview'],
+      customers:['Parties','Manage customers and dealers'],
+      sales:['Sales / Invoices','Create and manage sales invoices'],
+      receipts:['Payment In','Record payments received'],
+      payments:['Payment Out','Record payments made']
+    };
+    title = ledgerTitles[currentPage] || title;
+  }
+  document.getElementById('pageTitle').innerHTML = `${title[0]} <span class="mode-pill">${meta.name}</span>`;
+  document.getElementById('pageSub').textContent = title[1];
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  const renderers = {
+    dashboard: renderDashboard, customers: renderCustomers, suppliers: renderSuppliers,
+    products: renderProducts, sales: renderSales, purchases: renderPurchases, returns: renderReturns,
+    receipts: renderReceipts, payments: renderPayments, partyledger: renderPartyLedger,
+    expenses: renderExpenses, cashbank: renderCashBank, warranty: renderWarranty,
+    reports: renderReports, auditlog: renderAuditLog, settings: renderSettings
+  };
+  (renderers[currentPage] || renderDashboard)(el);
+}
+
+/* ================================ DASHBOARD ================================ */
+function renderDashboard(el) {
+  const today = todayISO();
+  const salesToday = DB.salesInvoices.filter(i => i.date === today && i.status !== 'Cancelled' && i.status !== 'Draft').reduce((s, i) => s + i.grandTotal, 0);
+  const collToday = DB.receipts.filter(r => r.date === today).reduce((s, r) => s + num(r.amount), 0);
+  const monthPrefix = today.slice(0, 7);
+  const monthSales = DB.salesInvoices.filter(i => i.date.startsWith(monthPrefix) && i.status !== 'Cancelled' && i.status !== 'Draft').reduce((s, i) => s + i.grandTotal, 0);
+  
+  let cogs = 0;
+  DB.salesInvoices.filter(i => i.date.startsWith(monthPrefix) && i.status !== 'Cancelled' && i.status !== 'Draft').forEach(inv => {
+    inv.lines.forEach(l => {
+      const p = DB.products.find(pp => pp.id === l.productId);
+      cogs += (p ? num(p.purchasePrice) : 0) * l.qty;
+    });
+  });
+  
+  const totalStockVal = DB.products.reduce((s, p) => s + stock(p.id) * num(p.purchasePrice), 0);
+  const totalReceivables = DB.customers.reduce((s, c) => s + customerOutstanding(c.id), 0);
+  const totalPayables = DB.suppliers.reduce((s, sup) => s + supplierOutstanding(sup.id), 0);
+
+  el.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Sales Today</div><div class="value">${inr(salesToday)}</div></div>
+      <div class="kpi"><div class="label">Collections Today</div><div class="value green">${inr(collToday)}</div></div>
+      <div class="kpi"><div class="label">Month Sales (${monthPrefix})</div><div class="value">${inr(monthSales)}</div></div>
+      <div class="kpi"><div class="label">Est. COGS & Margin</div><div class="value">${inr(monthSales - cogs)}</div></div>
+      <div class="kpi"><div class="label">Stock Valuation</div><div class="value">${inr(totalStockVal)}</div></div>
+      <div class="kpi"><div class="label">Total Receivables</div><div class="value red">${inr(totalReceivables)}</div></div>
+      <div class="kpi"><div class="label">Total Payables</div><div class="value amber">${inr(totalPayables)}</div></div>
+    </div>
+
+    <div class="row">
+      <div class="panel">
+        <h2>⚡ Low Stock Alerts</h2>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Product / Model</th><th>SKU</th><th>Current Stock</th><th>Min Level</th><th>Status</th></tr></thead>
+            <tbody>
+              ${DB.products.filter(p => stock(p.id) <= p.minStock).map(p => `
+                <tr>
+                  <td><b>${esc(p.name)}</b></td>
+                  <td class="mono">${esc(p.sku)}</td>
+                  <td><b style="color:var(--red);">${stock(p.id)}</b></td>
+                  <td>${p.minStock}</td>
+                  <td><span class="badge badge-red">Reorder Needed</span></td>
+                </tr>
+              `).join('') || '<tr><td colspan="5" class="empty-state">All products are adequately stocked!</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>👥 Top Receivables (Outstanding)</h2>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Customer Name</th><th>Credit Limit</th><th>Outstanding</th><th>Action</th></tr></thead>
+            <tbody>
+              ${DB.customers.map(c => ({...c, out: customerOutstanding(c.id)})).filter(c=>c.out > 0).sort((a,b)=>b.out-a.out).slice(0,5).map(c => `
+                <tr>
+                  <td><b>${esc(c.name)}</b></td>
+                  <td>${inr(c.creditLimit)}</td>
+                  <td><b style="color:var(--red);">${inr(c.out)}</b></td>
+                  <td><button class="btn-ghost btn-sm" onclick="app.viewPartyLedger('${c.id}')">View Ledger</button></td>
+                </tr>
+              `).join('') || '<tr><td colspan="4" class="empty-state">No pending receivables!</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ================================ CUSTOMERS ================================ */
+function renderCustomers(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <div class="left">
+        <input type="text" id="custSearch" placeholder="Search customer, phone, GSTIN..." oninput="app.filterCustomers()">
+        <select id="custTypeFilter" onchange="app.filterCustomers()">
+          <option value="">All Types</option><option>Dealer</option><option>Distributor</option><option>Retailer</option><option>OEM</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="app.openCustomerModal()">+ Add Customer / Dealer</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Customer / Company</th><th>Contact & Mobile</th><th>GSTIN & State</th><th>Type</th><th>Credit Limit</th><th>Outstanding</th><th>Actions</th></tr></thead>
+          <tbody id="custTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  app.filterCustomers();
+}
+app.filterCustomers = () => {
+  const q = (document.getElementById('custSearch') ? document.getElementById('custSearch').value : '').toLowerCase();
+  const type = document.getElementById('custTypeFilter') ? document.getElementById('custTypeFilter').value : '';
+  const rows = DB.customers.filter(c => {
+    const m = c.name.toLowerCase().includes(q) || c.mobile.includes(q) || (c.gstin||'').toLowerCase().includes(q);
+    const t = !type || c.customerType === type;
+    return m && t;
+  });
+  const tbody = document.getElementById('custTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(c => {
+    const out = customerOutstanding(c.id);
+    return `
+      <tr>
+        <td><b>${esc(c.name)}</b><br><span class="muted" style="font-size:11px;">${esc(c.address)}</span></td>
+        <td>${esc(c.contact)}<br><span class="mono">${esc(c.mobile)}</span></td>
+        <td><span class="mono">${esc(c.gstin||'N/A')}</span><br><span class="badge badge-gray">${esc(c.state)}</span></td>
+        <td><span class="badge badge-navy">${esc(c.customerType||'Dealer')}</span></td>
+        <td>${inr(c.creditLimit)}</td>
+        <td><b style="color:${out>0?'var(--red)':'var(--green)'}">${inr(out)}</b></td>
+        <td>
+          <button class="btn-ghost btn-sm" onclick="app.viewPartyLedger('${c.id}')">Ledger</button>
+          <button class="btn-ghost btn-sm" onclick="app.openCustomerModal('${c.id}')">Edit</button>
+        </td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="7" class="empty-state">No matching customers found.</td></tr>';
+};
+
+app.openCustomerModal = (id) => {
+  const c = DB.customers.find(x => x.id === id) || { name:'', company:'', contact:'', mobile:'', email:'', address:'', state: SETTINGS.companyState, gstin:'', customerType:'Dealer', creditLimit:300000, creditDays:30 };
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>${id ? 'Edit Customer' : 'Add New Customer / Dealer'}</h3>
+    <div class="field-grid col-4">
+      <div class="field"><label>Customer Name *</label><input id="mc_name" value="${esc(c.name)}" placeholder="e.g. ABC Battery Dealer"></div>
+      <div class="field"><label>Contact Person</label><input id="mc_contact" value="${esc(c.contact)}" placeholder="e.g. Rakesh Shah"></div>
+      <div class="field"><label>Mobile Number *</label><input id="mc_mobile" value="${esc(c.mobile)}" placeholder="e.g. 9810001111"></div>
+      <div class="field"><label>Email</label><input id="mc_email" value="${esc(c.email)}" placeholder="dealer@example.com"></div>
+      <div class="field"><label>GSTIN</label><input id="mc_gstin" value="${esc(c.gstin)}" placeholder="27AAAAA0000A1Z5"></div>
+      <div class="field"><label>State *</label><input id="mc_state" value="${esc(c.state)}" placeholder="Maharashtra"></div>
+      <div class="field"><label>Customer Type</label><select id="mc_type">
+        <option ${c.customerType==='Dealer'?'selected':''}>Dealer</option>
+        <option ${c.customerType==='Distributor'?'selected':''}>Distributor</option>
+        <option ${c.customerType==='Retailer'?'selected':''}>Retailer</option>
+        <option ${c.customerType==='OEM'?'selected':''}>OEM</option>
+      </select></div>
+      <div class="field"><label>Credit Limit (₹)</label><input id="mc_limit" type="number" value="${c.creditLimit}"></div>
+    </div>
+    <div class="field" style="margin-top:6px;"><label>Address</label><textarea id="mc_addr" rows="2" style="width:100%;">${esc(c.address)}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveCustomer('${id||''}')">Save Customer</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.saveCustomer = async (id) => {
+  const name = document.getElementById('mc_name').value.trim();
+  const mobile = document.getElementById('mc_mobile').value.trim();
+  if (!name || !mobile) { toast('Please fill in Name and Mobile Number','error'); return; }
+  const payload = {
+    id: id || uid('CUS'), name, company: name, contact: document.getElementById('mc_contact').value.trim(),
+    mobile, email: document.getElementById('mc_email').value.trim(), address: document.getElementById('mc_addr').value.trim(),
+    state: document.getElementById('mc_state').value.trim(), gstin: document.getElementById('mc_gstin').value.trim(),
+    customerType: document.getElementById('mc_type').value, creditLimit: num(document.getElementById('mc_limit').value),
+    creditDays: 30, createdAt: nowISO(), status: 'active'
+  };
+  if (id) {
+    const idx = DB.customers.findIndex(x => x.id === id);
+    DB.customers[idx] = { ...DB.customers[idx], ...payload };
+  } else {
+    DB.customers.push(payload);
+  }
+  await persist('customers');
+  toast('Customer saved successfully','success');
+  closeModal();
+  route();
+};
+
+/* ================================ SUPPLIERS ================================ */
+function renderSuppliers(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openSupplierModal()">+ Add Supplier / Vendor</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Supplier Name</th><th>Mobile & Email</th><th>GSTIN & State</th><th>Credit Limit</th><th>Outstanding Payable</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${DB.suppliers.map(s => {
+              const out = supplierOutstanding(s.id);
+              return `
+                <tr>
+                  <td><b>${esc(s.name)}</b><br><span class="muted" style="font-size:11px;">${esc(s.address)}</span></td>
+                  <td>${esc(s.mobile)}<br><span class="muted">${esc(s.email)}</span></td>
+                  <td><span class="mono">${esc(s.gstin)}</span><br><span class="badge badge-gray">${esc(s.state)}</span></td>
+                  <td>${inr(s.creditLimit)}</td>
+                  <td><b style="color:${out>0?'var(--amber)':'var(--green)'}">${inr(out)}</b></td>
+                  <td><button class="btn-ghost btn-sm" onclick="app.openSupplierModal('${s.id}')">Edit</button></td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="6" class="empty-state">No suppliers added yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openSupplierModal = (id) => {
+  const s = DB.suppliers.find(x => x.id === id) || { name:'', mobile:'', email:'', address:'', state: SETTINGS.companyState, gstin:'', creditLimit:1000000 };
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>${id ? 'Edit Supplier' : 'Add Supplier / Vendor'}</h3>
+    <div class="field-grid col-4">
+      <div class="field"><label>Supplier Company Name *</label><input id="ms_name" value="${esc(s.name)}"></div>
+      <div class="field"><label>Mobile Number *</label><input id="ms_mobile" value="${esc(s.mobile)}"></div>
+      <div class="field"><label>Email</label><input id="ms_email" value="${esc(s.email)}"></div>
+      <div class="field"><label>GSTIN</label><input id="ms_gstin" value="${esc(s.gstin)}"></div>
+      <div class="field"><label>State *</label><input id="ms_state" value="${esc(s.state)}"></div>
+      <div class="field"><label>Credit Limit (₹)</label><input id="ms_limit" type="number" value="${s.creditLimit}"></div>
+    </div>
+    <div class="field"><label>Address</label><textarea id="ms_addr" rows="2" style="width:100%;">${esc(s.address)}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveSupplier('${id||''}')">Save Supplier</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.saveSupplier = async (id) => {
+  const name = document.getElementById('ms_name').value.trim();
+  if (!name) { toast('Please enter Supplier Name','error'); return; }
+  const payload = {
+    id: id || uid('SUP'), name, company: name, contact: 'Supply Desk',
+    mobile: document.getElementById('ms_mobile').value.trim(), email: document.getElementById('ms_email').value.trim(),
+    address: document.getElementById('ms_addr').value.trim(), state: document.getElementById('ms_state').value.trim(),
+    gstin: document.getElementById('ms_gstin').value.trim(), creditLimit: num(document.getElementById('ms_limit').value),
+    creditDays: 45, createdAt: nowISO()
+  };
+  if (id) {
+    const idx = DB.suppliers.findIndex(x => x.id === id);
+    DB.suppliers[idx] = { ...DB.suppliers[idx], ...payload };
+  } else {
+    DB.suppliers.push(payload);
+  }
+  await persist('suppliers');
+  toast('Supplier saved successfully','success');
+  closeModal();
+  route();
+};
+
+/* ================================ PRODUCTS ================================ */
+function renderProducts(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openProductModal()">+ Add Product / Battery</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Product Name & Spec</th><th>SKU & HSN</th><th>Category & Type</th><th>Cost Price</th><th>Selling Price</th><th>Stock</th><th>Warranty</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${DB.products.map(p => {
+              const currentStock = stock(p.id);
+              return `
+                <tr>
+                  <td><b>${esc(p.name)}</b><br><span class="muted">${esc(p.brand)} · ${esc(p.voltage)} ${esc(p.ah)}</span></td>
+                  <td><span class="mono">${esc(p.sku)}</span><br><span class="muted">HSN: ${esc(p.hsn)}</span></td>
+                  <td><span class="badge badge-navy">${esc(p.category)}</span><br><span class="muted">${esc(p.batteryType)}</span></td>
+                  <td>${inr(p.purchasePrice)}</td>
+                  <td><b>${inr(p.sellingPrice)}</b></td>
+                  <td><b style="color:${currentStock<=p.minStock?'var(--red)':'var(--navy)'}">${currentStock}</b></td>
+                  <td>${p.warrantyMonths} mos</td>
+                  <td><button class="btn-ghost btn-sm" onclick="app.openProductModal('${p.id}')">Edit</button></td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="8" class="empty-state">No products added yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openProductModal = (id) => {
+  const p = DB.products.find(x => x.id === id) || { sku:'', brand:'Goodwin', model:'', category:'Automotive', voltage:'12V', ah:'150Ah', batteryType:'Flooded (Lead-Acid)', gstRate:18, hsn:'8507', purchasePrice:9000, sellingPrice:12000, mrp:13000, openingStock:20, minStock:5, warehouse:'Main Warehouse', warrantyMonths:18 };
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>${id ? 'Edit Product' : 'Add Battery Product'}</h3>
+    <div class="field-grid col-4">
+      <div class="field"><label>Model Name *</label><input id="mp_model" value="${esc(p.model||p.name)}"></div>
+      <div class="field"><label>SKU Code *</label><input id="mp_sku" value="${esc(p.sku)}"></div>
+      <div class="field"><label>Brand</label><input id="mp_brand" value="${esc(p.brand)}"></div>
+      <div class="field"><label>Category</label><select id="mp_cat">
+        <option ${p.category==='Automotive'?'selected':''}>Automotive</option>
+        <option ${p.category==='Inverter'?'selected':''}>Inverter</option>
+        <option ${p.category==='Two-Wheeler'?'selected':''}>Two-Wheeler</option>
+        <option ${p.category==='E-Rickshaw'?'selected':''}>E-Rickshaw</option>
+        <option ${p.category==='UPS'?'selected':''}>UPS</option>
+      </select></div>
+      <div class="field"><label>Voltage</label><input id="mp_volt" value="${esc(p.voltage)}"></div>
+      <div class="field"><label>Capacity (Ah)</label><input id="mp_ah" value="${esc(p.ah)}"></div>
+      <div class="field"><label>HSN Code</label><input id="mp_hsn" value="${esc(p.hsn)}"></div>
+      <div class="field"><label>GST Rate (%)</label><input id="mp_gst" type="number" value="${p.gstRate}"></div>
+      <div class="field"><label>Purchase Cost (₹)</label><input id="mp_pp" type="number" value="${p.purchasePrice}"></div>
+      <div class="field"><label>Selling Price (₹)</label><input id="mp_sp" type="number" value="${p.sellingPrice}"></div>
+      <div class="field"><label>Opening Stock</label><input id="mp_open" type="number" value="${p.openingStock}"></div>
+      <div class="field"><label>Min Stock Alert</label><input id="mp_min" type="number" value="${p.minStock}"></div>
+      <div class="field"><label>Warranty (Months)</label><input id="mp_war" type="number" value="${p.warrantyMonths}"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveProduct('${id||''}')">Save Product</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.saveProduct = async (id) => {
+  const model = document.getElementById('mp_model').value.trim();
+  const sku = document.getElementById('mp_sku').value.trim();
+  if (!model || !sku) { toast('Please enter Model Name and SKU','error'); return; }
+  const payload = {
+    id: id || uid('PRD'), name: model, brand: document.getElementById('mp_brand').value.trim(), model, sku,
+    category: document.getElementById('mp_cat').value, voltage: document.getElementById('mp_volt').value.trim(),
+    ah: document.getElementById('mp_ah').value.trim(), batteryType: 'Tubular', gstRate: num(document.getElementById('mp_gst').value),
+    hsn: document.getElementById('mp_hsn').value.trim(), purchasePrice: num(document.getElementById('mp_pp').value),
+    sellingPrice: num(document.getElementById('mp_sp').value), mrp: num(document.getElementById('mp_sp').value)*1.1,
+    openingStock: num(document.getElementById('mp_open').value), minStock: num(document.getElementById('mp_min').value),
+    warehouse: 'Main Warehouse', warrantyMonths: num(document.getElementById('mp_war').value), createdAt: nowISO(), status: 'active'
+  };
+  if (id) {
+    const idx = DB.products.findIndex(x => x.id === id);
+    DB.products[idx] = { ...DB.products[idx], ...payload };
+  } else {
+    DB.products.push(payload);
+    recordStockTx(payload.id, payload.openingStock, 'Opening Stock', 'Opening', '-', 'Initial opening stock');
+  }
+  await persist('products');
+  toast('Product saved successfully','success');
+  closeModal();
+  route();
+};
+
+/* ================================ SALES INVOICES ================================ */
+function renderSales(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openNewInvoiceModal()">+ Create Sales Invoice / Quotation</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Invoice / Doc #</th><th>Date</th><th>Type</th><th>Customer</th><th>Taxable</th><th>GST</th><th>Grand Total</th><th>Outstanding</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${DB.salesInvoices.map(inv => {
+              const cust = DB.customers.find(c => c.id === inv.customerId);
+              const out = invoiceOutstanding(inv);
+              return `
+                <tr>
+                  <td><b class="mono">${esc(inv.number)}</b></td>
+                  <td>${inv.date}</td>
+                  <td><span class="badge badge-navy">${esc(inv.docType||'GST Tax Invoice')}</span></td>
+                  <td><b>${cust ? esc(cust.name) : 'Unknown'}</b></td>
+                  <td>${inr(inv.taxable)}</td>
+                  <td>${inr(inv.cgst + inv.sgst + inv.igst)}</td>
+                  <td><b>${inr(inv.grandTotal)}</b></td>
+                  <td><b style="color:${out>0?'var(--red)':'var(--green)'}">${inr(out)}</b></td>
+                  <td>
+                    <button class="btn-ghost btn-sm" onclick="app.printInvoiceModal('${inv.id}')">🖨️ Invoice</button>
+                  </td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="9" class="empty-state">No sales invoices generated yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openNewInvoiceModal = () => {
+  const custOptions = DB.customers.map(c => `<option value="${c.id}">${esc(c.name)} (${esc(c.state)})</option>`).join('');
+  const prodOptions = DB.products.map(p => `<option value="${p.id}">${esc(p.name)} - ${inr(p.sellingPrice)} (Stock: ${stock(p.id)})</option>`).join('');
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>Create Invoice / Quotation / Order</h3>
+    <div class="field-grid col-4">
+      <div class="field"><label>Document Type</label><select id="mi_type">
+        <option>GST Tax Invoice</option><option>Quotation</option><option>Proforma Invoice</option>
+      </select></div>
+      <div class="field"><label>Customer *</label><select id="mi_cust">${custOptions}</select></div>
+      <div class="field"><label>Invoice Date</label><input id="mi_date" type="date" value="${todayISO()}"></div>
+      <div class="field"><label>Freight Charges (₹)</label><input id="mi_freight" type="number" value="0"></div>
+    </div>
+    <h4 style="margin:14px 0 8px;font-size:13px;color:var(--navy);">Line Items</h4>
+    <div class="tbl-wrap" style="margin-bottom:14px;">
+      <table>
+        <thead><tr><th>Product</th><th>Qty</th><th>Unit Rate (₹)</th><th>Disc %</th></tr></thead>
+        <tbody id="mi_lines">
+          <tr>
+            <td><select class="mi_prod">${prodOptions}</select></td>
+            <td><input type="number" class="mi_qty" value="1"></td>
+            <td><input type="number" class="mi_rate" value="12000"></td>
+            <td><input type="number" class="mi_disc" value="0"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="btn-ghost btn-sm" onclick="app.addInvoiceLineRow()">+ Add Item Row</button>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveInvoice()">Generate Invoice</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.addInvoiceLineRow = () => {
+  const prodOptions = DB.products.map(p => `<option value="${p.id}">${esc(p.name)} - ${inr(p.sellingPrice)} (Stock: ${stock(p.id)})</option>`).join('');
+  const tbody = document.getElementById('mi_lines');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><select class="mi_prod">${prodOptions}</select></td>
+    <td><input type="number" class="mi_qty" value="1"></td>
+    <td><input type="number" class="mi_rate" value="12000"></td>
+    <td><input type="number" class="mi_disc" value="0"></td>
+  `;
+  tbody.appendChild(tr);
+};
+app.saveInvoice = async () => {
+  const custId = document.getElementById('mi_cust').value;
+  const docType = document.getElementById('mi_type').value;
+  const date = document.getElementById('mi_date').value;
+  const freight = num(document.getElementById('mi_freight').value);
+  
+  const lineRows = document.querySelectorAll('#mi_lines tr');
+  const lines = [];
+  lineRows.forEach(tr => {
+    const productId = tr.querySelector('.mi_prod').value;
+    const qty = num(tr.querySelector('.mi_qty').value);
+    const rate = num(tr.querySelector('.mi_rate').value);
+    const discountPct = num(tr.querySelector('.mi_disc').value);
+    if (qty > 0) lines.push({ productId, qty, rate, discountPct });
+  });
+
+  if (!lines.length) { toast('Please add at least one line item','error'); return; }
+
+  const cust = DB.customers.find(c => c.id === custId);
+  const inv = createSalesInvoiceObj({
+    customerId: custId, date, dueDate: addDays(date, cust ? cust.creditDays : 30),
+    paymentMode: 'Credit', status: 'Confirmed', docType, lines, freight
+  });
+
+  DB.salesInvoices.push(inv);
+  applyStockForSale(inv);
+  await persist('salesInvoices');
+  logAudit('CreateInvoice', 'SalesInvoice', inv.id, `Created ${docType} ${inv.number} for ${cust?cust.name:''}`);
+  toast(`${docType} created successfully!`, 'success');
+  closeModal();
+  route();
+};
+
+app.printInvoiceModal = (id) => {
+  const inv = DB.salesInvoices.find(x => x.id === id);
+  if (!inv) return;
+  const cust = DB.customers.find(c => c.id === inv.customerId);
+  const html = `
+    <span class="close-x no-print" onclick="closeModal()">&times;</span>
+    <div style="padding:10px;" id="printInvArea">
+      <div style="display:flex;justify-content:space-between;border-bottom:2px solid var(--navy);padding-bottom:10px;flex-wrap:wrap;">
+        <div>
+          <h2>⚡ ${esc(SETTINGS.companyName)}</h2>
+          <div style="font-size:11px;color:var(--muted);">${esc(SETTINGS.companyAddress)}<br>GSTIN: ${esc(SETTINGS.companyGSTIN)} | Phone: ${esc(SETTINGS.companyPhone)}</div>
+        </div>
+        <div style="text-align:right;">
+          <h3 style="margin:0;color:var(--navy);">${esc(inv.docType)}</h3>
+          <b class="mono" style="font-size:16px;">${esc(inv.number)}</b>
+          <div style="font-size:11px;">Date: ${inv.date}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin:14px 0;font-size:12px;flex-wrap:wrap;">
+        <div>
+          <b>Billed To:</b><br>
+          <strong>${cust?esc(cust.name):''}</strong><br>
+          ${cust?esc(cust.address):''}<br>
+          GSTIN: ${cust?esc(cust.gstin):''} | State: ${cust?esc(cust.state):''}
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Item Description</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Taxable</th><th>GST</th><th>Total</th></tr></thead>
+          <tbody>
+            ${inv.lines.map((l, i) => `
+              <tr>
+                <td>${i+1}</td>
+                <td><b>${esc(l.name)}</b></td>
+                <td>${esc(l.hsn)}</td>
+                <td>${l.qty}</td>
+                <td>${inr(l.rate)}</td>
+                <td>${inr(l.taxable)}</td>
+                <td>${inr(l.cgst + l.sgst + l.igst)}</td>
+                <td><b>${inr(l.total)}</b></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px;text-align:right;font-size:13px;">
+        <div>Taxable Amount: ${inr(inv.taxable)}</div>
+        <div>CGST + SGST / IGST: ${inr(inv.cgst + inv.sgst + inv.igst)}</div>
+        <div>Freight Charges: ${inr(inv.freight)}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--navy);margin-top:6px;">Grand Total: ${inr(inv.grandTotal)}</div>
+      </div>
+    </div>
+    <div class="modal-actions no-print">
+      <button class="btn-ghost" onclick="closeModal()">Close</button>
+      <button class="btn-primary" onclick="window.print()">🖨️ Print Invoice</button>
+    </div>
+  `;
+  openModal(html);
+};
+
+/* ================================ PURCHASES ================================ */
+function renderPurchases(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openNewPurchaseModal()">+ Create Purchase Invoice</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Purchase #</th><th>Date</th><th>Supplier</th><th>Taxable</th><th>GST</th><th>Grand Total</th><th>Outstanding</th></tr></thead>
+          <tbody>
+            ${DB.purchaseInvoices.map(p => {
+              const sup = DB.suppliers.find(s => s.id === p.supplierId);
+              const out = purchaseOutstanding(p);
+              return `
+                <tr>
+                  <td><b class="mono">${esc(p.number)}</b></td>
+                  <td>${p.date}</td>
+                  <td><b>${sup ? esc(sup.name) : 'Unknown'}</b></td>
+                  <td>${inr(p.taxable)}</td>
+                  <td>${inr(p.cgst + p.sgst + p.igst)}</td>
+                  <td><b>${inr(p.grandTotal)}</b></td>
+                  <td><b style="color:${out>0?'var(--amber)':'var(--green)'}">${inr(out)}</b></td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="7" class="empty-state">No purchase invoices logged.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openNewPurchaseModal = () => {
+  const supOptions = DB.suppliers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  const prodOptions = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>Log Purchase Invoice</h3>
+    <div class="field-grid col-3">
+      <div class="field"><label>Supplier *</label><select id="mpu_sup">${supOptions}</select></div>
+      <div class="field"><label>Date</label><input id="mpu_date" type="date" value="${todayISO()}"></div>
+      <div class="field"><label>Freight (₹)</label><input id="mpu_freight" type="number" value="0"></div>
+    </div>
+    <h4 style="margin:14px 0 8px;">Items Purchased</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Product</th><th>Qty</th><th>Purchase Cost Rate (₹)</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><select id="mpu_prod">${prodOptions}</select></td>
+            <td><input type="number" id="mpu_qty" value="10"></td>
+            <td><input type="number" id="mpu_rate" value="9500"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.savePurchase()">Save Purchase</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.savePurchase = async () => {
+  const supplierId = document.getElementById('mpu_sup').value;
+  const date = document.getElementById('mpu_date').value;
+  const productId = document.getElementById('mpu_prod').value;
+  const qty = num(document.getElementById('mpu_qty').value);
+  const rate = num(document.getElementById('mpu_rate').value);
+  const freight = num(document.getElementById('mpu_freight').value);
+
+  const pObj = {
+    id: uid('PUR'), number: nextNumber('PUR','GW-PUR'), date, supplierId, status: 'Confirmed',
+    lines: [{ productId, qty, rate, discountPct:0, gstRate:18 }], freight
+  };
+  const sup = DB.suppliers.find(s => s.id === supplierId);
+  const sameState = sup && sup.state === SETTINGS.companyState;
+  const totals = invoiceTotals([{ productId, qty, rate, discountPct:0, gstRate:18 }], freight, sameState);
+  pObj.taxable = totals.taxable; pObj.cgst = totals.cgst; pObj.sgst = totals.sgst; pObj.igst = totals.igst; pObj.grandTotal = totals.grandTotal;
+
+  DB.purchaseInvoices.push(pObj);
+  recordStockTx(productId, qty, 'Purchase', 'Purchase', pObj.id, pObj.number);
+  await persist('purchaseInvoices');
+  toast('Purchase invoice logged & stock updated!','success');
+  closeModal();
+  route();
+};
+
+/* ================================ RECEIPTS & PAYMENTS ================================ */
+function renderReceipts(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openReceiptModal()">+ Receive Payment (Payment In)</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Receipt #</th><th>Date</th><th>Customer</th><th>Payment Mode</th><th>Reference</th><th>Amount Received</th></tr></thead>
+          <tbody>
+            ${DB.receipts.map(r => {
+              const cust = DB.customers.find(c => c.id === r.customerId);
+              return `
+                <tr>
+                  <td><b class="mono">${esc(r.number)}</b></td>
+                  <td>${r.date}</td>
+                  <td><b>${cust ? esc(cust.name) : 'Unknown'}</b></td>
+                  <td><span class="badge badge-navy">${esc(r.mode)}</span></td>
+                  <td class="mono">${esc(r.reference||'-')}</td>
+                  <td><b style="color:var(--green);">${inr(r.amount)}</b></td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="6" class="empty-state">No payments received yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openReceiptModal = () => {
+  const custOptions = DB.customers.map(c => `<option value="${c.id}">${esc(c.name)} (Outstanding: ${inr(customerOutstanding(c.id))})</option>`).join('');
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>Log Payment In (Receipt)</h3>
+    <div class="field-grid">
+      <div class="field"><label>Customer *</label><select id="mr_cust">${custOptions}</select></div>
+      <div class="field"><label>Date</label><input id="mr_date" type="date" value="${todayISO()}"></div>
+      <div class="field"><label>Amount Received (₹) *</label><input id="mr_amt" type="number" value="10000"></div>
+      <div class="field"><label>Payment Mode</label><select id="mr_mode">
+        <option>Bank Transfer</option><option>UPI</option><option>Cash</option><option>Cheque</option>
+      </select></div>
+      <div class="field" style="grid-column:1/-1;"><label>Reference / UTR / Cheque No.</label><input id="mr_ref"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveReceipt()">Save Payment In</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.saveReceipt = async () => {
+  const customerId = document.getElementById('mr_cust').value;
+  const date = document.getElementById('mr_date').value;
+  const amount = num(document.getElementById('mr_amt').value);
+  const mode = document.getElementById('mr_mode').value;
+  const reference = document.getElementById('mr_ref').value.trim();
+
+  if (amount <= 0) { toast('Please enter a valid amount','error'); return; }
+
+  const rec = {
+    id: uid('RCT'), number: nextNumber('RCT','GW-RCT'), date, customerId, amount, mode, reference,
+    allocations: [], createdAt: nowISO()
+  };
+  DB.receipts.push(rec);
+  await persist('receipts');
+  toast('Payment recorded successfully!','success');
+  closeModal();
+  route();
+};
+
+function renderPayments(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openPaymentOutModal()">+ Make Payment (Payment Out)</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Payment #</th><th>Date</th><th>Supplier</th><th>Payment Mode</th><th>Reference</th><th>Amount Paid</th></tr></thead>
+          <tbody>
+            ${DB.payments.map(p => {
+              const sup = DB.suppliers.find(s => s.id === p.supplierId);
+              return `
+                <tr>
+                  <td><b class="mono">${esc(p.number)}</b></td>
+                  <td>${p.date}</td>
+                  <td><b>${sup ? esc(sup.name) : 'Unknown'}</b></td>
+                  <td><span class="badge badge-navy">${esc(p.mode)}</span></td>
+                  <td class="mono">${esc(p.reference||'-')}</td>
+                  <td><b style="color:var(--red);">${inr(p.amount)}</b></td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="6" class="empty-state">No payments made logged.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openPaymentOutModal = () => {
+  const supOptions = DB.suppliers.map(s => `<option value="${s.id}">${esc(s.name)} (Outstanding: ${inr(supplierOutstanding(s.id))})</option>`).join('');
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>Log Payment Out (Vendor Payment)</h3>
+    <div class="field-grid">
+      <div class="field"><label>Supplier *</label><select id="mpo_sup">${supOptions}</select></div>
+      <div class="field"><label>Date</label><input id="mpo_date" type="date" value="${todayISO()}"></div>
+      <div class="field"><label>Amount Paid (₹) *</label><input id="mpo_amt" type="number" value="10000"></div>
+      <div class="field"><label>Payment Mode</label><select id="mpo_mode">
+        <option>Bank Transfer</option><option>UPI</option><option>Cash</option><option>Cheque</option>
+      </select></div>
+      <div class="field" style="grid-column:1/-1;"><label>Reference / UTR</label><input id="mpo_ref"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.savePaymentOut()">Save Payment Out</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.savePaymentOut = async () => {
+  const supplierId = document.getElementById('mpo_sup').value;
+  const date = document.getElementById('mpo_date').value;
+  const amount = num(document.getElementById('mpo_amt').value);
+  const mode = document.getElementById('mpo_mode').value;
+  const reference = document.getElementById('mpo_ref').value.trim();
+
+  if (amount <= 0) { toast('Please enter valid amount','error'); return; }
+
+  const pObj = {
+    id: uid('PAY'), number: nextNumber('PAY','GW-PAY'), date, supplierId, amount, mode, reference,
+    allocations: [], createdAt: nowISO()
+  };
+  DB.payments.push(pObj);
+  await persist('payments');
+  toast('Payment Out recorded!','success');
+  closeModal();
+  route();
+};
+
+/* ================================ PARTY LEDGER ================================ */
+function renderPartyLedger(el) {
+  const custOptions = DB.customers.map(c => `<option value="CUS_${c.id}">Customer: ${esc(c.name)}</option>`).join('');
+  const supOptions = DB.suppliers.map(s => `<option value="SUP_${s.id}">Supplier: ${esc(s.name)}</option>`).join('');
+  
+  el.innerHTML = `
+    <div class="toolbar">
+      <div class="left">
+        <select id="pl_party_select" onchange="app.loadPartyLedgerTable()">${custOptions}${supOptions}</select>
+      </div>
+      <button class="btn-ghost" onclick="window.print()">🖨️ Print Statement</button>
+    </div>
+    <div class="panel" id="partyLedgerBox"></div>
+  `;
+  app.loadPartyLedgerTable();
+}
+app.viewPartyLedger = (partyId) => {
+  currentPage = 'partyledger';
+  renderNav();
+  route();
+  setTimeout(() => {
+    const sel = document.getElementById('pl_party_select');
+    if (sel) {
+      const match = Array.from(sel.options).find(o => o.value.includes(partyId));
+      if (match) { sel.value = match.value; app.loadPartyLedgerTable(); }
+    }
+  }, 100);
+};
+app.loadPartyLedgerTable = () => {
+  const val = document.getElementById('pl_party_select') ? document.getElementById('pl_party_select').value : '';
+  const box = document.getElementById('partyLedgerBox');
+  if (!val || !box) return;
+
+  const isCust = val.startsWith('CUS_');
+  const partyId = val.replace('CUS_','').replace('SUP_','');
+  const party = isCust ? DB.customers.find(c=>c.id===partyId) : DB.suppliers.find(s=>s.id===partyId);
+
+  const entries = [];
+  if (isCust) {
+    DB.salesInvoices.filter(i=>i.customerId===partyId && i.status!=='Cancelled').forEach(i => entries.push({ date:i.date, type:'Sales Invoice', ref:i.number, debit:i.grandTotal, credit:0 }));
+    DB.receipts.filter(r=>r.customerId===partyId).forEach(r => entries.push({ date:r.date, type:'Receipt / Payment In', ref:r.number, debit:0, credit:r.amount }));
+  } else {
+    DB.purchaseInvoices.filter(p=>p.supplierId===partyId && p.status!=='Cancelled').forEach(p => entries.push({ date:p.date, type:'Purchase Invoice', ref:p.number, debit:0, credit:p.grandTotal }));
+    DB.payments.filter(p=>p.supplierId===partyId).forEach(p => entries.push({ date:p.date, type:'Payment Out', ref:p.number, debit:p.amount, credit:0 }));
+  }
+
+  entries.sort((a,b) => a.date.localeCompare(b.date));
+
+  let running = 0;
+  box.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;">
+      <div>
+        <h3>${esc(party?party.name:'')}</h3>
+        <div style="color:var(--muted);font-size:12px;">${esc(party?party.address:'')} | GSTIN: ${esc(party?party.gstin:'')}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:var(--muted);">Current Balance</div>
+        <div style="font-size:20px;font-weight:700;color:var(--navy);">${inr(isCust ? customerOutstanding(partyId) : supplierOutstanding(partyId))}</div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Reference #</th><th>Debit (Dr)</th><th>Credit (Cr)</th><th>Running Balance</th></tr></thead>
+        <tbody>
+          ${entries.map(e => {
+            running += (e.debit - e.credit);
+            return `
+              <tr>
+                <td>${e.date}</td>
+                <td><span class="badge badge-navy">${e.type}</span></td>
+                <td class="mono">${esc(e.ref)}</td>
+                <td>${e.debit ? inr(e.debit) : '-'}</td>
+                <td>${e.credit ? inr(e.credit) : '-'}</td>
+                <td><b>${inr(running)}</b></td>
+              </tr>
+            `;
+          }).join('') || '<tr><td colspan="6" class="empty-state">No transaction ledger history.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+/* ================================ EXPENSES ================================ */
+function renderExpenses(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openExpenseModal()">+ Add Expense</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Expense #</th><th>Date</th><th>Category</th><th>Paid To</th><th>Payment Mode</th><th>Amount (₹)</th></tr></thead>
+          <tbody>
+            ${(DB.expenses||[]).map(e => `
+              <tr>
+                <td><b class="mono">${esc(e.number)}</b></td>
+                <td>${e.date}</td>
+                <td><span class="badge badge-navy">${esc(e.category)}</span></td>
+                <td><b>${esc(e.paidTo)}</b></td>
+                <td>${esc(e.mode)}</td>
+                <td><b style="color:var(--red);">${inr(e.amount)}</b></td>
+              </tr>
+            `).join('') || '<tr><td colspan="6" class="empty-state">No expenses logged.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openExpenseModal = () => {
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>Log Operational Expense</h3>
+    <div class="field-grid">
+      <div class="field"><label>Category *</label><select id="me_cat">
+        <option>Logistics / Freight</option><option>Rent & Lease</option><option>Utilities & Electricity</option>
+        <option>Salary & Wages</option><option>Tea & Refreshments</option><option>Maintenance</option><option>Marketing</option>
+      </select></div>
+      <div class="field"><label>Paid To / Vendor *</label><input id="me_to" value="Office Expenses"></div>
+      <div class="field"><label>Amount (₹) *</label><input id="me_amt" type="number" value="500"></div>
+      <div class="field"><label>Date</label><input id="me_date" type="date" value="${todayISO()}"></div>
+      <div class="field" style="grid-column:1/-1;"><label>Payment Mode</label><select id="me_mode"><option>UPI</option><option>Cash</option><option>Bank Transfer</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveExpense()">Save Expense</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.saveExpense = async () => {
+  const category = document.getElementById('me_cat').value;
+  const paidTo = document.getElementById('me_to').value.trim();
+  const amount = num(document.getElementById('me_amt').value);
+  const date = document.getElementById('me_date').value;
+  const mode = document.getElementById('me_mode').value;
+
+  if (amount <= 0) { toast('Please enter valid amount','error'); return; }
+
+  DB.expenses = DB.expenses || [];
+  DB.expenses.push({
+    id: uid('EXP'), number: nextNumber('EXP','EXP'), date, category, paidTo, amount, mode, createdAt: nowISO()
+  });
+  await persist('expenses');
+  toast('Expense logged!','success');
+  closeModal();
+  route();
+};
+
+/* ================================ CASH & BANK ================================ */
+function renderCashBank(el) {
+  let totalCash = 0, totalBank = 0;
+  DB.receipts.forEach(r => { if (r.mode==='Cash') totalCash += num(r.amount); else totalBank += num(r.amount); });
+  DB.payments.forEach(p => { if (p.mode==='Cash') totalCash -= num(p.amount); else totalBank -= num(p.amount); });
+  (DB.expenses||[]).forEach(e => { if (e.mode==='Cash') totalCash -= num(e.amount); else totalBank -= num(e.amount); });
+
+  el.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Estimated Cash in Hand</div><div class="value green">${inr(totalCash)}</div></div>
+      <div class="kpi"><div class="label">Estimated Bank Balance</div><div class="value">${inr(totalBank)}</div></div>
+    </div>
+    <div class="panel">
+      <h2>💵 Recent Cash & Bank Movements</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th>Party / Vendor</th><th>Mode</th><th>In (Debit)</th><th>Out (Credit)</th></tr></thead>
+          <tbody>
+            ${[
+              ...DB.receipts.map(r=>({date:r.date, type:'Receipt', name:'Customer', mode:r.mode, in:r.amount, out:0})),
+              ...DB.payments.map(p=>({date:p.date, type:'Payment Out', name:'Supplier', mode:p.mode, in:0, out:p.amount})),
+              ...(DB.expenses||[]).map(e=>({date:e.date, type:'Expense', name:e.paidTo, mode:e.mode, in:0, out:e.amount}))
+            ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).map(m=>`
+              <tr>
+                <td>${m.date}</td>
+                <td><span class="badge badge-navy">${m.type}</span></td>
+                <td>${esc(m.name)}</td>
+                <td>${m.mode}</td>
+                <td><b style="color:var(--green);">${m.in?inr(m.in):'-'}</b></td>
+                <td><b style="color:var(--red);">${m.out?inr(m.out):'-'}</b></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* ================================ WARRANTY ================================ */
+function renderWarranty(el) {
+  el.innerHTML = `
+    <div class="toolbar">
+      <button class="btn-primary" onclick="app.openWarrantyRegModal()">+ Register Battery Serial</button>
+    </div>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Serial #</th><th>Product</th><th>Customer</th><th>Sale Date</th><th>Warranty Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${DB.warranties.map(w => {
+              const p = DB.products.find(x=>x.id===w.productId);
+              const c = DB.customers.find(x=>x.id===w.customerId);
+              return `
+                <tr>
+                  <td><b class="mono">${esc(w.serial||'SER-REG')}</b></td>
+                  <td><b>${p?esc(p.name):'-'}</b></td>
+                  <td>${c?esc(c.name):'-'}</td>
+                  <td>${w.saleDate}</td>
+                  <td>${w.expiryDate}</td>
+                  <td><span class="badge badge-green">${w.status}</span></td>
+                  <td><button class="btn-ghost btn-sm" onclick="app.replaceWarranty('${w.id}')">Issue Replacement</button></td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="7" class="empty-state">No batteries registered for warranty yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+app.openWarrantyRegModal = () => {
+  const prodOptions = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const custOptions = DB.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>Register Battery Warranty</h3>
+    <div class="field-grid">
+      <div class="field"><label>Battery Serial Number *</label><input id="mw_ser" value="GB-2026-9901"></div>
+      <div class="field"><label>Product *</label><select id="mw_prod">${prodOptions}</select></div>
+      <div class="field"><label>Customer *</label><select id="mw_cust">${custOptions}</select></div>
+      <div class="field"><label>Sale Date</label><input id="mw_date" type="date" value="${todayISO()}"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.saveWarranty()">Register Serial</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.saveWarranty = async () => {
+  const serial = document.getElementById('mw_ser').value.trim();
+  const productId = document.getElementById('mw_prod').value;
+  const customerId = document.getElementById('mw_cust').value;
+  const saleDate = document.getElementById('mw_date').value;
+
+  const p = DB.products.find(x=>x.id===productId);
+  const warrantyMonths = p ? p.warrantyMonths : 18;
+
+  DB.warranties.push({
+    id: uid('WAR'), serial, productId, customerId, saleDate, warrantyMonths,
+    expiryDate: addDays(saleDate, warrantyMonths*30), status: 'Active'
+  });
+  await persist('warranties');
+  toast('Warranty registered!','success');
+  closeModal();
+  route();
+};
+app.replaceWarranty = async (id) => {
+  const w = DB.warranties.find(x => x.id === id);
+  if (!w) return;
+  if (!confirm('Mark battery as replaced under warranty? This issues a replacement unit from stock without double-counting sales revenue.')) return;
+  w.status = 'Replaced';
+  recordStockTx(w.productId, -1, 'Warranty Replacement', 'Warranty', w.id, 'Replacement issued');
+  await persist('warranties');
+  toast('Replacement unit issued & stock reduced by 1','success');
+  route();
+};
+
+/* ================================ RETURNS ================================ */
+function renderReturns(el) {
+  el.innerHTML = `
+    <div class="panel">
+      <h2>↩️ Returns & Notes Management</h2>
+      <p class="muted">Sales returns create Credit Notes and restore stock. Purchase returns create Debit Notes and reduce stock.</p>
+    </div>
+  `;
+}
+
+/* ================================ REPORTS ================================ */
+function renderReports(el) {
+  el.innerHTML = `
+    <div class="panel">
+      <h2>📈 Reports & Analytics</h2>
+      <div class="toolbar">
+        <select id="repType" onchange="app.runReport()">
+          <option>Sales Register</option>
+          <option>Stock Ledger & Valuation</option>
+          <option>GSTR-1 Summary</option>
+        </select>
+        <button class="btn-ghost" onclick="window.print()">🖨️ Print Report</button>
+      </div>
+      <div id="repBox"></div>
+    </div>
+  `;
+  app.runReport();
+}
+app.runReport = () => {
+  const type = document.getElementById('repType') ? document.getElementById('repType').value : 'Sales Register';
+  const box = document.getElementById('repBox');
+  if (!box) return;
+
+  if (type === 'Sales Register') {
+    box.innerHTML = `
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Invoice #</th><th>Customer</th><th>Taxable</th><th>GST</th><th>Total</th></tr></thead>
+          <tbody>
+            ${DB.salesInvoices.map(i => `
+              <tr>
+                <td>${i.date}</td>
+                <td class="mono">${esc(i.number)}</td>
+                <td><b>${esc((DB.customers.find(c=>c.id===i.customerId)||{}).name||'')}</b></td>
+                <td>${inr(i.taxable)}</td>
+                <td>${inr(i.cgst+i.sgst+i.igst)}</td>
+                <td><b>${inr(i.grandTotal)}</b></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } else {
+    box.innerHTML = `
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Product Name</th><th>SKU</th><th>Stock</th><th>Purchase Price</th><th>Valuation</th></tr></thead>
+          <tbody>
+            ${DB.products.map(p => `
+              <tr>
+                <td><b>${esc(p.name)}</b></td>
+                <td class="mono">${esc(p.sku)}</td>
+                <td>${stock(p.id)}</td>
+                <td>${inr(p.purchasePrice)}</td>
+                <td><b>${inr(stock(p.id)*p.purchasePrice)}</b></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+};
+
+/* ================================ AUDIT LOG ================================ */
+function renderAuditLog(el) {
+  el.innerHTML = `
+    <div class="panel">
+      <h2>📜 System Audit Log</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Timestamp</th><th>User / Role</th><th>Action</th><th>Entity</th><th>Summary</th></tr></thead>
+          <tbody>
+            ${(DB.auditLog||[]).map(a => `
+              <tr>
+                <td class="mono" style="font-size:11px;">${a.ts}</td>
+                <td><span class="badge badge-navy">${esc(a.user)}</span></td>
+                <td><b>${esc(a.action)}</b></td>
+                <td>${esc(a.entity)}</td>
+                <td>${esc(a.summary)}</td>
+              </tr>
+            `).join('') || '<tr><td colspan="5" class="empty-state">No audit logs recorded yet.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* ================================ SETTINGS & SUPABASE UI ================================ */
+function renderSettings(el) {
+  el.innerHTML = `
+    <div class="panel" style="border:1.5px solid #b7e4ca;background:#f8fcf9;">
+      <h2 style="color:var(--navy);display:flex;align-items:center;gap:8px;">⚡ Supabase Cloud Database Integration</h2>
+      <p class="muted" style="line-height:1.5;">
+        Connect your Supabase PostgreSQL database to turn this HTML application into a full-featured multi-device cloud system. All transactions, customers, stock levels & invoices automatically sync across all your devices.
+      </p>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="app.openSupabaseModal()">⚡ Manage Supabase Connection & SQL</button>
+        <span class="badge ${SupabaseStore.isConnected()?'badge-green':'badge-gray'}" style="padding:6px 12px;font-size:12px;">
+          ${SupabaseStore.isConnected() ? '🟢 Connected to Supabase Cloud' : '⚪ Disconnected (Local Storage)'}
+        </span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Company Profile & GST Configuration</h2>
+      <div class="field-grid col-3">
+        <div class="field"><label>Company Name</label><input id="st_name" value="${esc(SETTINGS.companyName)}"></div>
+        <div class="field"><label>Home State (for GST Intra/Inter Check)</label><input id="st_state" value="${esc(SETTINGS.companyState)}"></div>
+        <div class="field"><label>GSTIN</label><input id="st_gstin" value="${esc(SETTINGS.companyGSTIN)}"></div>
+        <div class="field"><label>Phone</label><input id="st_phone" value="${esc(SETTINGS.companyPhone)}"></div>
+        <div class="field"><label>Email</label><input id="st_email" value="${esc(SETTINGS.companyEmail)}"></div>
+        <div class="field"><label>Default Credit Days</label><input id="st_days" type="number" value="${SETTINGS.defaultCreditDays}"></div>
+      </div>
+      <div class="field"><label>Address</label><textarea id="st_addr" rows="2" style="width:100%;">${esc(SETTINGS.companyAddress)}</textarea></div>
+      <div class="field"><label>Bank Details (printed on invoices)</label><input id="st_bank" style="width:100%;" value="${esc(SETTINGS.bankDetails)}"></div>
+      <button class="btn-primary" onclick="app.saveSettings()">Save Settings</button>
+    </div>
+  `;
+}
+app.saveSettings = async () => {
+  SETTINGS = { ...SETTINGS,
+    companyName: document.getElementById('st_name').value.trim(),
+    companyState: document.getElementById('st_state').value.trim(),
+    companyGSTIN: document.getElementById('st_gstin').value.trim(),
+    companyPhone: document.getElementById('st_phone').value.trim(),
+    companyEmail: document.getElementById('st_email').value.trim(),
+    defaultCreditDays: num(document.getElementById('st_days').value),
+    companyAddress: document.getElementById('st_addr').value.trim(),
+    bankDetails: document.getElementById('st_bank').value.trim(),
+  };
+  await persistSettings();
+  toast('Company settings saved','success');
+};
+
+function updateSupabaseHeaderBtn() {
+  const dot = document.getElementById('supaStatusDot');
+  const label = document.getElementById('supaHeaderLabel');
+  const btn = document.getElementById('supabaseHeaderBtn');
+  if (!dot || !label || !btn) return;
+
+  if (SupabaseStore.isConnected()) {
+    dot.textContent = '🟢';
+    label.textContent = 'Supabase Connected';
+    btn.style.background = '#e5f5ec';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = '#b7e4ca';
+  } else if (SupabaseStore.isConfigured()) {
+    dot.textContent = '⚠️';
+    label.textContent = 'Supabase Disconnected';
+    btn.style.background = '#fdf3e0';
+    btn.style.color = 'var(--amber)';
+    btn.style.borderColor = '#f5d8a0';
+  } else {
+    dot.textContent = '⚡';
+    label.textContent = 'Connect Supabase';
+    btn.style.background = '#eef1f6';
+    btn.style.color = 'var(--text)';
+    btn.style.borderColor = 'var(--line)';
+  }
+}
+
+app.openSupabaseModal = function() {
+  const cfg = SupabaseStore.getConfig();
+  const isConn = SupabaseStore.isConnected();
+
+  const quickSql = `-- ⚡ Goodwin Batteries ERP Database Setup SQL for Supabase SQL Editor
+create table if not exists public.erp_store (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table public.erp_store enable row level security;
+
+drop policy if exists "Public Access ERP Store" on public.erp_store;
+create policy "Public Access ERP Store" on public.erp_store for all using (true) with check (true);`;
+
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3 style="display:flex;align-items:center;gap:8px;">⚡ Supabase Cloud Database Integration</h3>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:0;margin-bottom:16px;">
+      Connect your Supabase PostgreSQL database directly from this HTML app to sync invoices, stock, customers & payments.
+    </p>
+
+    <div style="background:${isConn?'#f0faf4':'#f8fafc'};border:1px solid ${isConn?'#b7e4ca':'var(--line)'};padding:12px 14px;border-radius:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <strong style="color:${isConn?'var(--green)':'var(--navy)'};font-size:14px;">
+          ${isConn ? '🟢 Connected to Supabase Cloud' : '⚪ Not Connected (Using Browser Storage)'}
+        </strong>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">
+          ${isConn ? 'Your ERP database is syncing live with your Supabase PostgreSQL cloud.' : 'Enter your Supabase credentials below to activate live database sync.'}
+        </div>
+      </div>
+      ${isConn ? `<button class="btn-danger btn-sm" onclick="app.disconnectSupabase()">Disconnect</button>` : ''}
+    </div>
+
+    <div class="field-grid" style="grid-template-columns:1fr;">
+      <div class="field">
+        <label>Supabase Project URL *</label>
+        <input id="supa_url_input" placeholder="https://your-project-id.supabase.co" value="${esc(cfg.url)}">
+        <span style="font-size:11px;color:var(--muted);">Found in Supabase Dashboard ➔ Project Settings ➔ API</span>
+      </div>
+      <div class="field">
+        <label>Supabase Anon / Public Key *</label>
+        <input id="supa_key_input" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." value="${esc(cfg.key)}">
+        <span style="font-size:11px;color:var(--muted);">Found in Supabase Dashboard ➔ Project Settings ➔ API (anon public key)</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="app.saveAndTestSupabase()">🔌 Save & Test Connection</button>
+      ${isConn ? `
+        <button class="btn-ghost" onclick="app.pushToSupabase()">⬆️ Push Local Data to Supabase</button>
+        <button class="btn-ghost" onclick="app.pullFromSupabase()">⬇️ Pull Data from Supabase</button>
+      ` : ''}
+    </div>
+
+    <div id="supaTestFeedback"></div>
+
+    <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+
+    <h4 style="margin:0 0 6px;color:var(--navy);font-size:14px;">🛠️ Database Setup (SQL Generator)</h4>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+      Copy this SQL script and execute it in your <b>Supabase SQL Editor</b> (Supabase Dashboard ➔ SQL Editor ➔ New Query ➔ Run).
+    </p>
+
+    <textarea id="sqlQuickText" readonly rows="5" style="width:100%;font-family:monospace;font-size:11.5px;background:#f7f9fc;border:1px solid var(--line);border-radius:6px;padding:10px;">${esc(quickSql)}</textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:11px;color:var(--muted);">Creates \`erp_store\` table & open policy</span>
+      <button class="btn-accent btn-sm" onclick="app.copySql('sqlQuickText')">📋 Copy SQL Script</button>
+    </div>
+  `;
+  openModal(html);
+};
+
+app.copySql = (id) => {
+  const text = document.getElementById(id).value;
+  navigator.clipboard.writeText(text).then(() => toast('SQL script copied to clipboard!','success')).catch(() => toast('Copy failed','error'));
+};
+
+app.saveAndTestSupabase = async () => {
+  const url = document.getElementById('supa_url_input').value.trim();
+  const key = document.getElementById('supa_key_input').value.trim();
+  const fb = document.getElementById('supaTestFeedback');
+
+  if (!url || !key) {
+    fb.innerHTML = `<div style="background:#fdecec;color:var(--red);padding:10px;border-radius:6px;font-size:12.5px;">Please enter both Project URL and Anon Key.</div>`;
+    return;
+  }
+
+  SupabaseStore.saveConfig(url, key);
+  fb.innerHTML = `<div style="background:#eef1f6;color:var(--text);padding:10px;border-radius:6px;font-size:12.5px;">Testing connection to Supabase...</div>`;
+
+  const res = await SupabaseStore.testConnection();
+  if (res.success) {
+    fb.innerHTML = `<div style="background:#e5f5ec;color:var(--green);padding:10px;border-radius:6px;font-size:12.5px;font-weight:600;">✅ ${res.message}</div>`;
+    toast('Supabase connected successfully!','success');
+    renderSidebar();
+    const supaCust = await SupabaseStore.get('gw:customers');
+    if (!supaCust) {
+      await SupabaseStore.pushAll();
+      toast('Initial ERP data pushed to Supabase Cloud!','success');
+    }
+  } else {
+    fb.innerHTML = `<div style="background:#fdecec;color:var(--red);padding:10px;border-radius:6px;font-size:12.5px;"><strong>⚠️ Connection Failed:</strong><br>${esc(res.error)}</div>`;
+    renderSidebar();
+  }
+};
+
+app.disconnectSupabase = () => {
+  if (confirm('Disconnect from Supabase? Your local data will remain saved in browser.')) {
+    SupabaseStore.disconnect();
+    toast('Disconnected from Supabase','success');
+    renderSidebar();
+    closeModal();
+    if (currentPage === 'settings') route();
+  }
+};
+app.pushToSupabase = async () => {
+  toast('Pushing local records to Supabase Cloud...','');
+  const res = await SupabaseStore.pushAll();
+  if (res.success) toast('Successfully uploaded all records to Supabase!','success');
+  else toast(`Push failed: ${res.error}`,'error');
+};
+app.pullFromSupabase = async () => {
+  if (confirm('Pull data from Supabase Cloud into local browser state?')) {
+    toast('Pulling records from Supabase...','');
+    const res = await SupabaseStore.pullAll();
+    if (res.success) { toast('Data downloaded from Supabase!','success'); route(); closeModal(); }
+    else toast(`Pull failed: ${res.error}`,'error');
+  }
+};
+
+/* Supabase Auth Modal */
+app.openAuthModal = () => {
+  const html = `
+    <span class="close-x" onclick="closeModal()">&times;</span>
+    <h3>👤 Supabase Authentication</h3>
+    <p class="muted" style="font-size:12px;margin-bottom:14px;">Sign in with your Supabase credentials to identify your user session.</p>
+    <div class="field-grid" style="grid-template-columns:1fr;">
+      <div class="field"><label>Email Address</label><input id="auth_email" type="email" placeholder="admin@goodwinbatteries.com"></div>
+      <div class="field"><label>Password</label><input id="auth_pass" type="password"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="app.doAuthLogin()">Sign In</button>
+    </div>
+  `;
+  openModal(html);
+};
+app.doAuthLogin = async () => {
+  const email = document.getElementById('auth_email').value.trim();
+  const pass = document.getElementById('auth_pass').value.trim();
+  if (!email || !pass) { toast('Please enter email and password','error'); return; }
+
+  if (SupabaseStore.isConnected()) {
+    try {
+      const client = SupabaseStore.getClient();
+      const { data, error } = await client.auth.signInWithPassword({ email, password: pass });
+      if (error) { toast(`Auth error: ${error.message}`,'error'); return; }
+      CURRENT_USER = data.user;
+      toast(`Welcome back ${email}!`,'success');
+      updateAuthUI();
+      closeModal();
+    } catch(e) { toast(e.message,'error'); }
+  } else {
+    CURRENT_USER = { email };
+    toast(`Logged in locally as ${email}`,'success');
+    updateAuthUI();
+    closeModal();
+  }
+};
+function updateAuthUI() {
+  const btn = document.getElementById('authBtn');
+  const badge = document.getElementById('authUserBadge');
+  if (CURRENT_USER) {
+    if (btn) btn.style.display = 'none';
+    if (badge) {
+      badge.style.display = 'flex';
+      badge.innerHTML = `👤 ${esc(CURRENT_USER.email)} <a onclick="app.doLogout()" style="color:var(--red);cursor:pointer;margin-left:6px;">Logout</a>`;
+    }
+  } else {
+    if (btn) btn.style.display = 'inline-flex';
+    if (badge) badge.style.display = 'none';
+  }
+}
+app.doLogout = () => {
+  if (SupabaseStore.isConnected()) {
+    SupabaseStore.getClient().auth.signOut();
+  }
+  CURRENT_USER = null;
+  updateAuthUI();
+  toast('Signed out','success');
+};
+
+app.exportBackup = () => {
+  const backup = { exportedAt: nowISO(), settings: SETTINGS, counters: COUNTERS, data: DB };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `goodwin-erp-backup-${todayISO()}.json`; a.click();
+  toast('Backup downloaded','success');
+};
+
+/* =================================== BOOT ==================================== */
+async function boot() {
+  await loadAll();
+  renderSidebar();
+  route();
+  updateAuthUI();
+}
+boot();
+</script>
+</body>
+</html>

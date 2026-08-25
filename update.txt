@@ -13,3 +13,7 @@ meeting discussed - changing towards supabase instead of google sheets
 (positive review)
 
 25/08/2026
+
+Understood the website work 
+Tried verification (failed will try again tomorrow)
+integrated Supabase successfully. 
