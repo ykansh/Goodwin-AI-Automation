@@ -7,5 +7,9 @@ Made list of products company has in google sheets.
 Sales Info sheet 
 Order info sheet
 After-sales sheet
+meeting discussed - changing towards supabase instead of google sheets
+                    showed my n8n workflow.
+
+(positive review)
 
 25/08/2026
