@@ -1,4 +1,4 @@
-24/08/2026
+24/08/2026         (positive review)
 
 Gave a full day understanding the requirements and tech stack related to project.
 Made physical notes. 
@@ -10,16 +10,15 @@ After-sales sheet
 meeting discussed - changing towards supabase instead of google sheets
                     showed my n8n workflow.
 
-(positive review)
 
-25/08/2026
+25/08/2026         (positive review)
 
 Understood the website work 
 Tried verification (failed will try again tomorrow)
 integrated Supabase successfully. 
 
-26/08/2026
+26/08/2026         (positive review)
 
 Made a website with react. 
 half functional. (frontend needs to be refined)
-Attached database == Supabas
+Attached database == Supabase
