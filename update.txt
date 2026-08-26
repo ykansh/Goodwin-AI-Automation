@@ -17,3 +17,9 @@ meeting discussed - changing towards supabase instead of google sheets
 Understood the website work 
 Tried verification (failed will try again tomorrow)
 integrated Supabase successfully. 
+
+26/08/2026
+
+Made a website with react. 
+half functional. (frontend needs to be refined)
+Attached database == Supabas
