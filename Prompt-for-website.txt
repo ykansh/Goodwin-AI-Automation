@@ -1,0 +1,215 @@
+26 aug 
+
+Prompt for product . 
+
+you are a professional web designer. Who has vast knowledge of frontend and your preferred language is react. You use glass morphism as design style
+you have to make a website from scratch. This website is for Goodwin. It is for managing accounting and erp. 
+
+so the website starts from sign in or register. 
+there will be 
+
+i want new invoice/new order button 
+
+This website is for Goodwin ERP and Ledger-Pro. this website will have two section 1) ERP and  2) Ledger-Pro (give a switch so we can switch the section we want. 
+In ERP we want functionalities that will come to the left section of the screen:
+Dashboard
+Customers & Dealers
+Suppliers & Vendors
+Products & Inventory
+Sales / GST Invoices
+Purchases & POs
+Returns (Credit/Debit)
+Battery Warranty
+Reports & Analytics
+Settings & Cloud DB
+
+The system should automatically update connected modules.
+
+For example:
+
+*Sales Invoice → Stock decreases → Customer Ledger updates → Sales increases → Outstanding increases*
+
+*Purchase Invoice → Stock increases → Supplier Ledger updates → Payable increases*
+
+*Payment Received → Customer Outstanding decreases → Cash/Bank increases*
+
+*Payment Made → Supplier Outstanding decreases → Cash/Bank decreases*
+
+1)in Dashboard :
+monthly , weekly and daily. <option>
+then recent orders. top 3
+top selling by piece. top 3
+I want details of stock in the form of pie chart. 
+
+2)in customers and dealers: 
+first an option where. i can choose type ( all types , dealer , distributer , retailer , oem)
+search option at the top left 
+add customer option at the top right. 
+a data table like i attached photo
+add uoi column in table -> uoi (unified customer id )
+in actions we have two options edit and ledger)
+	ledger opens history of the customer with a table containing uoi , purchases , date , amount , gstin , payment details 
+
+
+3)in suppliers and vendors:
+information of suppliers and vendors in the form of table. 
+search option at the top left
+add vendor/supplier option at the top right
+
+
+4) Products & Inventory:
+information of Products & Inventory in the form of table. (attached a photo)
+add products option at the top right.
+in action there is a option edit where we can edit the data
+
+5)Sales / GST Invoices:
+attached photo of the table 
+create sales invoice vendor/supplier option at the top right
+in tables in actions there is a option of invoive clicking on it generates invoice
+
+6)Purchases & POs:
+create Purchases & POs option at the top right
+create table ( attached a photo)
+
+7) Returns (Credit/Debit):
+on you 
+
+8) Battery Warranty:
+attached a photo create a table. 
+create register battery warrant option at the top right
+
+9) Reports and Analytics 
+it should have a table based on monthly , weekly and day we can switch. 
+Sales Register , Stock ledger 
+Sales Register  - the table should contain date , invoice# , customer , taxable , GST , Total amount 
+Stock ledger - the table should contain product name , sku , stock , Purchase  price , valuation 
+
+10 ) In settings 
+attached photo info.
+
+————————————————————————————————————————————————————————————————
+
+When switched to Ledger-Pro
+In Ledger-Pro we want functionalities that will come to the left section of the screen:
+
+1)Dashboard
+2)Parties
+3)Sales / Invoices
+4)Payment In
+5)Payment Out
+
+The system should automatically update connected modules.
+
+For example:
+
+*Sales Invoice → Stock decreases → Customer Ledger updates → Sales increases → Outstanding increases*
+
+*Purchase Invoice → Stock increases → Supplier Ledger updates → Payable increases*
+
+*Payment Received → Customer Outstanding decreases → Cash/Bank increases*
+
+*Payment Made → Supplier Outstanding decreases → Cash/Bank decreases*
+
+1) Dashboard: (i don’t really know what ledger means its on you but still if it is correct you can use below info)
+monthly , weekly and daily. <option>
+then recent orders. top 3
+top selling by piece. top 3
+I want details of stock in the form of pie chart. 
+
+2) Parties 
+search option top left 
+category just below 
+a table containing info uoi (unified customer id ) customer , contact , gstin , type , credit limit , outstanding , actions ( in actions we have two options edit and ledger)
+	ledger opens history of the customer with a table containing uoi , purchases , date , amount , gstin , payment details 
+
+3)Sales / Invoices
+a table containing info about : 
+invoice date type customer taxable gst grand total outstanding actions(in actions we can print invoice)
+create option at the top 
+
+4)Payment In
+reciept date customer payment mode reference amount recieved      table
+take payment in option  
+
+5)Payment out
+reciept date customer payment mode reference amount recieved      table
+take payment out option  
+—————————————————————————————————————————————————————————————————————————
+
+ADDITIONAL :  
+### Goodwin Batteries Specific
+
+Make the system configurable for our battery business, including:
+
+* Battery model
+* Voltage
+* Ah
+* SKU
+* GST
+* Purchase price
+* Selling price
+* Stock
+* Warehouse/rack
+* Dealer/customer type
+* Salesperson assignment
+
+Use examples such as *12V 8Ah and 12V 14Ah*, but keep everything editable through the admin panel.
+
+Admin access -will be able to see all functionalities
+Manager - all functionality
+accounts - Dashboard , Report and Analytics
+Sales - Dashboard
+ Customers & Dealers
+ Sales / GST Invoices
+Returns (Credit/Debit)
+inventory 
+by simply signing in the website should know wether it is admin or normal. 
+
+throw some dummy data
+connect supabase as database. 
+
+Design style: 
+look - simple , minimal and standard , animations should be smooth. 
+fonts - montserrat
+colours - #00a631(primary) #3a3b39 (secondary) #cde06c (tertiary) #f5f4f0 (fourth) 
+
+
+
+————————————————————————————————————————————————————————————————
+
+2nd prompt 
+
+"Create a fully responsive website Use a mobile-first design. Use CSS Flexbox and Grid for layout. Use relative units like rem and percentages instead of fixed pixels so the design never breaks on small mobile phones, large phones, tablets, or desktop screens. Make sure text wraps correctly and images scale down automatically without causing horizontal scrolling.
+
+add dark mode 
+goodwin erp and ledger pro switch are mixing with each other add some space between them and increase the size a bit , they should not be overlapping each other. 
+goodwin erp dashboard - all the charts are overlapping and are on one side. they should be in middle and should be fitted perfectly with the borders and should look clean 
+{ Dashboard
+Customers & Dealers
+Suppliers & Vendors
+Products & Inventory
+Sales / GST Invoices
+Purchases & POs
+Returns (Credit/Debit)
+Battery Warranty
+Reports & Analytics
+Settings & Cloud DB } increase their size and should look clean with systematic spacing. 
+
+in customers and dealers: first an option where. i can choose type ( all types , dealer , distributer , retailer , oem) i meant drop down menu 
+tjhis page is also not clean looking ui . edit option we have used to edit the data and it has no functionality like that. 
+check others too they have the same problem ui is not clean spaces are overlapping on each other. 
+
+{1)Dashboard
+2)Parties
+3)Sales / Invoices
+4)Payment In
+5)Payment Out} increase their size and should look clean with systematic spacing.
+goodwin ledger-pro  dashboard - all the charts are overlapping and are on one side. they should be in middle and should be fitted perfectly with the borders and should look clean. 
+parties : edit option we have used to edit the data and it has no functionality like that.
+edit the ui a bit make it clean. space overlapping is in every option check it twice. very important.  
+
+make some changes in dashboard make those :
+text is getting overlapped and those graphs they are over lapping each other 
+spacing rule to be implemented in dashboard - use an 8-pixel grid system 
+Set line spacing to at least 1.5 times the font size for easy reading.
+Container padding: Buttons and cards usually have a minimum padding of 16px inside so text never touches the border

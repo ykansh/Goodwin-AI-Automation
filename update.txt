@@ -19,6 +19,7 @@ integrated Supabase successfully.
 
 26/08/2026         (positive review)
 
+Designed a prompt for website
 Made a website with react. 
 half functional. (frontend needs to be refined)
 Attached database == Supabase
