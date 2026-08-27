@@ -30,4 +30,4 @@ Researched for better alternative than n8n cloud == $24/month
 Conclusion ==>> n8n local --> Host it online (cheaper)
 found Hostinger , aws , etc
 found Hostinger cheaper == $7/month
-found claude code == 1.6 billion parameters free (OpenRoute)
+found claude code == 1.6 billion parameters free (OmniRoute)
