@@ -19,7 +19,7 @@ integrated Supabase successfully.
 
 26/08/2026         (positive review)
 
-Designed a prompt for website
+Designed a prompt for website. (review the prompt)
 Made a website with react. 
 half functional. (frontend needs to be refined)
 Attached database == Supabase
@@ -31,3 +31,7 @@ Conclusion ==>> n8n local --> Host it online (cheaper)
 found Hostinger , aws , etc
 found Hostinger cheaper == $7/month
 found claude code == 1.6 billion parameters free (OmniRoute)
+Made the automation in local host again.
+made MOM 
+fixed Supabase 
+started working on n8n automation. 
