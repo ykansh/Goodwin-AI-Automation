@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #00a631;
+  --color-primary-light: #33b85a;
+  --color-primary-dark: #008a29;
+  --color-secondary: #3a3b39;
+  --color-secondary-light: #5a5b59;
+  --color-tertiary: #cde06c;
+  --color-tertiary-light: #dbe98f;
+  --color-background: #f5f4f0;
+  --color-background-dark: #141614;
+  --color-surface: rgba(255, 255, 255, 0.7);
+  --color-surface-dark: rgba(26, 28, 26, 0.85);
+  --font-sans: 'Montserrat', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f5f4f0;
+  color: #3a3b39;
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark body {
+  background-color: #141614;
+  color: #e5e7eb;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Glass Morphism Utilities - Light Mode */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s ease;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.09);
+  transform: translateY(-2px);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  color: #1f2937;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #00a631;
+  box-shadow: 0 0 0 3px rgba(0, 166, 49, 0.15);
+  outline: none;
+}
+
+/* Glass Morphism Utilities - Dark Mode */
+html.dark .glass {
+  background: rgba(30, 34, 30, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .glass-strong {
+  background: rgba(24, 27, 24, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .glass-card {
+  background: rgba(32, 36, 32, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .glass-card:hover {
+  background: rgba(38, 43, 38, 0.85);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .glass-input {
+  background: rgba(30, 35, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f3f4f6;
+}
+
+html.dark .glass-input:focus {
+  background: rgba(40, 46, 40, 0.9);
+  border-color: #00a631;
+  box-shadow: 0 0 0 3px rgba(0, 166, 49, 0.25);
+}
+
+/* Background gradient orbs */
+.bg-gradient-orbs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-gradient-orbs::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 40rem;
+  height: 40rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 166, 49, 0.12) 0%, transparent 70%);
+}
+
+.bg-gradient-orbs::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 35rem;
+  height: 35rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(205, 224, 108, 0.15) 0%, transparent 70%);
+}
+
+html.dark .bg-gradient-orbs::before {
+  background: radial-gradient(circle, rgba(0, 166, 49, 0.18) 0%, transparent 70%);
+}
+
+html.dark .bg-gradient-orbs::after {
+  background: radial-gradient(circle, rgba(205, 224, 108, 0.08) 0%, transparent 70%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 0.4rem;
+  height: 0.4rem;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(90, 91, 89, 0.3);
+  border-radius: 0.2rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(90, 91, 89, 0.5);
+}
+
+/* Table styles */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.data-table thead th {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  padding: 0.875rem 1.25rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4b5563;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+html.dark .data-table thead th {
+  background: rgba(28, 32, 28, 0.9);
+  color: #9ca3af;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.data-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(0, 166, 49, 0.04);
+}
+
+html.dark .data-table tbody tr:hover {
+  background: rgba(0, 166, 49, 0.1);
+}
+
+.data-table tbody td {
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  color: #374151;
+}
+
+html.dark .data-table tbody td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s ease forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ============================================
+   8-PIXEL GRID SYSTEM SPACING HELPERS
+   All spacing increments are multiples of 8px
+   ============================================ */
+
+/* Global minimum padding for readable text inside cards & buttons */
+.card-padded {
+  padding: 1.5rem; /* 24px = 8px × 3 */
+}
+
+.card-padded-lg {
+  padding: 2rem; /* 32px = 8px × 4 */
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
