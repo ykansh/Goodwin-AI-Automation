@@ -44,7 +44,7 @@ export function PartiesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="glass-strong p-6 sm:p-8 flex flex-col gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
             Parties Directory (Ledger-Pro)
@@ -65,7 +65,7 @@ export function PartiesPage() {
       </div>
 
       {/* Filter Bar: Search Top Left & Category Dropdown */}
-      <div className="glass p-5 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="glass p-5 rounded-2xl border border-gray-200 dark:border-[#2d302d] flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Option Top Left */}
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
@@ -100,7 +100,7 @@ export function PartiesPage() {
       </div>
 
       {/* Data Table */}
-      <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 overflow-hidden shadow-sm">
+      <div className="glass-strong overflow-hidden">
         <div className="overflow-x-auto min-w-full">
           <table className="data-table">
             <thead>

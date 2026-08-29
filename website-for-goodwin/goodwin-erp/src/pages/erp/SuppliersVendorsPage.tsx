@@ -24,43 +24,43 @@ export function SuppliersVendorsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
-            Suppliers & Vendors Directory
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
-            Battery cell manufacturers, lead plates & raw material suppliers
-          </p>
+      <div className="glass-strong p-6 sm:p-8 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
+              Suppliers & Vendors Directory
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
+              Battery cell manufacturers, lead plates & raw material suppliers
+            </p>
+          </div>
+
+          {/* Top Right: Add Supplier Option */}
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
+          >
+            <Truck className="w-4 h-4" />
+            <span>+ Add Vendor / Supplier</span>
+          </button>
         </div>
 
-        {/* Top Right: Add Supplier Option */}
-        <button
-          type="button"
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-        >
-          <Truck className="w-4 h-4" />
-          <span>+ Add Vendor / Supplier</span>
-        </button>
-      </div>
-
-      {/* Search Top Left */}
-      <div className="glass p-5 rounded-2xl border border-white/60 dark:border-white/10">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
+        {/* Search bar — flex layout */}
+        <div className="flex items-center gap-2 w-full sm:w-56 px-3 py-2.5 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825]">
+          <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search Supplier Name, Phone, GSTIN..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm glass-input font-bold"
+            placeholder="Search"
+            className="flex-1 min-w-0 text-sm text-gray-700 dark:text-gray-200 bg-transparent outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
         </div>
       </div>
 
       {/* Supplier Data Table */}
-      <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 overflow-hidden shadow-sm">
+      <div className="glass-strong overflow-hidden">
         <div className="overflow-x-auto min-w-full">
           <table className="data-table">
             <thead>

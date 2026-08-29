@@ -30,64 +30,62 @@ export function CustomersDealersPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Banner */}
-      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
-            Customers & Dealers Directory
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
-            Manage Goodwin battery distributors, dealers, retailers & OEM partners with UOI tracking
-          </p>
-        </div>
+      {/* Header Banner with integrated search */}
+      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] flex flex-col gap-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
+              Customers & Dealers Directory
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">
+              Manage Goodwin battery distributors, dealers, retailers & OEM partners with UOI tracking
+            </p>
+          </div>
 
-        {/* Top Right: Add Customer Option */}
-        <button
-          type="button"
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>+ Add Customer</span>
-        </button>
-      </div>
-
-      {/* Filter Bar: Search Top Left & Category Dropdown Menu */}
-      <div className="glass p-5 rounded-2xl border border-white/60 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Search Option at Top Left */}
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search Name, UOI (GW-CUST-1001), GSTIN..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm glass-input font-bold"
-          />
-        </div>
-
-        {/* Dropdown Menu for Category Selection */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <label className="text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-1.5 shrink-0">
-            <Filter className="w-4 h-4 text-[#00a631]" />
-            <span>Category Type:</span>
-          </label>
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="glass-input px-4 py-2 text-xs sm:text-sm font-extrabold bg-white/80 dark:bg-gray-800 text-[#3a3b39] dark:text-white cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 w-full sm:w-56 capitalize"
+          {/* Top Right: Add Customer Option */}
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
           >
-            <option value="all">All Types (Dealers, OEMs...)</option>
-            <option value="dealer">Dealer</option>
-            <option value="distributor">Distributor</option>
-            <option value="retailer">Retailer</option>
-            <option value="oem">OEM Partner</option>
-          </select>
+            <UserPlus className="w-4 h-4" />
+            <span>+ Add Customer</span>
+          </button>
+        </div>
+
+        {/* Integrated Search + Filter Row */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          {/* Search — flex layout: icon left, text right, never overlapping */}
+          <div className="flex items-center gap-2 w-full sm:w-52 px-3 py-2.5 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825]">
+            <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search"
+              className="flex-1 min-w-0 text-sm text-gray-700 dark:text-gray-200 bg-transparent outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Filter className="w-4 h-4 text-[#00a631]" />
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="glass-input px-3 py-2.5 text-xs sm:text-sm font-semibold cursor-pointer w-48 capitalize"
+            >
+              <option value="all">All Types</option>
+              <option value="dealer">Dealer</option>
+              <option value="distributor">Distributor</option>
+              <option value="retailer">Retailer</option>
+              <option value="oem">OEM Partner</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 overflow-hidden shadow-sm">
+      <div className="glass-strong overflow-hidden">
         <div className="overflow-x-auto min-w-full">
           <table className="data-table">
             <thead>

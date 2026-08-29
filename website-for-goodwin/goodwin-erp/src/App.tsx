@@ -145,14 +145,14 @@ function MainAppContent() {
         isMobileSidebarOpen={isMobileSidebarOpen}
       />
 
-      <div className="flex flex-1 w-full relative z-10">
+      <div className="flex-1 w-full relative z-10 md:grid md:grid-cols-[260px_minmax(0,1fr)]">
         <Sidebar
           currentModule={currentModule}
           onSelectModule={(mod) => setCurrentModule(mod)}
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+        <main className="min-w-0 p-4 sm:p-6 lg:p-8">
           <div className="w-full max-w-[1400px] mx-auto space-y-6">
             {renderModuleContent()}
           </div>

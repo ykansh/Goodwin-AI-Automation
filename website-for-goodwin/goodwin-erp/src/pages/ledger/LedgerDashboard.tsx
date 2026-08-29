@@ -85,7 +85,7 @@ export function LedgerDashboard() {
     <div className="space-y-8 animate-fade-in">
 
       {/* ── SECTION 1: Banner + Timeframe ─────────────────────────── */}
-      <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
+      <div className="glass-strong rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm
                       flex flex-col sm:flex-row sm:items-center justify-between
                       gap-6 p-6 sm:p-8">
         <div className="space-y-2">
@@ -103,7 +103,7 @@ export function LedgerDashboard() {
 
         {/* Timeframe switcher — buttons have px-4 py-2.5 = 16px × 10px */}
         <div className="flex items-center gap-2 p-2 bg-black/5 dark:bg-gray-800 rounded-2xl
-                        border border-white/50 dark:border-white/10 shrink-0 self-start sm:self-auto">
+                        border border-white/50 dark:border-[#2d302d] shrink-0 self-start sm:self-auto">
           {(['daily', 'weekly', 'monthly'] as const).map((tf) => (
             <button
               key={tf}
@@ -150,11 +150,11 @@ export function LedgerDashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
         {/* LEFT: Pie Chart Card */}
-        <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
+        <div className="glass-strong rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm
                         flex flex-col p-6 sm:p-8">
           {/* Card Header */}
           <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug
-                         pb-4 border-b border-gray-200/60 dark:border-white/10">
+                         pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
             Stock Distribution by Voltage Class
           </h2>
 
@@ -208,9 +208,9 @@ export function LedgerDashboard() {
         <div className="flex flex-col gap-8">
 
           {/* Recent Orders Card */}
-          <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
+          <div className="glass-strong rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm
                           flex flex-col p-6 sm:p-8">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-white/10">
+            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
               <ShoppingBag className="w-5 h-5 text-[#00a631] shrink-0" />
               <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
                 Recent Orders (Top 3)
@@ -250,9 +250,9 @@ export function LedgerDashboard() {
           </div>
 
           {/* Top Selling Products Card */}
-          <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
+          <div className="glass-strong rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm
                           flex flex-col p-6 sm:p-8">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-white/10">
+            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
               <Package className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
               <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
                 Top Selling by Piece (Top 3)

@@ -94,7 +94,7 @@ export function Sidebar({
       </div>
 
       {/* Footer Info */}
-      <div className="mt-6 p-4 glass rounded-2xl border border-white/50 dark:border-white/10 text-xs text-gray-600 dark:text-gray-300 space-y-1">
+      <div className="mt-6 p-4 bg-gray-50 dark:bg-[#1e211e] rounded-2xl border border-gray-200 dark:border-[#2d302d] text-xs text-gray-600 dark:text-gray-300 space-y-1">
         <div className="font-extrabold text-[#3a3b39] dark:text-white">Goodwin Batteries ERP</div>
         <div className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">
           Auto-Sync Connected
@@ -110,7 +110,7 @@ export function Sidebar({
   return (
     <>
       {/* Desktop Sidebar (Fixed Width, Non-Collapsing) */}
-      <aside className="w-72 min-w-[280px] shrink-0 glass-strong border-r border-white/40 dark:border-white/10 h-[calc(100vh-4.25rem)] hidden md:block sticky top-[4.25rem] z-20 overflow-y-auto">
+      <aside className="w-full bg-white dark:bg-[#181a18] border-r border-gray-200 dark:border-[#2d302d] h-[calc(100vh-4.25rem)] hidden md:block sticky top-[4.25rem] z-20 overflow-y-auto">
         {renderContent()}
       </aside>
 
@@ -121,7 +121,7 @@ export function Sidebar({
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={onCloseMobile}
           />
-          <div className="relative w-80 max-w-[85vw] h-full glass-strong border-r border-white/40 dark:border-white/10 shadow-2xl z-10 overflow-y-auto animate-slide-in-left">
+          <div className="relative w-80 max-w-[85vw] h-full bg-white dark:bg-[#181a18] border-r border-gray-200 dark:border-[#2d302d] shadow-2xl z-10 overflow-y-auto animate-slide-in-left">
             <div className="flex justify-between items-center p-4 border-b border-gray-200/50 dark:border-white/10">
               <span className="font-extrabold text-[#3a3b39] dark:text-white">Navigation</span>
               <button

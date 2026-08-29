@@ -21,7 +21,7 @@ export function PaymentOutPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 rounded-3xl border border-white/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-strong p-6 rounded-3xl border border-gray-200 dark:border-[#2d302d] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-[#3a3b39] tracking-tight">
             Payment Made (Payment Out)
@@ -42,7 +42,7 @@ export function PaymentOutPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="glass p-4 rounded-2xl border border-white/60">
+      <div className="bg-white dark:bg-[#1e211e] p-4 rounded-2xl border border-gray-200 dark:border-[#2d302d]">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
           <input
@@ -56,7 +56,7 @@ export function PaymentOutPage() {
       </div>
 
       {/* Data Table */}
-      <div className="glass-strong rounded-3xl border border-white/60 overflow-hidden shadow-sm">
+      <div className="glass-strong overflow-hidden">
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>

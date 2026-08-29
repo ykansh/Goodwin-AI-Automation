@@ -30,7 +30,7 @@ export function LoginPage({ onNavigateToRegister }: { onNavigateToRegister?: () 
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#00a631]/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#cde06c]/25 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-4xl grid md:grid-cols-12 glass-strong rounded-3xl overflow-hidden shadow-2xl border border-white/60 relative z-10 animate-fade-in">
+      <div className="w-full max-w-4xl grid md:grid-cols-12 glass-strong rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-[#2d302d] relative z-10 animate-fade-in">
         {/* Left Side: Brand Banner */}
         <div className="md:col-span-5 bg-gradient-to-br from-[#3a3b39] to-[#252624] text-white p-8 flex flex-col justify-between relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#00a631]/20 rounded-full blur-2xl" />

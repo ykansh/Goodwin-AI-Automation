@@ -35,7 +35,7 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 min-h-[4.25rem] glass-strong border-b border-white/40 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between shadow-sm">
+    <header className="sticky top-0 z-40 min-h-[4.25rem] bg-white dark:bg-[#181a18] border-b border-gray-200 dark:border-[#2d302d] px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 shadow-sm flex-wrap">
       {/* Left: Brand Logo & Section Switcher */}
       <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
         {/* Mobile Hamburger Button */}
@@ -63,7 +63,7 @@ export function Header({
         </div>
 
         {/* Section Switcher Toggle - No Overlapping, Clean Margins & Larger Button Size */}
-        <div className="flex items-center bg-[#3a3b39]/10 dark:bg-gray-800/80 p-1 sm:p-1.5 rounded-2xl border border-white/60 dark:border-white/10 gap-1.5 sm:gap-2">
+        <div className="flex items-center bg-gray-100 dark:bg-[#252825] p-1 sm:p-1.5 rounded-2xl border border-gray-200 dark:border-[#2d302d] gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => handleModeSwitch('erp')}
@@ -98,7 +98,7 @@ export function Header({
         <button
           type="button"
           onClick={toggleTheme}
-          className="p-2 sm:p-2.5 rounded-2xl glass hover:bg-white/80 dark:hover:bg-gray-800 text-[#3a3b39] dark:text-[#cde06c] transition-all cursor-pointer shadow-sm border border-white/50 dark:border-white/10"
+          className="p-2 sm:p-2.5 rounded-2xl bg-gray-100 dark:bg-[#252825] hover:bg-gray-200 dark:hover:bg-[#2d302d] text-[#3a3b39] dark:text-[#cde06c] transition-all cursor-pointer border border-gray-200 dark:border-[#374137]"
           title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
         >
           {theme === 'light' ? <Moon className="w-4 h-4 sm:w-5 sm:h-5" /> : <Sun className="w-4 h-4 sm:w-5 sm:h-5" />}
@@ -112,7 +112,7 @@ export function Header({
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span className="hidden lg:inline">+ New Invoice / Order</span>
-          <span className="lg:hidden">+ Invoice</span>
+          <span className="hidden sm:inline lg:hidden">Invoice</span>
         </button>
 
         {/* Role Badge Dropdown (Quick Role Switching for Demo/Testing) */}
@@ -132,7 +132,7 @@ export function Header({
             </button>
 
             {showRoleMenu && (
-              <div className="absolute right-0 mt-2 w-48 glass-strong rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 p-2 z-50 animate-scale-in">
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1e211e] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#2d302d] p-2 z-50 animate-scale-in">
                 <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-2 py-1 uppercase tracking-wider">
                   Test Access Role
                 </div>
@@ -163,7 +163,7 @@ export function Header({
             <button
               type="button"
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-[#252825] transition-colors cursor-pointer"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#3a3b39] dark:bg-gray-700 text-[#cde06c] font-extrabold flex items-center justify-center text-xs shadow">
                 {user.full_name.charAt(0)}
@@ -178,8 +178,8 @@ export function Header({
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 glass-strong rounded-2xl shadow-2xl border border-white/60 dark:border-white/10 p-2 z-50 animate-scale-in">
-                <div className="px-3 py-2 border-b border-gray-200/60 dark:border-white/10 mb-1">
+              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1e211e] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#2d302d] p-2 z-50 animate-scale-in">
+                <div className="px-3 py-2 border-b border-gray-200 dark:border-[#2d302d] mb-1">
                   <p className="text-xs font-extrabold text-[#3a3b39] dark:text-white">{user.full_name}</p>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">{user.email}</p>
                   <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#00a631]/10 text-[#00a631] uppercase">

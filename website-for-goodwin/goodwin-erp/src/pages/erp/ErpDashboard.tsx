@@ -21,7 +21,9 @@ export function ErpDashboard({
   onNavigate?: (moduleKey: string) => void;
 }) {
   const { invoices, products, customers, warranties } = useData();
-  const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+  const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [orderCount, setOrderCount] = useState(5);
+  const [productCount, setProductCount] = useState(5);
 
   // ── KPI Calculations ─────────────────────────────────────────────────
   const totalSalesRevenue = invoices.reduce((acc, cur) => acc + cur.grand_total, 0);
@@ -33,7 +35,7 @@ export function ErpDashboard({
   // ── Top 3 Recent Orders ───────────────────────────────────────────────
   const recentOrders = [...invoices]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 3);
+    .slice(0, orderCount);
 
   // ── Top 3 Selling Products ────────────────────────────────────────────
   const productSalesMap: Record<string, { name: string; sku: string; qty: number; totalVal: number }> = {};
@@ -46,7 +48,7 @@ export function ErpDashboard({
       productSalesMap[item.product_id].totalVal += item.amount;
     })
   );
-  const topSelling = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty).slice(0, 3);
+  const topSelling = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty).slice(0, productCount);
 
   // ── Pie Chart Data ────────────────────────────────────────────────────
   const stockByVoltage: Record<string, number> = {};
@@ -100,9 +102,7 @@ export function ErpDashboard({
     <div className="space-y-8 animate-fade-in">
 
       {/* ── SECTION 1: Banner + Timeframe ─────────────────────────── */}
-      <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
-                      flex flex-col sm:flex-row sm:items-center justify-between
-                      gap-6 p-6 sm:p-8">
+      <div className="glass-strong flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8">
         {/* Title block — space-y-2 = 8px × 1 inner gap */}
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -117,34 +117,25 @@ export function ErpDashboard({
           </p>
         </div>
 
-        {/* Timeframe switcher — buttons have min py-2.5 = 10px (>8px), px-4 = 16px */}
-        <div className="flex items-center gap-2 p-2 bg-black/5 dark:bg-gray-800 rounded-2xl
-                        border border-white/50 dark:border-white/10 shrink-0 self-start sm:self-auto">
-          {(['daily', 'weekly', 'monthly'] as const).map((tf) => (
-            <button
-              key={tf}
-              type="button"
-              onClick={() => setTimeframe(tf)}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold capitalize
-                          transition-all cursor-pointer leading-none whitespace-nowrap
-                          ${timeframe === tf
-                            ? 'bg-[#00a631] text-white shadow-md shadow-[#00a631]/30'
-                            : 'text-gray-600 dark:text-gray-300 hover:text-[#3a3b39] dark:hover:text-white'
-                          }`}
-            >
-              {tf}
-            </button>
-          ))}
-        </div>
+        {/* Timeframe dropdown */}
+        <select
+          value={timeframe}
+          onChange={(e) => setTimeframe(e.target.value as 'daily' | 'weekly' | 'monthly')}
+          className="glass-input px-4 py-2.5 text-xs sm:text-sm font-extrabold cursor-pointer capitalize shrink-0 self-start sm:self-auto"
+        >
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
       </div>
 
-      {/* ── SECTION 2: KPI Cards — gap-6 = 24px (8px × 3) ────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+      {/* ── SECTION 2: KPI Cards — gap-8 = 32px ────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {kpiCards.map((card, i) => (
           <div
             key={i}
-            /* Card — p-6 = 24px min padding, space-y-3 = 12px inner gap */
-            className="glass-card p-6 space-y-3 overflow-hidden"
+            /* Card — min padding */
+            className="glass-card card-padded flex flex-col justify-between min-h-[160px] overflow-hidden"
           >
             {/* Row 1: Label + Icon */}
             <div className="flex items-start justify-between gap-4">
@@ -157,7 +148,7 @@ export function ErpDashboard({
               </div>
             </div>
             {/* Row 2: Primary Value */}
-            <div className={`text-2xl sm:text-3xl font-black tracking-tight leading-none
+            <div className={`text-2xl sm:text-3xl font-black tracking-tight leading-none truncate my-3
                             ${card.valueColor ?? 'text-[#3a3b39] dark:text-white'}`}>
               {card.value}
               {card.valueSuffix && (
@@ -177,13 +168,12 @@ export function ErpDashboard({
       </div>
 
       {/* ── SECTION 3: Chart + Order Lists — gap-8 = 32px (8px × 4) ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)] gap-8">
 
         {/* LEFT: Pie Chart Card */}
-        <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
-                        flex flex-col p-6 sm:p-8">
+        <div className="glass-strong flex flex-col px-6 sm:px-8 pb-6 sm:pb-8 pt-8 sm:pt-10">
           {/* Card Header */}
-          <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-white/10">
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#2d302d]">
             <div className="space-y-1">
               <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
                 Battery Stock Distribution by Class
@@ -203,49 +193,56 @@ export function ErpDashboard({
             </button>
           </div>
 
-          {/* Chart — Explicit height, internal padding keeps legend from overlapping */}
-          <div className="flex-1 min-h-[300px] mt-4">
-            <ResponsiveContainer width="100%" height={300}>
-              <RePieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="44%"
-                  innerRadius={72}
-                  outerRadius={112}
-                  paddingAngle={4}
-                  dataKey="value"
-                >
-                  {pieData.map((_entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(255,255,255,0.97)',
-                    borderRadius: '0.875rem',
-                    border: '1px solid rgba(255,255,255,0.8)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    fontSize: '0.75rem',
-                    fontWeight: '700',
-                    padding: '12px 16px',          /* min 16px horizontal padding */
-                    lineHeight: '1.6',              /* ≥ 1.5× */
-                  }}
-                />
-                <Legend
-                  verticalAlign="bottom"
-                  align="center"
-                  iconType="circle"
-                  iconSize={9}
-                  wrapperStyle={{
-                    fontSize: '0.6875rem',
-                    fontWeight: '700',
-                    paddingTop: '16px',             /* 16px = 8px × 2 */
-                    lineHeight: '1.6',
-                  }}
-                />
-              </RePieChart>
-            </ResponsiveContainer>
+          {/* Chart area — extra top space so content breathes below the header */}
+          <div className="flex-1 min-h-[300px] mt-8 flex items-center justify-center">
+            {pieData.length === 0 ? (
+              <div className="text-center space-y-3 p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl w-full">
+                <p className="text-sm font-black text-gray-500 dark:text-gray-400">No inventory data available</p>
+                <p className="text-xs font-semibold text-gray-400">Add batteries to your inventory to see stock distribution.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <RePieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="44%"
+                    innerRadius={72}
+                    outerRadius={112}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {pieData.map((_entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(255,255,255,0.97)',
+                      borderRadius: '0.875rem',
+                      border: '1px solid rgba(255,255,255,0.8)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                      fontSize: '0.75rem',
+                      fontWeight: '700',
+                      padding: '12px 16px',          /* min 16px horizontal padding */
+                      lineHeight: '1.6',              /* ≥ 1.5× */
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    align="center"
+                    iconType="circle"
+                    iconSize={9}
+                    wrapperStyle={{
+                      fontSize: '0.6875rem',
+                      fontWeight: '700',
+                      paddingTop: '16px',             /* 16px = 8px × 2 */
+                      lineHeight: '1.6',
+                    }}
+                  />
+                </RePieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -253,39 +250,48 @@ export function ErpDashboard({
         <div className="flex flex-col gap-8">
 
           {/* Recent Orders Card */}
-          <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
-                          flex flex-col p-6 sm:p-8">
+          <div className="glass-strong flex flex-col px-6 sm:px-8 pb-6 sm:pb-8 pt-8 sm:pt-10">
             {/* Card Header */}
-            <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-white/10">
+            <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#2d302d]">
               <div className="flex items-center gap-3">
                 <ShoppingBag className="w-5 h-5 text-[#00a631] shrink-0" />
                 <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
                   Recent Orders
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={() => onNavigate?.('sales')}
-                className="text-xs font-extrabold text-[#00a631] hover:underline cursor-pointer
-                           whitespace-nowrap px-2 py-1"
-              >
-                All Orders →
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <select
+                  value={orderCount}
+                  onChange={(e) => setOrderCount(Number(e.target.value))}
+                  className="glass-input px-2 py-1.5 text-xs font-bold cursor-pointer"
+                >
+                  <option value={3}>Last 3</option>
+                  <option value={5}>Last 5</option>
+                  <option value={10}>Last 10</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('sales')}
+                  className="text-xs font-extrabold text-[#00a631] hover:underline cursor-pointer whitespace-nowrap px-2 py-1"
+                >
+                  All Orders →
+                </button>
+              </div>
             </div>
 
             {/* Order List — space-y-3 = 12px between items */}
-            <div className="space-y-3 mt-4">
+            <div className="space-y-3 mt-4 flex-1 flex flex-col justify-center">
               {recentOrders.length === 0 ? (
-                <p className="text-xs text-gray-400 dark:text-gray-500 font-medium py-4 text-center leading-relaxed">
-                  No orders logged yet.
-                </p>
+                <div className="text-center space-y-3 p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl w-full">
+                  <p className="text-sm font-black text-gray-500 dark:text-gray-400">No orders logged yet</p>
+                  <p className="text-xs font-semibold text-gray-400">Create your first order to see recent activity.</p>
+                </div>
               ) : (
                 recentOrders.map((order) => (
                   <div
                     key={order.id}
                     /* Each row: min p-4 = 16px padding, flex gap-4 = 16px between cols */
-                    className="glass-card p-4 flex items-center justify-between gap-4
-                               hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all"
+                    className="glass-card px-5 py-4 flex items-center justify-between gap-4"
                   >
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -316,29 +322,39 @@ export function ErpDashboard({
           </div>
 
           {/* Top Selling Products Card */}
-          <div className="glass-strong rounded-3xl border border-white/60 dark:border-white/10 shadow-sm
-                          flex flex-col p-6 sm:p-8">
+          <div className="glass-strong flex flex-col px-6 sm:px-8 pb-6 sm:pb-8 pt-8 sm:pt-10">
             {/* Card Header */}
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-white/10">
-              <Package className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
-              <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
-                Top Selling Products
-              </h2>
+            <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#2d302d]">
+              <div className="flex items-center gap-3">
+                <Package className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
+                <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
+                  Top Selling Products
+                </h2>
+              </div>
+              <select
+                value={productCount}
+                onChange={(e) => setProductCount(Number(e.target.value))}
+                className="glass-input px-2 py-1.5 text-xs font-bold cursor-pointer shrink-0"
+              >
+                <option value={3}>Top 3</option>
+                <option value={5}>Top 5</option>
+                <option value={10}>Top 10</option>
+              </select>
             </div>
 
             {/* Product List — space-y-3 = 12px between items */}
-            <div className="space-y-3 mt-4">
+            <div className="space-y-3 mt-4 flex-1 flex flex-col justify-center">
               {topSelling.length === 0 ? (
-                <p className="text-xs text-gray-400 dark:text-gray-500 font-medium py-4 text-center leading-relaxed">
-                  No sales data yet.
-                </p>
+                <div className="text-center space-y-3 p-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl w-full">
+                  <p className="text-sm font-black text-gray-500 dark:text-gray-400">No sales data yet</p>
+                  <p className="text-xs font-semibold text-gray-400">Sales will appear here once orders are recorded.</p>
+                </div>
               ) : (
                 topSelling.map((prod, idx) => (
                   <div
                     key={idx}
                     /* Each row: min p-4 = 16px padding, gap-4 = 16px */
-                    className="glass-card p-4 flex items-center justify-between gap-4
-                               hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all"
+                    className="glass-card px-5 py-4 flex items-center justify-between gap-4"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       {/* Rank badge */}

@@ -38,9 +38,9 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-lg glass-strong rounded-3xl shadow-2xl border border-white/70 overflow-hidden my-8 animate-scale-in">
-        <div className="p-6 bg-gradient-to-r from-[#3a3b39] to-[#252624] text-white flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-3xl glass-strong rounded-3xl shadow-2xl border border-gray-200 dark:border-[#2d302d] overflow-hidden my-auto animate-scale-in">
+        <div className="px-8 py-6 sm:px-12 sm:py-8 bg-gradient-to-r from-[#3a3b39] to-[#252624] text-white flex items-center justify-between">
           <div>
             <h2 className="text-xl font-extrabold tracking-wide flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-[#cde06c]" /> Add Customer / Dealer
@@ -58,26 +58,26 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-8 py-6 sm:px-12 sm:py-8 space-y-6">
           <div>
-            <label className="block text-xs font-bold text-[#3a3b39] mb-1">Customer / Firm Name</label>
+            <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Customer / Firm Name</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Royal Battery Store"
-              className="w-full glass-input px-3 py-2 text-xs font-bold"
+              className="w-full glass-input px-4 py-3 text-sm font-bold"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             <div>
-              <label className="block text-xs font-bold text-[#3a3b39] mb-1">Category / Type</label>
+              <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Category / Type</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as CustomerType)}
-                className="w-full glass-input px-3 py-2 text-xs font-bold bg-white/70 capitalize"
+                className="w-full glass-input px-4 py-3 text-sm font-bold bg-white/70 capitalize"
               >
                 <option value="dealer">Dealer</option>
                 <option value="distributor">Distributor</option>
@@ -87,58 +87,58 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#3a3b39] mb-1">Credit Limit (₹)</label>
+              <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Credit Limit (₹)</label>
               <input
                 type="number"
                 value={creditLimit}
                 onChange={(e) => setCreditLimit(Number(e.target.value))}
-                className="w-full glass-input px-3 py-2 text-xs font-bold"
+                className="w-full glass-input px-4 py-3 text-sm font-bold"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             <div>
-              <label className="block text-xs font-bold text-[#3a3b39] mb-1">Contact Phone</label>
+              <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Contact Phone</label>
               <input
                 type="text"
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
                 placeholder="9876543210"
-                className="w-full glass-input px-3 py-2 text-xs font-bold"
+                className="w-full glass-input px-4 py-3 text-sm font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#3a3b39] mb-1">GSTIN Number</label>
+              <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">GSTIN Number</label>
               <input
                 type="text"
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value)}
                 placeholder="23AABCA1234A1Z5"
-                className="w-full glass-input px-3 py-2 text-xs font-bold uppercase"
+                className="w-full glass-input px-4 py-3 text-sm font-bold uppercase"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             <div>
-              <label className="block text-xs font-bold text-[#3a3b39] mb-1">Email Address</label>
+              <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="firm@domain.com"
-                className="w-full glass-input px-3 py-2 text-xs font-bold"
+                className="w-full glass-input px-4 py-3 text-sm font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#3a3b39] mb-1">Assigned Salesperson</label>
+              <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Assigned Salesperson</label>
               <select
                 value={salesperson}
                 onChange={(e) => setSalesperson(e.target.value)}
-                className="w-full glass-input px-3 py-2 text-xs font-bold bg-white/70"
+                className="w-full glass-input px-4 py-3 text-sm font-bold bg-white/70"
               >
                 {settings.battery_configs.salespersons.map((sp) => (
                   <option key={sp} value={sp}>
@@ -150,16 +150,16 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#3a3b39] mb-1">Full Office / Shop Address</label>
+            <label className="block text-sm font-bold text-[#3a3b39] dark:text-gray-300 mb-2">Full Office / Shop Address</label>
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Address details..."
-              className="w-full glass-input px-3 py-2 text-xs font-bold h-20"
+              className="w-full glass-input px-4 py-3 text-sm font-bold h-24"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-[#2d302d] mt-2">
             <button
               type="button"
               onClick={onClose}

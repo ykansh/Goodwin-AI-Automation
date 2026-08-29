@@ -23,7 +23,7 @@ export function RegisterPage({ onNavigateToLogin }: { onNavigateToLogin?: () => 
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#00a631]/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#cde06c]/25 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-lg glass-strong p-8 rounded-3xl shadow-2xl border border-white/60 relative z-10 animate-fade-in">
+      <div className="w-full max-w-lg glass-strong p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-[#2d302d] relative z-10 animate-fade-in">
         <button
           type="button"
           onClick={onNavigateToLogin}

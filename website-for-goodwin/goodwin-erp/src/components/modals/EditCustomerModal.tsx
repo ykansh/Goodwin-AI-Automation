@@ -41,7 +41,7 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-lg glass-strong rounded-3xl shadow-2xl border border-white/70 overflow-hidden my-8 animate-scale-in dark:border-white/10">
+      <div className="w-full max-w-2xl glass-strong rounded-3xl shadow-2xl border border-gray-200 dark:border-[#2d302d] overflow-hidden my-auto animate-scale-in">
         <div className="p-6 bg-gradient-to-r from-[#3a3b39] to-[#252624] text-white flex items-center justify-between">
           <div>
             <h2 className="text-xl font-extrabold tracking-wide flex items-center gap-2">

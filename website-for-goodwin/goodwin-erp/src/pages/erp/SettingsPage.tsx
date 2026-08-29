@@ -126,7 +126,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10
+      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d]
                       flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight leading-tight">
@@ -153,9 +153,9 @@ export function SettingsPage() {
         <div className="lg:col-span-6 space-y-6">
 
           {/* Cloud DB Connection Card */}
-          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm space-y-6">
+          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-6">
             {/* Card Header */}
-            <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-white/10">
+            <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
               <div className="flex items-center gap-3">
                 <Database className="w-5 h-5 text-[#00a631] shrink-0" />
                 <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
@@ -168,7 +168,7 @@ export function SettingsPage() {
             </div>
 
             {/* Status indicator row */}
-            <div className="glass rounded-2xl p-4 border border-white/50 dark:border-white/10 flex items-center gap-3">
+            <div className="glass rounded-2xl p-4 border border-white/50 dark:border-[#2d302d] flex items-center gap-3">
               {dbStatus === 'connected' ? (
                 <Wifi className="w-5 h-5 text-[#00a631] shrink-0" />
               ) : (
@@ -287,7 +287,7 @@ export function SettingsPage() {
 
             {/* View SQL Code Panel (Accordion) */}
             {showSqlCode && (
-              <div className="glass rounded-2xl p-4 border border-white/60 dark:border-white/10 space-y-2 animate-fade-in">
+              <div className="glass rounded-2xl p-4 border border-gray-200 dark:border-[#2d302d] space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-extrabold text-[#3a3b39] dark:text-white">
                     SQL Schema Code (Click text to select all)
@@ -324,8 +324,8 @@ export function SettingsPage() {
           </div>
 
           {/* Company Profile Info */}
-          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm space-y-4">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-white/10">
+          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
+            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
               <Building2 className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
               <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
                 Company & Bank Profile
@@ -346,9 +346,9 @@ export function SettingsPage() {
 
         {/* RIGHT: Battery Configurator */}
         <div className="lg:col-span-6">
-          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-white/60 dark:border-white/10 shadow-sm">
+          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm">
             <form onSubmit={handleSaveConfigs} className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-white/10">
+              <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
                 <Battery className="w-5 h-5 text-[#00a631] shrink-0" />
                 <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
                   Goodwin Battery Configurator

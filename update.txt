@@ -24,7 +24,7 @@ Made a website with react.
 half functional. (frontend needs to be refined)
 Attached database == Supabase
 
-27/08/2026
+27/08/2026          (positive review)
 
 Researched for better alternative than n8n cloud == $24/month
 Conclusion ==>> n8n local --> Host it online (cheaper)
@@ -35,3 +35,16 @@ Made the automation in local host again.
 made MOM 
 fixed Supabase 
 started working on n8n automation. 
+
+28/08/2026 
+
+website frontend fixing 
+
+29/08/2026 
+
+made an fully automated system.
+    agent for orders handling
+    agent for sales related operations 
+    agent for after sales
+    also integrated previous basic questions answering agent 
+designed automated content management system. 

@@ -35,45 +35,36 @@ export function ReportsAnalyticsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Banner & Timeframe Switch (Monthly, Weekly, Daily) */}
-      <div className="glass-strong p-6 rounded-3xl border border-white/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header Banner with timeframe dropdown */}
+      <div className="glass-strong p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#3a3b39] tracking-tight">
-            Reports & Financial Analytics
+          <h1 className="text-2xl font-extrabold text-[#3a3b39] dark:text-white tracking-tight">
+            Reports &amp; Financial Analytics
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Sales register tax auditing & stock valuation ledger report
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Sales register tax auditing &amp; stock valuation ledger report
           </p>
         </div>
-
-        {/* Timeframe Switcher Options */}
-        <div className="flex items-center bg-[#3a3b39]/5 p-1 rounded-2xl border border-white/60">
-          {(['monthly', 'weekly', 'daily'] as const).map((tf) => (
-            <button
-              key={tf}
-              type="button"
-              onClick={() => setTimeframe(tf)}
-              className={`px-4 py-1.5 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
-                timeframe === tf
-                  ? 'bg-[#00a631] text-white shadow-md shadow-[#00a631]/30 font-extrabold'
-                  : 'text-gray-600 hover:text-[#3a3b39]'
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
-        </div>
+        <select
+          value={timeframe}
+          onChange={(e) => setTimeframe(e.target.value as 'monthly' | 'weekly' | 'daily')}
+          className="glass-input px-4 py-2.5 text-sm font-bold cursor-pointer shrink-0 self-start sm:self-auto"
+        >
+          <option value="monthly">Monthly</option>
+          <option value="weekly">Weekly</option>
+          <option value="daily">Daily</option>
+        </select>
       </div>
 
       {/* Tabs Switcher: Sales Register vs Stock Ledger */}
-      <div className="flex items-center gap-2 border-b border-gray-200/60 pb-1">
+      <div className="flex items-center gap-2 border-b border-gray-200 dark:border-[#2d302d] pb-1">
         <button
           type="button"
           onClick={() => setActiveTab('sales')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
             activeTab === 'sales'
               ? 'bg-[#00a631] text-white shadow-md shadow-[#00a631]/30'
-              : 'glass text-gray-700 hover:bg-white/80'
+              : 'bg-gray-100 dark:bg-[#252825] text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-[#2d302d]'
           }`}
         >
           <FileSpreadsheet className="w-4 h-4" /> Sales Register Report
@@ -85,7 +76,7 @@ export function ReportsAnalyticsPage() {
           className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
             activeTab === 'stock'
               ? 'bg-[#3a3b39] text-[#cde06c] shadow-md shadow-black/20'
-              : 'glass text-gray-700 hover:bg-white/80'
+              : 'bg-gray-100 dark:bg-[#252825] text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-[#2d302d]'
           }`}
         >
           <Layers className="w-4 h-4" /> Stock Valuation Ledger
@@ -97,8 +88,8 @@ export function ReportsAnalyticsPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="glass-card p-4">
-              <span className="text-[10px] font-bold text-gray-500 uppercase">Total Taxable Amount ({timeframe})</span>
-              <p className="text-xl font-extrabold text-[#3a3b39] mt-1">
+              <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Total Taxable Amount ({timeframe})</span>
+              <p className="text-xl font-extrabold text-[#3a3b39] dark:text-white mt-1">
                 ₹{totalSalesTaxable.toLocaleString('en-IN')}
               </p>
             </div>
@@ -116,7 +107,7 @@ export function ReportsAnalyticsPage() {
             </div>
           </div>
 
-          <div className="glass-strong rounded-3xl border border-white/60 overflow-hidden shadow-sm">
+          <div className="glass-strong overflow-hidden">
             <table className="data-table">
               <thead>
                 <tr>
@@ -161,7 +152,7 @@ export function ReportsAnalyticsPage() {
             </p>
           </div>
 
-          <div className="glass-strong rounded-3xl border border-white/60 overflow-hidden shadow-sm">
+          <div className="glass-strong overflow-hidden">
             <table className="data-table">
               <thead>
                 <tr>

@@ -17,43 +17,39 @@ export function PurchasesPOsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Banner */}
-      <div className="glass-strong p-6 rounded-3xl border border-white/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#3a3b39] tracking-tight">
-            Purchases & Purchase Orders (POs)
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Log procurement from battery manufacturers & raw material vendors
-          </p>
+      <div className="glass-strong p-6 flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#3a3b39] dark:text-white tracking-tight">
+              Purchases &amp; Purchase Orders (POs)
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Log procurement from battery manufacturers &amp; raw material vendors
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
+          >
+            <Plus className="w-4 h-4" /> + Create Purchases &amp; POs
+          </button>
         </div>
-
-        {/* Top Right: Create Purchases & POs option */}
-        <button
-          type="button"
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> + Create Purchases & POs
-        </button>
-      </div>
-
-      {/* Search Top Left */}
-      <div className="glass p-4 rounded-2xl border border-white/60">
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+        {/* Search bar — flex layout */}
+        <div className="flex items-center gap-2 w-full sm:w-56 px-3 py-2.5 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825]">
+          <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search PO # (GW-PO-2026-0001), Supplier..."
-            className="w-full pl-9 pr-4 py-2 text-xs glass-input font-semibold"
+            placeholder="Search"
+            className="flex-1 min-w-0 text-sm text-gray-700 dark:text-gray-200 bg-transparent outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
         </div>
       </div>
 
       {/* Data Table Matching User Photo */}
-      <div className="glass-strong rounded-3xl border border-white/60 overflow-hidden shadow-sm">
+      <div className="glass-strong overflow-hidden">
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
