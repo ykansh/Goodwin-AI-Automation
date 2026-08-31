@@ -2,7 +2,7 @@ import {
   createContext, useContext, useState, useEffect, useCallback, type ReactNode
 } from 'react';
 import type { User, UserRole, AppMode } from '../types';
-import { dummyUsers } from '../data/dummyData';
+import { dummyUsers, AUTHORIZED_ADMINS } from '../data/dummyData';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
@@ -66,7 +66,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       // ── Offline/localStorage fallback ────────────────────────────────────
       const savedUser = localStorage.getItem('goodwin_user');
-      setUser(savedUser ? JSON.parse(savedUser) : dummyUsers[0]);
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
       setIsLoading(false);
     }
   }, []);
@@ -78,8 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Persist local user (offline mode only)
   useEffect(() => {
-    if (!isSupabaseConfigured && user) {
-      localStorage.setItem('goodwin_user', JSON.stringify(user));
+    if (!isSupabaseConfigured) {
+      if (user) {
+        localStorage.setItem('goodwin_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('goodwin_user');
+      }
     }
   }, [user]);
 
@@ -87,8 +99,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (email: string, password?: string): Promise<boolean> => {
     setIsLoading(true);
 
+    const normEmail = email.trim().toLowerCase();
+    const cleanPass = (password ?? '').trim();
+
+    // Check predefined authorized admin credentials
+    const matchedAdmin = AUTHORIZED_ADMINS.find(
+      (a) => a.email.toLowerCase() === normEmail
+    );
+
+    if (matchedAdmin) {
+      if (cleanPass === matchedAdmin.password) {
+        const adminUser: User = {
+          id: `admin-${normEmail.replace(/[^a-zA-Z0-9]/g, '-')}`,
+          email: matchedAdmin.email,
+          full_name: matchedAdmin.full_name,
+          role: 'admin',
+          created_at: new Date().toISOString(),
+        };
+        setUser(adminUser);
+        localStorage.setItem('goodwin_user', JSON.stringify(adminUser));
+        setIsLoading(false);
+        toast.success(`Welcome back, ${matchedAdmin.full_name}! (Admin Role Assigned)`);
+        return true;
+      } else {
+        setIsLoading(false);
+        toast.error('Incorrect password. Please try again.');
+        return false;
+      }
+    }
+
+    // If Supabase is configured, try Supabase authentication
     if (isSupabaseConfigured && supabase && password) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: normEmail, password: cleanPass });
       setIsLoading(false);
       if (error) {
         toast.error(`Sign in failed: ${error.message}`);
@@ -96,34 +138,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (data.user) {
         const u = mapSupabaseUser(data.user);
-        toast.success(`Welcome back, ${u.full_name}!`);
+        toast.success(`Welcome, ${u.full_name}!`);
         return true;
       }
       return false;
     }
 
-    // ── Offline fallback ────────────────────────────────────────────────────
-    let found = dummyUsers.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!found) {
-      const lower = email.toLowerCase();
-      let role: UserRole = 'admin';
-      if (lower.includes('manager'))              role = 'manager';
-      else if (lower.includes('account'))         role = 'accounts';
-      else if (lower.includes('sales'))           role = 'sales';
-      else if (lower.includes('inventory') || lower.includes('stock')) role = 'inventory';
-
-      found = {
-        id: crypto.randomUUID(),
-        email,
-        full_name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-        role,
+    // Default admin fallback for admin@goodwin.com
+    if (normEmail === 'admin@goodwin.com' && (cleanPass === 'password123' || cleanPass === 'admin@123' || cleanPass === 'admin')) {
+      const adminUser: User = {
+        id: 'u4',
+        email: 'admin@goodwin.com',
+        full_name: 'Goodwin Admin',
+        role: 'admin',
         created_at: new Date().toISOString(),
       };
+      setUser(adminUser);
+      localStorage.setItem('goodwin_user', JSON.stringify(adminUser));
+      setIsLoading(false);
+      toast.success('Welcome back, Goodwin Admin!');
+      return true;
     }
-    setUser(found);
+
     setIsLoading(false);
-    toast.success(`Signed in as ${found.full_name} (${found.role.toUpperCase()})`);
-    return true;
+    toast.error('Invalid email or password. Access restricted to authorized Goodwin personnel.');
+    return false;
   }, []);
 
   // ── Sign Up ───────────────────────────────────────────────────────────────

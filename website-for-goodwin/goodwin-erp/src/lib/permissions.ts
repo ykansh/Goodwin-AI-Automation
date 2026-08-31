@@ -25,15 +25,21 @@ const ledgerPermissions: ModulePermissions = {
   'payment-out': ['admin', 'manager', 'accounts'],
 };
 
+const leadsPermissions: ModulePermissions = {
+  leads: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
+  pipeline: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
+  'follow-ups': ['admin', 'manager', 'accounts', 'sales', 'inventory'],
+};
+
 export function canAccess(role: UserRole, module: string, mode: AppMode): boolean {
-  const permissions = mode === 'erp' ? erpPermissions : ledgerPermissions;
+  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : leadsPermissions;
   const allowedRoles = permissions[module];
   if (!allowedRoles) return false;
   return allowedRoles.includes(role);
 }
 
 export function getAccessibleModules(role: UserRole, mode: AppMode): string[] {
-  const permissions = mode === 'erp' ? erpPermissions : ledgerPermissions;
+  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : leadsPermissions;
   return Object.keys(permissions).filter((module) => permissions[module].includes(role));
 }
 
@@ -58,3 +64,8 @@ export const ledgerSidebarItems = [
   { key: 'payment-out', label: 'Payment Out', icon: 'ArrowUpRight', path: '/ledger/payment-out', module: 'payment-out' },
 ];
 
+export const leadsSidebarItems = [
+  { key: 'leads', label: 'Leads', icon: 'Users', path: '/leads/list', module: 'leads' },
+  { key: 'pipeline', label: 'Pipeline', icon: 'Kanban', path: '/leads/pipeline', module: 'pipeline' },
+  { key: 'follow-ups', label: 'Follow-ups', icon: 'CalendarClock', path: '/leads/follow-ups', module: 'follow-ups' },
+];

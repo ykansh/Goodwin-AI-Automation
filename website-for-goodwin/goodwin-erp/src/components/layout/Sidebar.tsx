@@ -1,8 +1,9 @@
 import { useAuth } from '../../store/AuthContext';
-import { canAccess, erpSidebarItems, ledgerSidebarItems } from '../../lib/permissions';
+import { canAccess, erpSidebarItems, ledgerSidebarItems, leadsSidebarItems } from '../../lib/permissions';
 import {
   LayoutDashboard, Users, Truck, Package, FileText, ShoppingCart,
-  RotateCcw, ShieldCheck, BarChart3, Settings, ArrowDownLeft, ArrowUpRight, Lock, X
+  RotateCcw, ShieldCheck, BarChart3, Settings, ArrowDownLeft, ArrowUpRight, Lock, X,
+  Target, Activity, Building, XCircle, List, Kanban, CalendarClock
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -22,7 +23,7 @@ export function Sidebar({
 
   if (!user) return null;
 
-  const items = mode === 'erp' ? erpSidebarItems : ledgerSidebarItems;
+  const items = mode === 'erp' ? erpSidebarItems : mode === 'ledger' ? ledgerSidebarItems : leadsSidebarItems;
 
   const iconMap: Record<string, React.ReactNode> = {
     LayoutDashboard: <LayoutDashboard className="w-5 h-5 shrink-0" />,
@@ -37,13 +38,20 @@ export function Sidebar({
     Settings: <Settings className="w-5 h-5 shrink-0" />,
     ArrowDownLeft: <ArrowDownLeft className="w-5 h-5 shrink-0" />,
     ArrowUpRight: <ArrowUpRight className="w-5 h-5 shrink-0" />,
+    Kanban: <Kanban className="w-5 h-5 shrink-0" />,
+    CalendarClock: <CalendarClock className="w-5 h-5 shrink-0" />,
+    Target: <Target className="w-5 h-5 shrink-0" />,
+    Activity: <Activity className="w-5 h-5 shrink-0" />,
+    Building: <Building className="w-5 h-5 shrink-0" />,
+    XCircle: <XCircle className="w-5 h-5 shrink-0" />,
+    List: <List className="w-5 h-5 shrink-0" />,
   };
 
   const renderContent = () => (
     <div className="h-full flex flex-col justify-between p-4 sm:p-5">
       <div className="space-y-2">
         <div className="px-3 py-2 text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          {mode === 'erp' ? 'Goodwin ERP Navigation' : 'Ledger-Pro Navigation'}
+          {mode === 'erp' ? 'Goodwin ERP Navigation' : mode === 'ledger' ? 'Ledger-Pro Navigation' : 'Lead Management'}
         </div>
 
         <div className="space-y-1.5">
@@ -79,7 +87,9 @@ export function Sidebar({
                   isActive
                     ? mode === 'erp'
                       ? 'bg-[#00a631] text-white shadow-lg shadow-[#00a631]/30 translate-x-1'
-                      : 'bg-[#3a3b39] text-[#cde06c] shadow-lg shadow-black/20 translate-x-1'
+                      : mode === 'ledger'
+                        ? 'bg-[#3a3b39] text-[#cde06c] shadow-lg shadow-black/20 translate-x-1'
+                        : 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 translate-x-1'
                     : 'text-[#3a3b39] dark:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-800 hover:text-[#00a631]'
                 }`}
               >
@@ -109,8 +119,8 @@ export function Sidebar({
 
   return (
     <>
-      {/* Desktop Sidebar (Fixed Width, Non-Collapsing) */}
-      <aside className="w-full bg-white dark:bg-[#181a18] border-r border-gray-200 dark:border-[#2d302d] h-[calc(100vh-4.25rem)] hidden md:block sticky top-[4.25rem] z-20 overflow-y-auto">
+      {/* Desktop Sidebar (Fills the 250px grid column, Full Height, Independent Scroll) */}
+      <aside className="w-full bg-white dark:bg-[#181a18] border-r border-gray-200 dark:border-[#2d302d] h-full hidden md:block z-20 overflow-y-auto">
         {renderContent()}
       </aside>
 

@@ -3,12 +3,39 @@ import type {
   Return, BatteryWarranty, Payment, LedgerEntry, CompanySettings,
 } from '../types';
 
+export interface AuthorizedAdmin {
+  email: string;
+  password: string;
+  full_name: string;
+  role: 'admin';
+}
+
+export const AUTHORIZED_ADMINS: AuthorizedAdmin[] = [
+  {
+    email: 'iamanshchourasiya@gmail.com',
+    password: 'ansh@123',
+    full_name: 'Ansh Chourasiya',
+    role: 'admin',
+  },
+  {
+    email: 'kiranpatidar.goodwinbatteries@gmail.com',
+    password: 'kiran@123',
+    full_name: 'Kiran Patidar',
+    role: 'admin',
+  },
+  {
+    email: 'abhishek.goodwinbatteries@gmail.com',
+    password: 'abhi@123',
+    full_name: 'Abhishek',
+    role: 'admin',
+  },
+];
+
 export const dummyUsers: User[] = [
-  { id: 'u1', email: 'admin@goodwin.com', full_name: 'Ansh Chourasiya (Admin)', role: 'admin', created_at: '2026-01-01' },
-  { id: 'u2', email: 'manager@goodwin.com', full_name: 'Priya Sharma (Manager)', role: 'manager', created_at: '2026-01-05' },
-  { id: 'u3', email: 'accounts@goodwin.com', full_name: 'Ravi Kumar (Accounts)', role: 'accounts', created_at: '2026-02-01' },
-  { id: 'u4', email: 'sales@goodwin.com', full_name: 'Deepak Singh (Sales)', role: 'sales', created_at: '2026-02-15' },
-  { id: 'u5', email: 'inventory@goodwin.com', full_name: 'Vikram Patel (Inventory)', role: 'inventory', created_at: '2026-02-20' },
+  { id: 'u1', email: 'iamanshchourasiya@gmail.com', full_name: 'Ansh Chourasiya', role: 'admin', created_at: '2026-01-01' },
+  { id: 'u2', email: 'kiranpatidar.goodwinbatteries@gmail.com', full_name: 'Kiran Patidar', role: 'admin', created_at: '2026-01-01' },
+  { id: 'u3', email: 'abhishek.goodwinbatteries@gmail.com', full_name: 'Abhishek', role: 'admin', created_at: '2026-01-01' },
+  { id: 'u4', email: 'admin@goodwin.com', full_name: 'Goodwin Admin', role: 'admin', created_at: '2026-01-01' },
 ];
 
 export const dummyCompanySettings: CompanySettings = {

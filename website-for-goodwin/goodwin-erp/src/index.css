@@ -23,28 +23,26 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 body {
   font-family: 'Montserrat', sans-serif;
   background-color: #f0f0ee;
   color: #3a3b39;
-  min-height: 100vh;
   line-height: 1.6;
-  overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.dark body {
   background-color: #111211;
   color: #e5e7eb;
-}
-
-#root {
-  min-height: 100vh;
 }
 
 /* =============================================
@@ -232,8 +230,8 @@ html.dark .data-table tbody td {
    ANIMATIONS
    ============================================= */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes scaleIn {

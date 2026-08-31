@@ -67,14 +67,14 @@ export function PartiesPage() {
       {/* Filter Bar: Search Top Left & Category Dropdown */}
       <div className="glass p-5 rounded-2xl border border-gray-200 dark:border-[#2d302d] flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Option Top Left */}
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
+        <div className="flex items-center gap-2.5 w-full sm:w-80 px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-[#00a631]/30 focus-within:border-[#00a631] transition-all">
+          <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search Party Name, UOI, GSTIN..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm glass-input font-bold"
+            placeholder="Search"
+            className="flex-1 min-w-0 text-xs sm:text-sm text-[#3a3b39] dark:text-white bg-transparent outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 font-bold"
           />
         </div>
 

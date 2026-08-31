@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../store/ThemeContext';
-import type { AppMode, UserRole } from '../../types';
+import type { AppMode } from '../../types';
 import {
-  Plus, LogOut, ChevronDown, Sparkles, Building2, BookOpen, Shield, Sun, Moon, Menu, X
+  Plus, LogOut, ChevronDown, Building2, BookOpen, Shield, Sun, Moon, Menu, X, Target, Check
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -17,22 +17,48 @@ export function Header({
   onToggleMobileSidebar,
   isMobileSidebarOpen,
 }: HeaderProps) {
-  const { user, mode, setMode, quickSignInAsRole, signOut } = useAuth();
+  const { user, mode, setMode, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showModuleMenu, setShowModuleMenu] = useState(false);
+  const moduleMenuRef = useRef<HTMLDivElement>(null);
 
-  const roleColors: Record<UserRole, string> = {
-    admin: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
-    manager: 'bg-lime-500/15 text-lime-800 dark:text-lime-400 border-lime-500/30',
-    accounts: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30',
-    sales: 'bg-amber-500/15 text-amber-800 dark:text-amber-400 border-amber-500/30',
-    inventory: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30',
-  };
+  // Close module dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (moduleMenuRef.current && !moduleMenuRef.current.contains(e.target as Node)) {
+        setShowModuleMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const handleModeSwitch = (newMode: AppMode) => {
-    setMode(newMode);
-  };
+  const modules: { mode: AppMode; label: string; subtitle: string; Icon: React.ElementType; activeClass: string }[] = [
+    {
+      mode: 'erp',
+      label: 'Goodwin ERP',
+      subtitle: 'Enterprise Resource Planning',
+      Icon: Building2,
+      activeClass: 'text-[#00a631]',
+    },
+    {
+      mode: 'ledger',
+      label: 'Ledger-Pro',
+      subtitle: 'Accounting & Bookkeeping',
+      Icon: BookOpen,
+      activeClass: 'text-[#cde06c]',
+    },
+    {
+      mode: 'leads',
+      label: 'Lead Management',
+      subtitle: 'Sales Pipeline & CRM',
+      Icon: Target,
+      activeClass: 'text-blue-500',
+    },
+  ];
+
+  const activeModule = modules.find((m) => m.mode === mode)!;
 
   return (
     <header className="sticky top-0 z-40 min-h-[4.25rem] bg-white dark:bg-[#181a18] border-b border-gray-200 dark:border-[#2d302d] px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3 shadow-sm flex-wrap">
@@ -57,38 +83,59 @@ export function Header({
               GOODWIN
             </div>
             <div className="text-[10px] text-[#00a631] font-extrabold tracking-widest uppercase">
-              {mode === 'erp' ? 'ERP Suite' : 'Ledger-Pro'}
+              {mode === 'erp' ? 'ERP Suite' : mode === 'ledger' ? 'Ledger-Pro' : 'Lead Mgmt'}
             </div>
           </div>
         </div>
 
-        {/* Section Switcher Toggle - No Overlapping, Clean Margins & Larger Button Size */}
-        <div className="flex items-center bg-gray-100 dark:bg-[#252825] p-1 sm:p-1.5 rounded-2xl border border-gray-200 dark:border-[#2d302d] gap-1.5 sm:gap-2">
+        {/* Module Dropdown Switcher */}
+        <div className="relative" ref={moduleMenuRef}>
           <button
             type="button"
-            onClick={() => handleModeSwitch('erp')}
-            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap ${
-              mode === 'erp'
-                ? 'bg-[#00a631] text-white shadow-md shadow-[#00a631]/30'
-                : 'text-gray-600 dark:text-gray-300 hover:text-[#3a3b39] dark:hover:text-white'
-            }`}
+            onClick={() => setShowModuleMenu((prev) => !prev)}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 dark:bg-[#252825] hover:bg-gray-200 dark:hover:bg-[#2d302d] border border-gray-200 dark:border-[#2d302d] rounded-2xl text-xs sm:text-sm font-extrabold text-[#3a3b39] dark:text-white transition-all cursor-pointer whitespace-nowrap"
+            aria-label="Switch Module"
           >
-            <Building2 className="w-4 h-4 shrink-0" />
-            <span>Goodwin ERP</span>
+            <activeModule.Icon className={`w-4 h-4 shrink-0 ${activeModule.activeClass}`} />
+            <span className="hidden sm:inline">{activeModule.label}</span>
+            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${showModuleMenu ? 'rotate-180' : ''}`} />
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleModeSwitch('ledger')}
-            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap ${
-              mode === 'ledger'
-                ? 'bg-[#3a3b39] text-[#cde06c] shadow-md shadow-black/20'
-                : 'text-gray-600 dark:text-gray-300 hover:text-[#3a3b39] dark:hover:text-white'
-            }`}
-          >
-            <BookOpen className="w-4 h-4 shrink-0" />
-            <span>Ledger-Pro</span>
-          </button>
+          {showModuleMenu && (
+            <div className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-[#1e211e] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#2d302d] p-2 z-50 animate-scale-in">
+              <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 py-1.5 uppercase tracking-wider">
+                Switch Module
+              </div>
+              {modules.map((m) => (
+                <button
+                  key={m.mode}
+                  type="button"
+                  onClick={() => {
+                    setMode(m.mode);
+                    setShowModuleMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all cursor-pointer group ${
+                    mode === m.mode
+                      ? 'bg-[#00a631]/10 dark:bg-[#00a631]/10'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                    mode === m.mode ? 'bg-[#00a631] text-white' : 'bg-gray-100 dark:bg-[#252825] text-gray-500 dark:text-gray-400'
+                  }`}>
+                    <m.Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-xs font-extrabold ${
+                      mode === m.mode ? 'text-[#3a3b39] dark:text-white' : 'text-gray-700 dark:text-gray-200'
+                    }`}>{m.label}</div>
+                    <div className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold truncate">{m.subtitle}</div>
+                  </div>
+                  {mode === m.mode && <Check className="w-4 h-4 text-[#00a631] shrink-0" />}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -116,44 +163,11 @@ export function Header({
         </button>
 
         {/* Role Badge Dropdown (Quick Role Switching for Demo/Testing) */}
+        {/* Role Badge (Static Read-Only) */}
         {user && (
-          <div className="relative hidden sm:block">
-            <button
-              type="button"
-              onClick={() => setShowRoleMenu(!showRoleMenu)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
-                roleColors[user.role]
-              }`}
-              title="Click to quickly switch role for RBAC testing"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span className="capitalize">{user.role}</span>
-              <ChevronDown className="w-3 h-3 opacity-60" />
-            </button>
-
-            {showRoleMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1e211e] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#2d302d] p-2 z-50 animate-scale-in">
-                <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-2 py-1 uppercase tracking-wider">
-                  Test Access Role
-                </div>
-                {(['admin', 'manager', 'accounts', 'sales', 'inventory'] as UserRole[]).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => {
-                      quickSignInAsRole(r);
-                      setShowRoleMenu(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
-                      user.role === r ? 'bg-[#00a631]/10 text-[#00a631]' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
-                    }`}
-                  >
-                    <span className="capitalize">{r}</span>
-                    {user.role === r && <Sparkles className="w-3.5 h-3.5 text-[#00a631]" />}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold border bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 select-none">
+            <Shield className="w-3.5 h-3.5" />
+            <span className="uppercase tracking-wider font-black">{user.role}</span>
           </div>
         )}
 
@@ -182,17 +196,11 @@ export function Header({
                 <div className="px-3 py-2 border-b border-gray-200 dark:border-[#2d302d] mb-1">
                   <p className="text-xs font-extrabold text-[#3a3b39] dark:text-white">{user.full_name}</p>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400">{user.email}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#00a631]/10 text-[#00a631] uppercase">
-                    Role: {user.role}
-                  </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowUserMenu(false);
-                    signOut();
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
+                  onClick={signOut}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-extrabold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>

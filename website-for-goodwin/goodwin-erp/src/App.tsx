@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './store/AuthContext';
 import { DataProvider } from './store/DataContext';
 import { ThemeProvider } from './store/ThemeContext';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
 
 // ERP Pages
 import { ErpDashboard } from './pages/erp/ErpDashboard';
@@ -26,24 +25,34 @@ import { LedgerSalesPage } from './pages/ledger/LedgerSalesPage';
 import { PaymentInPage } from './pages/ledger/PaymentInPage';
 import { PaymentOutPage } from './pages/ledger/PaymentOutPage';
 
+// Lead Management Pages
+import { LeadsPage } from './pages/leads/LeadsPage';
+import { PipelinePage } from './pages/leads/PipelinePage';
+import { FollowupsPage } from './pages/leads/FollowupsPage';
+
 import { canAccess } from './lib/permissions';
 import { Toaster } from 'react-hot-toast';
 import { ShieldAlert } from 'lucide-react';
 
 function MainAppContent() {
   const { user, mode } = useAuth();
-  const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
-  const [currentModule, setCurrentModule] = useState('dashboard');
+  const [currentModule, setCurrentModule] = useState(mode === 'leads' ? 'leads' : 'dashboard');
   const [showGlobalInvoiceModal, setShowGlobalInvoiceModal] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // If user is not logged in, render Sign In or Register flow
-  if (!user) {
-    if (authView === 'register') {
-      return <RegisterPage onNavigateToLogin={() => setAuthView('login')} />;
+  // Automatically reset to default module for active mode
+  useEffect(() => {
+    if (mode === 'leads') {
+      setCurrentModule('leads');
+    } else {
+      setCurrentModule('dashboard');
     }
-    return <LoginPage onNavigateToRegister={() => setAuthView('register')} />;
+  }, [mode]);
+
+  // If user is not logged in, render Sign In
+  if (!user) {
+    return <LoginPage />;
   }
 
   // Check role permissions for current module
@@ -62,10 +71,10 @@ function MainAppContent() {
           </p>
           <button
             type="button"
-            onClick={() => setCurrentModule('dashboard')}
+            onClick={() => setCurrentModule(mode === 'leads' ? 'leads' : 'dashboard')}
             className="px-5 py-2.5 bg-[#00a631] text-white text-xs sm:text-sm font-extrabold rounded-xl shadow cursor-pointer"
           >
-            Return to Dashboard
+            Return to {mode === 'leads' ? 'Leads' : 'Dashboard'}
           </button>
         </div>
       );
@@ -109,7 +118,7 @@ function MainAppContent() {
             />
           );
       }
-    } else {
+    } else if (mode === 'ledger') {
       switch (currentModule) {
         case 'dashboard':
           return <LedgerDashboard />;
@@ -124,40 +133,74 @@ function MainAppContent() {
         default:
           return <LedgerDashboard />;
       }
+    } else {
+      // Leads mode routing
+      switch (currentModule) {
+        case 'leads':
+          return <LeadsPage />;
+        case 'pipeline':
+          return <PipelinePage />;
+        case 'follow-ups':
+          return <FollowupsPage />;
+        default:
+          return <LeadsPage />;
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f4f0] dark:bg-[#141614] text-[#3a3b39] dark:text-gray-100 font-sans flex flex-col relative overflow-x-hidden transition-colors duration-300">
+    <div className="h-[100dvh] w-full bg-[#f5f4f0] dark:bg-[#141614] text-[#3a3b39] dark:text-gray-100 font-sans grid grid-cols-1 md:grid-cols-[250px_minmax(0,1fr)] overflow-hidden transition-colors duration-300">
       {/* Background Orbs */}
-      <div className="bg-gradient-orbs" />
+      <div className="bg-gradient-orbs fixed inset-0 z-0 pointer-events-none" />
 
-      <Header
-        onOpenNewInvoiceModal={() => {
-          if (mode === 'erp') {
-            setCurrentModule('sales');
-            setShowGlobalInvoiceModal(true);
-          } else {
-            setCurrentModule('sales');
-          }
-        }}
-        onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-        isMobileSidebarOpen={isMobileSidebarOpen}
-      />
-
-      <div className="flex-1 w-full relative z-10 md:grid md:grid-cols-[260px_minmax(0,1fr)]">
+      {/* Sidebar - Desktop */}
+      <div className="hidden md:block col-start-1 h-[100dvh] z-20">
         <Sidebar
           currentModule={currentModule}
           onSelectModule={(mod) => setCurrentModule(mod)}
-          isMobileOpen={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          isMobileOpen={false}
+          onCloseMobile={() => {}}
         />
-        <main className="min-w-0 p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-[1400px] mx-auto space-y-6">
-            {renderModuleContent()}
+      </div>
+
+      {/* Main Area */}
+      <div className="col-start-1 md:col-start-2 flex flex-col min-w-0 min-h-0 h-[100dvh] relative z-10">
+        {/* Top Header */}
+        <Header
+          onOpenNewInvoiceModal={() => {
+            if (mode === 'erp') {
+              setCurrentModule('sales');
+              setShowGlobalInvoiceModal(true);
+            } else {
+              setCurrentModule('sales');
+            }
+          }}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+          isMobileSidebarOpen={isMobileSidebarOpen}
+        />
+
+        {/* Page Content */}
+        <main className="flex-1 min-h-0 min-w-0 relative flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div className="w-full max-w-[1400px] mx-auto space-y-6">
+              {renderModuleContent()}
+            </div>
           </div>
         </main>
       </div>
+
+      {/* Mobile Drawer */}
+      {isMobileSidebarOpen && (
+        <Sidebar
+          currentModule={currentModule}
+          onSelectModule={(mod) => {
+            setCurrentModule(mod);
+            setIsMobileSidebarOpen(false);
+          }}
+          isMobileOpen={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
 
       <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
     </div>

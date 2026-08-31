@@ -189,6 +189,48 @@ CREATE TABLE IF NOT EXISTS company_settings (
   updated_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ── 11. LEADS TABLE ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS leads (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name                VARCHAR(255) NOT NULL,
+  company_name        VARCHAR(255) NOT NULL,
+  phone               VARCHAR(50) NOT NULL,
+  email               VARCHAR(255) DEFAULT '',
+  whatsapp            VARCHAR(50) DEFAULT '',
+  address             TEXT DEFAULT '',
+  city                VARCHAR(100) DEFAULT '',
+  state               VARCHAR(100) DEFAULT '',
+  stage               VARCHAR(50) NOT NULL DEFAULT 'New',
+  expected_value      NUMERIC(12, 2) DEFAULT 0,
+  source              VARCHAR(50) NOT NULL DEFAULT 'WhatsApp',
+  requirement         TEXT DEFAULT '',
+  assigned_to         VARCHAR(100) DEFAULT 'Admin',
+  notes               TEXT DEFAULT '',
+  next_followup_date  DATE,
+  next_followup_time  VARCHAR(20),
+  lost_reason         VARCHAR(100),
+  lost_notes          TEXT,
+  party_id            UUID REFERENCES customers(id) ON DELETE SET NULL,
+  created_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ── 12. LEAD ACTIVITIES TABLE ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS lead_activities (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lead_id     UUID REFERENCES leads(id) ON DELETE CASCADE,
+  type        VARCHAR(50) NOT NULL DEFAULT 'Note',
+  description TEXT NOT NULL,
+  created_by  VARCHAR(100) DEFAULT 'Admin',
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ── Indexes for High Performance ──────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_leads_phone ON leads(phone);
+CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(stage);
+CREATE INDEX IF NOT EXISTS idx_leads_next_followup_date ON leads(next_followup_date);
+CREATE INDEX IF NOT EXISTS idx_lead_activities_lead_id ON lead_activities(lead_id);
+
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES FOR SUPABASE
 -- Allows all operations (SELECT, INSERT, UPDATE, DELETE) for both anon & authenticated users
@@ -205,6 +247,8 @@ ALTER TABLE battery_warranties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ledger_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lead_activities ENABLE ROW LEVEL SECURITY;
 
 -- 2. Drop existing conflicting policies
 DROP POLICY IF EXISTS "Public full access customers" ON customers;
@@ -217,6 +261,8 @@ DROP POLICY IF EXISTS "Public full access battery_warranties" ON battery_warrant
 DROP POLICY IF EXISTS "Public full access payments" ON payments;
 DROP POLICY IF EXISTS "Public full access ledger_entries" ON ledger_entries;
 DROP POLICY IF EXISTS "Public full access company_settings" ON company_settings;
+DROP POLICY IF EXISTS "Public full access leads" ON leads;
+DROP POLICY IF EXISTS "Public full access lead_activities" ON lead_activities;
 
 DROP POLICY IF EXISTS "Allow authenticated full access" ON customers;
 DROP POLICY IF EXISTS "Allow authenticated full access" ON suppliers;
@@ -228,6 +274,8 @@ DROP POLICY IF EXISTS "Allow authenticated full access" ON battery_warranties;
 DROP POLICY IF EXISTS "Allow authenticated full access" ON payments;
 DROP POLICY IF EXISTS "Allow authenticated full access" ON ledger_entries;
 DROP POLICY IF EXISTS "Allow authenticated full access" ON company_settings;
+DROP POLICY IF EXISTS "Allow authenticated full access" ON leads;
+DROP POLICY IF EXISTS "Allow authenticated full access" ON lead_activities;
 DROP POLICY IF EXISTS "Allow anon read settings" ON company_settings;
 
 -- 3. Create full permissive policies for public (anon + authenticated)
@@ -241,6 +289,8 @@ CREATE POLICY "Public full access battery_warranties" ON battery_warranties FOR 
 CREATE POLICY "Public full access payments" ON payments FOR ALL TO public USING (true) WITH CHECK (true);
 CREATE POLICY "Public full access ledger_entries" ON ledger_entries FOR ALL TO public USING (true) WITH CHECK (true);
 CREATE POLICY "Public full access company_settings" ON company_settings FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access leads" ON leads FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access lead_activities" ON lead_activities FOR ALL TO public USING (true) WITH CHECK (true);
 
 -- 4. Grant table privileges
 GRANT ALL ON TABLE customers TO anon, authenticated, service_role;
@@ -253,6 +303,8 @@ GRANT ALL ON TABLE battery_warranties TO anon, authenticated, service_role;
 GRANT ALL ON TABLE payments TO anon, authenticated, service_role;
 GRANT ALL ON TABLE ledger_entries TO anon, authenticated, service_role;
 GRANT ALL ON TABLE company_settings TO anon, authenticated, service_role;
+GRANT ALL ON TABLE leads TO anon, authenticated, service_role;
+GRANT ALL ON TABLE lead_activities TO anon, authenticated, service_role;
 
 -- ── REALTIME LIVE UPDATES ────────────────────────────────────────────────────
 BEGIN;

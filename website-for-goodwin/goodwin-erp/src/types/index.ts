@@ -1,5 +1,5 @@
 export type UserRole = 'admin' | 'manager' | 'accounts' | 'sales' | 'inventory';
-export type AppMode = 'erp' | 'ledger';
+export type AppMode = 'erp' | 'ledger' | 'leads';
 export type CustomerType = 'dealer' | 'distributor' | 'retailer' | 'oem';
 export type InvoiceStatus = 'paid' | 'pending' | 'overdue' | 'partial';
 export type POStatus = 'received' | 'pending' | 'partial';
@@ -193,8 +193,8 @@ export interface LedgerEntry {
   debit: number;
   credit: number;
   balance: number;
-  reference_type: 'invoice' | 'purchase' | 'payment' | 'return';
-  reference_id: string;
+  reference_type?: 'invoice' | 'purchase' | 'payment' | 'return' | 'opening';
+  reference_id?: string;
   created_at: string;
 }
 
@@ -230,5 +230,57 @@ export interface SidebarItem {
   icon: string;
   path: string;
   module: string;
+}
+
+// ── Lead Management Types ───────────────────────────────────────────
+export type LeadStage = 'New' | 'Contacted' | 'Follow-up' | 'Qualified' | 'Won' | 'Lost';
+
+export type LeadSource =
+  | 'WhatsApp'
+  | 'Phone'
+  | 'Website'
+  | 'Referral'
+  | 'Walk-in'
+  | 'Existing Customer'
+  | 'Other';
+
+export type LostReason =
+  | 'Price too high'
+  | 'Bought from competitor'
+  | 'Not interested'
+  | 'No response'
+  | 'Requirement cancelled'
+  | 'Other';
+
+export type ActivityType = 'Call' | 'WhatsApp' | 'Meeting' | 'Note';
+
+export interface Lead {
+  id: string;
+  name: string;
+  company_name: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  source: LeadSource;
+  stage: LeadStage;
+  expected_value: number;
+  requirement: string;
+  assigned_to: string;
+  next_followup_date: string; // YYYY-MM-DD
+  next_followup_time: string; // HH:MM or "11:00 AM"
+  notes: string;
+  lost_reason?: LostReason | string;
+  party_id?: string; // ID of converted Customer
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeadActivity {
+  id: string;
+  lead_id: string;
+  type: ActivityType;
+  description: string;
+  created_at: string;
+  created_by: string;
 }
 
