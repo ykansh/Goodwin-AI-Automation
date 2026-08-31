@@ -208,6 +208,10 @@ function MainAppContent() {
 }
 
 export default function App() {
+  console.log('Environment:', import.meta.env.MODE);
+  console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL || 'MISSING');
+  console.log('Using Supabase:', !!import.meta.env.VITE_SUPABASE_URL);
+
   return (
     <ThemeProvider>
       <AuthProvider>

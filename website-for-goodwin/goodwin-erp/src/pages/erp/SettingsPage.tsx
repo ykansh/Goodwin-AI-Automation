@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../../store/DataContext';
 import { createClient } from '@supabase/supabase-js';
-import { checkSupabaseConnection, isSupabaseConfigured } from '../../lib/supabaseClient';
+import { checkSupabaseConnection } from '../../lib/supabaseClient';
 import { GOODWIN_SUPABASE_SQL } from '../../lib/supabaseSql';
 import { Database, Battery, Building2, Copy, Check, RefreshCw, Wifi, WifiOff, ExternalLink, Code } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function SettingsPage() {
-  const { settings, updateSettings, resetToDummyData } = useData();
+  const { settings, updateSettings } = useData();
 
   // ── Cloud DB state ─────────────────────────────────────────────────────────
   const [supabaseUrl,  setSupabaseUrl]  = useState(
@@ -18,7 +18,7 @@ export function SettingsPage() {
   );
   const [testingDb,    setTestingDb]    = useState(false);
   const [dbStatus,     setDbStatus]     = useState<'idle' | 'checking' | 'connected' | 'error'>(
-    isSupabaseConfigured ? 'checking' : 'idle'
+    'checking'
   );
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [showKey,      setShowKey]      = useState(false);
@@ -32,8 +32,7 @@ export function SettingsPage() {
 
   // ── Auto-check connection on mount ─────────────────────────────────────────
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
-    setDbStatus('checking');
+        setDbStatus('checking');
     checkSupabaseConnection().then((ok) => setDbStatus(ok ? 'connected' : 'error'));
   }, []);
 
@@ -136,16 +135,7 @@ export function SettingsPage() {
             Configure Supabase cloud database, battery parameters, warehouse racks & salesperson assignments
           </p>
         </div>
-        <button
-          type="button"
-          onClick={resetToDummyData}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gray-200/80 hover:bg-gray-300
-                     dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200
-                     text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Reset Demo Data
-        </button>
+        
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -176,9 +166,7 @@ export function SettingsPage() {
               )}
               <div className="space-y-0.5 min-w-0">
                 <p className="text-xs font-extrabold text-[#3a3b39] dark:text-white leading-normal truncate">
-                  {isSupabaseConfigured
-                    ? 'Supabase configured via .env — Real-time sync active'
-                    : 'Running in local/offline mode — data saved to browser'}
+                  {'Supabase configured via .env — Real-time sync active'}
                 </p>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium leading-normal truncate">
                   Project: <span className="font-mono">fyxqyylclamwigvdzjem.supabase.co</span>

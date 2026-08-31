@@ -4,13 +4,8 @@ import type {
   Return, BatteryWarranty, Payment, LedgerEntry, CompanySettings,
   Lead, LeadActivity, CustomerType,
 } from '../types';
-import {
-  dummyCustomers, dummySuppliers, dummyProducts, dummySalesInvoices,
-  dummyPurchaseOrders, dummyReturns, dummyBatteryWarranties, dummyPayments,
-  dummyLedgerEntries, dummyCompanySettings,
-} from '../data/dummyData';
-import { dummyLeads, dummyLeadActivities } from '../data/dummyLeads';
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
+
+import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 // ── Unique Sequence / ID Generators ──────────────────────────────────────────
@@ -139,139 +134,64 @@ interface DataContextType {
   addActivity: (activity: Omit<LeadActivity, 'id' | 'created_at'>) => LeadActivity;
   convertLeadToParty: (leadId: string, partyData: { name: string; contact: string; email: string; address: string; type: CustomerType; gstin?: string; linkExistingId?: string }) => void;
 
-  resetToDummyData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [customers, setCustomers] = useState<Customer[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_customers');
-    return local ? JSON.parse(local) : dummyCustomers;
-  });
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_suppliers');
-    return local ? JSON.parse(local) : dummySuppliers;
-  });
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
-  const [products, setProducts] = useState<Product[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_products');
-    return local ? JSON.parse(local) : dummyProducts;
-  });
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const [invoices, setInvoices] = useState<SalesInvoice[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_invoices');
-    return local ? JSON.parse(local) : dummySalesInvoices;
-  });
+  const [invoices, setInvoices] = useState<SalesInvoice[]>([]);
 
-  const [purchases, setPurchases] = useState<PurchaseOrder[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_purchases');
-    return local ? JSON.parse(local) : dummyPurchaseOrders;
-  });
+  const [purchases, setPurchases] = useState<PurchaseOrder[]>([]);
 
-  const [returns, setReturns] = useState<Return[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_returns');
-    return local ? JSON.parse(local) : dummyReturns;
-  });
+  const [returns, setReturns] = useState<Return[]>([]);
 
-  const [warranties, setWarranties] = useState<BatteryWarranty[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_warranties');
-    return local ? JSON.parse(local) : dummyBatteryWarranties;
-  });
+  const [warranties, setWarranties] = useState<BatteryWarranty[]>([]);
 
-  const [payments, setPayments] = useState<Payment[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_payments');
-    return local ? JSON.parse(local) : dummyPayments;
-  });
+  const [payments, setPayments] = useState<Payment[]>([]);
 
-  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_ledger');
-    return local ? JSON.parse(local) : dummyLedgerEntries;
-  });
+  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
 
-  const [settings, setSettings] = useState<CompanySettings>(() => {
-    if (isSupabaseConfigured) return dummyCompanySettings;
-    const local = localStorage.getItem('goodwin_settings');
-    return local ? JSON.parse(local) : dummyCompanySettings;
-  });
+  const [settings, setSettings] = useState<CompanySettings>({
+    id: '1',
+    name: 'Goodwin Batteries Pvt. Ltd.',
+    gstin: '',
+    address: '',
+    phone: '',
+    email: '',
+    logo_url: '',
+    bank_details: { bank_name: '', account_number: '', ifsc_code: '', branch: '' },
+    battery_configs: { voltages: [], ah_ratings: [], warehouses: [], customer_types: [], salespersons: [], default_gst_percent: 28 },
+    });
 
-  const [leads, setLeads] = useState<Lead[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_leads');
-    return local ? JSON.parse(local) : dummyLeads;
-  });
+  const [leads, setLeads] = useState<Lead[]>([]);
 
-  const [activities, setActivities] = useState<LeadActivity[]>(() => {
-    if (isSupabaseConfigured) return [];
-    const local = localStorage.getItem('goodwin_lead_activities');
-    return local ? JSON.parse(local) : dummyLeadActivities;
-  });
+  const [activities, setActivities] = useState<LeadActivity[]>([]);
 
   const [cashBalance, setCashBalance] = useState<number>(145000);
   const [bankBalance, setBankBalance] = useState<number>(1850000);
 
   // Sync to local storage only if Supabase is NOT configured
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_leads', JSON.stringify(leads));
-  }, [leads]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_lead_activities', JSON.stringify(activities));
-  }, [activities]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_customers', JSON.stringify(customers));
-  }, [customers]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_suppliers', JSON.stringify(suppliers));
-  }, [suppliers]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_products', JSON.stringify(products));
-  }, [products]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_invoices', JSON.stringify(invoices));
-  }, [invoices]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_purchases', JSON.stringify(purchases));
-  }, [purchases]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_returns', JSON.stringify(returns));
-  }, [returns]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_warranties', JSON.stringify(warranties));
-  }, [warranties]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_payments', JSON.stringify(payments));
-  }, [payments]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_ledger', JSON.stringify(ledgerEntries));
-  }, [ledgerEntries]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('goodwin_settings', JSON.stringify(settings));
-  }, [settings]);
 
   // ── Supabase: Fetch cloud data on mount ─────────────────────────────────────
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!supabase) return;
 
     // Clean up local storage to ensure browser isn't storing old offline data
     Object.keys(localStorage).forEach((key) => {
@@ -295,38 +215,82 @@ export function DataProvider({ children }: { children: ReactNode }) {
           sb.from('lead_activities').select('*').order('created_at', { ascending: false }),
         ]);
 
-      if (custRes.error) console.error('[Supabase] Customers load error:', custRes.error);
-      if (custRes.data && custRes.data.length > 0) setCustomers(custRes.data as Customer[]);
+      if (custRes.error) {
+        console.error('[Supabase] Customers load error:', custRes.error);
+        toast.error(`Error loading Customers: ${custRes.error.message}`);
+      } else if (custRes.data) {
+        setCustomers(custRes.data as Customer[]);
+      }
 
-      if (suppRes.error) console.error('[Supabase] Suppliers load error:', suppRes.error);
-      if (suppRes.data && suppRes.data.length > 0) setSuppliers(suppRes.data as Supplier[]);
+      if (suppRes.error) {
+        console.error('[Supabase] Suppliers load error:', suppRes.error);
+        toast.error(`Error loading Suppliers: ${suppRes.error.message}`);
+      } else if (suppRes.data) {
+        setSuppliers(suppRes.data as Supplier[]);
+      }
 
-      if (prodRes.error) console.error('[Supabase] Products load error:', prodRes.error);
-      if (prodRes.data && prodRes.data.length > 0) setProducts(prodRes.data as Product[]);
+      if (prodRes.error) {
+        console.error('[Supabase] Products load error:', prodRes.error);
+        toast.error(`Error loading Products: ${prodRes.error.message}`);
+      } else if (prodRes.data) {
+        setProducts(prodRes.data as Product[]);
+      }
 
-      if (invRes.error) console.error('[Supabase] Invoices load error:', invRes.error);
-      if (invRes.data && invRes.data.length > 0) setInvoices(invRes.data as SalesInvoice[]);
+      if (invRes.error) {
+        console.error('[Supabase] Invoices load error:', invRes.error);
+        toast.error(`Error loading Invoices: ${invRes.error.message}`);
+      } else if (invRes.data) {
+        setInvoices(invRes.data as SalesInvoice[]);
+      }
 
-      if (poRes.error) console.error('[Supabase] POs load error:', poRes.error);
-      if (poRes.data && poRes.data.length > 0) setPurchases(poRes.data as PurchaseOrder[]);
+      if (poRes.error) {
+        console.error('[Supabase] POs load error:', poRes.error);
+        toast.error(`Error loading Purchases: ${poRes.error.message}`);
+      } else if (poRes.data) {
+        setPurchases(poRes.data as PurchaseOrder[]);
+      }
 
-      if (retRes.error) console.error('[Supabase] Returns load error:', retRes.error);
-      if (retRes.data && retRes.data.length > 0) setReturns(retRes.data as Return[]);
+      if (retRes.error) {
+        console.error('[Supabase] Returns load error:', retRes.error);
+        toast.error(`Error loading Returns: ${retRes.error.message}`);
+      } else if (retRes.data) {
+        setReturns(retRes.data as Return[]);
+      }
 
-      if (warRes.error) console.error('[Supabase] Warranties load error:', warRes.error);
-      if (warRes.data && warRes.data.length > 0) setWarranties(warRes.data as BatteryWarranty[]);
+      if (warRes.error) {
+        console.error('[Supabase] Warranties load error:', warRes.error);
+        toast.error(`Error loading Warranties: ${warRes.error.message}`);
+      } else if (warRes.data) {
+        setWarranties(warRes.data as BatteryWarranty[]);
+      }
 
-      if (payRes.error) console.error('[Supabase] Payments load error:', payRes.error);
-      if (payRes.data && payRes.data.length > 0) setPayments(payRes.data as Payment[]);
+      if (payRes.error) {
+        console.error('[Supabase] Payments load error:', payRes.error);
+        toast.error(`Error loading Payments: ${payRes.error.message}`);
+      } else if (payRes.data) {
+        setPayments(payRes.data as Payment[]);
+      }
 
-      if (ledRes.error) console.error('[Supabase] Ledger load error:', ledRes.error);
-      if (ledRes.data && ledRes.data.length > 0) setLedgerEntries(ledRes.data as LedgerEntry[]);
+      if (ledRes.error) {
+        console.error('[Supabase] Ledger load error:', ledRes.error);
+        toast.error(`Error loading LedgerEntries: ${ledRes.error.message}`);
+      } else if (ledRes.data) {
+        setLedgerEntries(ledRes.data as LedgerEntry[]);
+      }
 
-      if (leadsRes.error) console.error('[Supabase] Leads load error:', leadsRes.error);
-      if (leadsRes.data && leadsRes.data.length > 0) setLeads(leadsRes.data as Lead[]);
+      if (leadsRes.error) {
+        console.error('[Supabase] Leads load error:', leadsRes.error);
+        toast.error(`Error loading Leads: ${leadsRes.error.message}`);
+      } else if (leadsRes.data) {
+        setLeads(leadsRes.data as Lead[]);
+      }
 
-      if (actRes.error) console.error('[Supabase] Lead activities load error:', actRes.error);
-      if (actRes.data && actRes.data.length > 0) setActivities(actRes.data as LeadActivity[]);
+      if (actRes.error) {
+        console.error('[Supabase] Lead activities load error:', actRes.error);
+        toast.error(`Error loading Activities: ${actRes.error.message}`);
+      } else if (actRes.data) {
+        setActivities(actRes.data as LeadActivity[]);
+      }
     };
 
     fetchAll();
@@ -334,7 +298,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // ── Supabase: Real-time subscriptions ──────────────────────────────────────
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!supabase) return;
 
     const channel = supabase!
       .channel('goodwin-realtime')
@@ -426,14 +390,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         created_at: new Date().toISOString(),
       };
       setLedgerEntries((prev) => [openingEntry, ...prev]);
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('ledger_entries').insert(openingEntry).then(({ error }) => {
           if (error) console.error('[Supabase] Ledger opening balance insert error:', error);
         });
       }
     }
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('customers').insert(newCustomer).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Customer insert error:', error);
@@ -446,7 +410,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
     setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('customers').update(updates).eq('id', id).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Customer update error:', error);
@@ -489,14 +453,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         created_at: new Date().toISOString(),
       };
       setLedgerEntries((prev) => [openingEntry, ...prev]);
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('ledger_entries').insert(openingEntry).then(({ error }) => {
           if (error) console.error('[Supabase] Ledger opening balance insert error:', error);
         });
       }
     }
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('suppliers').insert(newSupplier).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Supplier insert error:', error);
@@ -509,7 +473,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateSupplier = (id: string, updates: Partial<Supplier>) => {
     setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('suppliers').update(updates).eq('id', id).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Supplier update error:', error);
@@ -528,7 +492,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setProducts((prev) => [newProduct, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('products').insert(newProduct).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Product insert error:', error);
@@ -541,7 +505,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('products').update(updates).eq('id', id).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Product update error:', error);
@@ -583,7 +547,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const item = invoiceData.items.find((i) => i.product_id === prod.id);
         if (item) {
           const newQty = Math.max(0, prod.stock - item.quantity);
-          if (isSupabaseConfigured && supabase) {
+          if (supabase) {
             supabase.from('products').update({ stock: newQty }).eq('id', prod.id).then();
           }
           return { ...prod, stock: newQty };
@@ -598,7 +562,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setCustomers((prev) =>
         prev.map((c) => (c.id === customer.id ? { ...c, outstanding: newCustomerOutstanding } : c))
       );
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('customers').update({ outstanding: newCustomerOutstanding }).eq('id', customer.id).then();
       }
     }
@@ -622,7 +586,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
     };
     setLedgerEntries((prev) => [newLedger, ...prev]);
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('ledger_entries').insert(newLedger).then();
     }
 
@@ -665,14 +629,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       };
       setLedgerEntries((prev) => [payLedger, ...prev]);
 
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('payments').insert(payRecord).then();
         supabase.from('ledger_entries').insert(payLedger).then();
       }
     }
 
     // Sync Invoice to Supabase
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       // Remove virtual field initial_payment before saving to DB
       const { initial_payment, ...dbInvoice } = newInvoice as any;
       supabase.from('sales_invoices').insert({
@@ -718,7 +682,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const item = poData.items.find((i) => i.product_id === prod.id);
         if (item) {
           const newStock = prod.stock + item.quantity;
-          if (isSupabaseConfigured && supabase) {
+          if (supabase) {
             supabase.from('products').update({ stock: newStock }).eq('id', prod.id).then();
           }
           return { ...prod, stock: newStock };
@@ -733,7 +697,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setSuppliers((prev) =>
         prev.map((s) => (s.id === supplier.id ? { ...s, outstanding: newSupplierOutstanding } : s))
       );
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('suppliers').update({ outstanding: newSupplierOutstanding }).eq('id', supplier.id).then();
       }
     }
@@ -757,12 +721,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
     };
     setLedgerEntries((prev) => [newLedger, ...prev]);
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('ledger_entries').insert(newLedger).then();
     }
 
     // Sync PO to Supabase
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       // Remove virtual field initial_payment before saving to DB
       const { initial_payment, ...dbPO } = newPO as any;
       supabase.from('purchase_orders').insert({
@@ -801,7 +765,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setCustomers((prev) =>
         prev.map((c) => (c.id === paymentData.party_id ? { ...c, outstanding: newOutstanding } : c))
       );
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('customers').update({ outstanding: newOutstanding }).eq('id', customer.id).then();
       }
     }
@@ -833,7 +797,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setLedgerEntries((prev) => [newLedger, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('payments').insert(newPayment).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Payment insert error:', error);
@@ -866,7 +830,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setSuppliers((prev) =>
         prev.map((s) => (s.id === paymentData.party_id ? { ...s, outstanding: newOutstanding } : s))
       );
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('suppliers').update({ outstanding: newOutstanding }).eq('id', supplier.id).then();
       }
     }
@@ -898,7 +862,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setLedgerEntries((prev) => [newLedger, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('payments').insert(newPayment).then(({ error }) => {
         if (error) {
           console.error('[Supabase] PaymentOut insert error:', error);
@@ -946,7 +910,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       );
     }
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('returns').insert({
         ...newReturn,
         items: newReturn.items,
@@ -975,7 +939,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     setWarranties((prev) => [newWarranty, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('battery_warranties').insert(newWarranty).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Warranty insert error:', error);
@@ -988,7 +952,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateWarrantyStatus = (id: string, status: BatteryWarranty['status']) => {
     setWarranties((prev) => prev.map((w) => (w.id === id ? { ...w, status } : w)));
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('battery_warranties').update({ status }).eq('id', id).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Warranty update error:', error);
@@ -1001,7 +965,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = (newSettings: Partial<CompanySettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('company_settings').upsert({
         id: settings.id || '00000000-0000-0000-0000-000000000001',
         ...newSettings,
@@ -1036,7 +1000,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setActivities((prev) => [initActivity, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('leads').insert(newLead).then(({ error }) => {
         if (error) console.error('[Supabase] Lead insert error:', error);
       });
@@ -1055,7 +1019,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       prev.map((l) => (l.id === id ? { ...l, ...updatedLeadPayload } : l))
     );
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('leads').update(updatedLeadPayload).eq('id', id).then(({ error }) => {
         if (error) console.error('[Supabase] Lead update error:', error);
       });
@@ -1070,7 +1034,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setLeads((prev) => prev.filter((l) => l.id !== id));
     setActivities((prev) => prev.filter((a) => a.lead_id !== id));
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('leads').delete().eq('id', id).then(({ error }) => {
         if (error) console.error('[Supabase] Lead delete error:', error);
       });
@@ -1087,7 +1051,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setActivities((prev) => [newActivity, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('lead_activities').insert(newActivity).then(({ error }) => {
         if (error) console.error('[Supabase] Activity insert error:', error);
       });
@@ -1139,7 +1103,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       linkedCustomerId = newCustomer.id;
       customerName = `${newCustomer.name} (${newCustomer.uoi})`;
 
-      if (isSupabaseConfigured && supabase) {
+      if (supabase) {
         supabase.from('customers').insert(newCustomer).then(({ error }) => {
           if (error) console.error('[Supabase] Customer convert insert error:', error);
         });
@@ -1171,7 +1135,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setActivities((prev) => [convActivity, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    if (supabase) {
       supabase.from('leads').update(updatedLeadPayload).eq('id', leadId).then(({ error }) => {
         if (error) console.error('[Supabase] Lead convert update error:', error);
       });
@@ -1183,23 +1147,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     toast.success('Lead converted successfully.');
   };
 
-  const resetToDummyData = () => {
-    setCustomers(dummyCustomers);
-    setSuppliers(dummySuppliers);
-    setProducts(dummyProducts);
-    setInvoices(dummySalesInvoices);
-    setPurchases(dummyPurchaseOrders);
-    setReturns(dummyReturns);
-    setWarranties(dummyBatteryWarranties);
-    setPayments(dummyPayments);
-    setLedgerEntries(dummyLedgerEntries);
-    setSettings(dummyCompanySettings);
-    setLeads(dummyLeads);
-    setActivities(dummyLeadActivities);
-    localStorage.clear();
-    toast.success('Reset system to default demo data');
-  };
-
+  
   return (
     <DataContext.Provider
       value={{
@@ -1236,7 +1184,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deleteLead,
         addActivity,
         convertLeadToParty,
-        resetToDummyData,
       }}
     >
       {children}
