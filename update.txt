@@ -40,7 +40,7 @@ started working on n8n automation.
 
 website frontend fixing 
 
-29/08/2026 
+29/08/2026               (positive review)
 
 made an fully automated system.
     agent for orders handling
@@ -49,7 +49,7 @@ made an fully automated system.
     also integrated previous basic questions answering agent 
 designed automated content management system. 
 
-31/08/2026
+31/08/2026                (neutral review)
 
 completed the website by just using prompts (prompt engineering)
 added lead management system with supabase 
