@@ -61,6 +61,7 @@ project published on vercel.
 
 01/08/2026                (neutral review)
 
+Created 2 more users in supabase for admin access. 
 Made an automation for content. 
     node structre
         1) Schedule 

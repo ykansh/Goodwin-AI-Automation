@@ -1,0 +1,16 @@
+Prompt Engineering:
+    Anti-Gravity 
+    Stitch
+    Claude-Code 
+    Looping
+
+Automation:
+    n8n 
+
+Cloud:
+    VPC server (AWS,Hostinger)
+
+others: 
+    Supabase (backend)
+    Bitwarden
+    vercel (deployment)
