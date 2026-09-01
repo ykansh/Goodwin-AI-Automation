@@ -59,3 +59,17 @@ project published on vercel.
     (local host working with supabase whereas this vercel ain't) reason - When you deploy to Vercel, if the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are missing (or weren't read correctly during the build step), the application automatically sets an internal flag (isSupabaseConfigured = false). When this flag is false, the application gracefully degrades into an "offline dummy mode" and reads from dummyData.ts and localStorage instead of crashing.
     fixed by making user on supabase ,then aking .env on supabase ,  then redeploy . 
 
+01/08/2026                (neutral review)
+
+Made an automation for content. 
+    node structre
+        1) Schedule 
+        2) Niche we want idea in. 
+        3) ideation for that niche. 
+        4) Detailed prompting 
+        5) Kling Http request 
+        6) caption generation and storing it in sheets. 
+        7) Approval in mail
+        8) if true and false == goes back to first 
+        9) posting and storing data 
+Did made account on bitwarden. 
