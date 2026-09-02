@@ -29,16 +29,11 @@ const STAGES: LeadStage[] = [
   'Lost',
 ];
 
-const ASSIGNEES = [
-  'Deepak Singh',
-  'Priya Sharma',
-  'Rajesh Kumar',
-  'Vikram Singh',
-  'Admin',
-];
+// Assignees will be loaded from company settings dynamically
 
 export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalProps) {
-  const { addLead, updateLead, leads, customers } = useData();
+  const { addLead, updateLead, leads, customers, settings } = useData();
+  const assignees = settings?.battery_configs?.salespersons?.length > 0 ? settings.battery_configs.salespersons : ['Admin'];
 
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -49,7 +44,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
   const [stage, setStage] = useState<LeadStage>('New');
   const [expectedValue, setExpectedValue] = useState<string>('');
   const [requirement, setRequirement] = useState('');
-  const [assignedTo, setAssignedTo] = useState(ASSIGNEES[0]);
+  const [assignedTo, setAssignedTo] = useState(assignees[0]);
   const [nextFollowupDate, setNextFollowupDate] = useState('');
   const [nextFollowupTime, setNextFollowupTime] = useState('');
   const [notes, setNotes] = useState('');
@@ -67,7 +62,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
       setStage(initialLead.stage || 'New');
       setExpectedValue(initialLead.expected_value ? String(initialLead.expected_value) : '');
       setRequirement(initialLead.requirement || '');
-      setAssignedTo(initialLead.assigned_to || ASSIGNEES[0]);
+      setAssignedTo(initialLead.assigned_to || assignees[0]);
       setNextFollowupDate(initialLead.next_followup_date || '');
       setNextFollowupTime(initialLead.next_followup_time || '');
       setNotes(initialLead.notes || '');
@@ -82,7 +77,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
       setStage('New');
       setExpectedValue('');
       setRequirement('');
-      setAssignedTo(ASSIGNEES[0]);
+      setAssignedTo(assignees[0]);
       setNextFollowupDate(new Date(Date.now() + 86400000).toISOString().split('T')[0]); // Tomorrow default
       setNextFollowupTime('11:00 AM');
       setNotes('');
@@ -352,7 +347,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
                     onChange={(e) => setAssignedTo(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold cursor-pointer bg-white dark:bg-[#1a1d1a]"
                   >
-                    {ASSIGNEES.map((a) => (
+                    {assignees.map((a) => (
                       <option key={a} value={a}>{a}</option>
                     ))}
                   </select>

@@ -22,7 +22,8 @@ const STAGE_BADGES: Record<LeadStage, { bg: string; text: string; border: string
 };
 
 export function LeadsPage() {
-  const { leads } = useData();
+  const { leads, settings } = useData();
+  const assignees = settings?.battery_configs?.salespersons?.length > 0 ? settings.battery_configs.salespersons : ['Admin'];
 
   // Search, Filters & Sort state
   const [searchTerm, setSearchTerm] = useState('');
@@ -295,11 +296,9 @@ export function LeadsPage() {
               className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-xl shrink-0"
             >
               <option value="all">Assigned: All</option>
-              <option value="Deepak Singh">Deepak Singh</option>
-              <option value="Priya Sharma">Priya Sharma</option>
-              <option value="Rajesh Kumar">Rajesh Kumar</option>
-              <option value="Vikram Singh">Vikram Singh</option>
-              <option value="Admin">Admin</option>
+              {assignees.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
             </select>
 
             {/* Sort */}

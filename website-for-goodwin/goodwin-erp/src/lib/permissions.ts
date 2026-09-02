@@ -15,6 +15,7 @@ const erpPermissions: ModulePermissions = {
   warranty: ['admin', 'manager', 'inventory'],
   reports: ['admin', 'manager', 'accounts'],
   settings: ['admin', 'manager'],
+  'user-management': ['admin'],
 };
 
 const ledgerPermissions: ModulePermissions = {
@@ -31,15 +32,23 @@ const leadsPermissions: ModulePermissions = {
   'follow-ups': ['admin', 'manager', 'accounts', 'sales', 'inventory'],
 };
 
+const hrmsPermissions: ModulePermissions = {
+  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  employees: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  attendance: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  leave: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  payroll: ['admin', 'manager', 'accounts'],
+};
+
 export function canAccess(role: UserRole, module: string, mode: AppMode): boolean {
-  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : leadsPermissions;
+  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : mode === 'leads' ? leadsPermissions : hrmsPermissions;
   const allowedRoles = permissions[module];
   if (!allowedRoles) return false;
   return allowedRoles.includes(role);
 }
 
 export function getAccessibleModules(role: UserRole, mode: AppMode): string[] {
-  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : leadsPermissions;
+  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : mode === 'leads' ? leadsPermissions : hrmsPermissions;
   return Object.keys(permissions).filter((module) => permissions[module].includes(role));
 }
 
@@ -54,6 +63,7 @@ export const erpSidebarItems = [
   { key: 'warranty', label: 'Battery Warranty', icon: 'ShieldCheck', path: '/erp/warranty', module: 'warranty' },
   { key: 'reports', label: 'Reports & Analytics', icon: 'BarChart3', path: '/erp/reports', module: 'reports' },
   { key: 'settings', label: 'Settings & Cloud DB', icon: 'Settings', path: '/erp/settings', module: 'settings' },
+  { key: 'user-management', label: 'User Roles & Access', icon: 'Shield', path: '/erp/user-management', module: 'user-management' },
 ];
 
 export const ledgerSidebarItems = [
@@ -68,4 +78,12 @@ export const leadsSidebarItems = [
   { key: 'leads', label: 'Leads', icon: 'Users', path: '/leads/list', module: 'leads' },
   { key: 'pipeline', label: 'Pipeline', icon: 'Kanban', path: '/leads/pipeline', module: 'pipeline' },
   { key: 'follow-ups', label: 'Follow-ups', icon: 'CalendarClock', path: '/leads/follow-ups', module: 'follow-ups' },
+];
+
+export const hrmsSidebarItems = [
+  { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/hrms/dashboard', module: 'dashboard' },
+  { key: 'employees', label: 'Employees', icon: 'Users', path: '/hrms/employees', module: 'employees' },
+  { key: 'attendance', label: 'Attendance', icon: 'Clock', path: '/hrms/attendance', module: 'attendance' },
+  { key: 'leave', label: 'Leave', icon: 'Calendar', path: '/hrms/leave', module: 'leave' },
+  { key: 'payroll', label: 'Payroll', icon: 'DollarSign', path: '/hrms/payroll', module: 'payroll' },
 ];

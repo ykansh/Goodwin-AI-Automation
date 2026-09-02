@@ -1,5 +1,5 @@
-export type UserRole = 'admin' | 'manager' | 'accounts' | 'sales' | 'inventory';
-export type AppMode = 'erp' | 'ledger' | 'leads';
+export type UserRole = 'admin' | 'manager' | 'accounts' | 'sales' | 'inventory' | 'hr' | 'employee';
+export type AppMode = 'erp' | 'ledger' | 'leads' | 'hrms';
 export type CustomerType = 'dealer' | 'distributor' | 'retailer' | 'oem';
 export type InvoiceStatus = 'paid' | 'pending' | 'overdue' | 'partial';
 export type POStatus = 'received' | 'pending' | 'partial';
@@ -283,4 +283,63 @@ export interface LeadActivity {
   created_at: string;
   created_by: string;
 }
+
+// ── HRMS Types ───────────────────────────────────────────────
+
+export interface HrmsEmployee {
+  id: string;
+  user_id?: string;
+  employee_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  department: string;
+  designation: string;
+  joining_date: string;
+  basic_salary: number;
+  status: string;
+  created_at: string;
+}
+
+export interface HrmsAttendance {
+  id: string;
+  employee_id: string;
+  date: string;
+  check_in?: string;
+  check_out?: string;
+  status: string; // Present, Absent, Half-Day, Late
+  notes?: string;
+  created_at: string;
+  employee?: HrmsEmployee;
+}
+
+export interface HrmsLeave {
+  id: string;
+  employee_id: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  number_of_days: number;
+  reason: string;
+  status: string; // Pending, Approved, Rejected
+  created_at: string;
+  employee?: HrmsEmployee;
+}
+
+export interface HrmsPayroll {
+  id: string;
+  employee_id: string;
+  month: string;
+  year: number;
+  basic_salary: number;
+  allowances: number;
+  deductions: number;
+  net_salary: number;
+  status: string; // Draft, Processed, Paid
+  created_at: string;
+  employee?: HrmsEmployee;
+}
+
+
 

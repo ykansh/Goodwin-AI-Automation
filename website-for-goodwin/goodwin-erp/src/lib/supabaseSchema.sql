@@ -178,6 +178,69 @@ CREATE TABLE IF NOT EXISTS company_settings (
   updated_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
+
+-- ============================================================
+-- BASIC HRMS MODULE TABLES
+-- ============================================================
+
+-- 11. EMPLOYEES
+CREATE TABLE IF NOT EXISTS hrms_employees (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID, -- References auth.users if they have login access
+  employee_id VARCHAR(50) UNIQUE NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  phone VARCHAR(50),
+  department VARCHAR(100),
+  designation VARCHAR(100),
+  joining_date DATE NOT NULL,
+  basic_salary NUMERIC(12, 2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'Active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 12. ATTENDANCE
+CREATE TABLE IF NOT EXISTS hrms_attendance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employee_id UUID REFERENCES hrms_employees(id) NOT NULL,
+  date DATE NOT NULL,
+  check_in TIME,
+  check_out TIME,
+  status VARCHAR(50) NOT NULL, -- Present, Absent, Half-Day, Late
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(employee_id, date)
+);
+
+-- 13. LEAVE REQUESTS
+CREATE TABLE IF NOT EXISTS hrms_leaves (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employee_id UUID REFERENCES hrms_employees(id) NOT NULL,
+  leave_type VARCHAR(50) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  number_of_days NUMERIC(5, 1) NOT NULL,
+  reason TEXT NOT NULL,
+  status VARCHAR(50) DEFAULT 'Pending', -- Pending, Approved, Rejected
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 14. PAYROLL (PAYSLIPS)
+CREATE TABLE IF NOT EXISTS hrms_payroll (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employee_id UUID REFERENCES hrms_employees(id) NOT NULL,
+  month VARCHAR(20) NOT NULL, -- e.g., 'August'
+  year INTEGER NOT NULL,
+  basic_salary NUMERIC(12, 2) NOT NULL,
+  allowances NUMERIC(12, 2) DEFAULT 0,
+  deductions NUMERIC(12, 2) DEFAULT 0,
+  net_salary NUMERIC(12, 2) NOT NULL,
+  status VARCHAR(50) DEFAULT 'Draft', -- Draft, Processed, Paid
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES FOR SUPABASE
 -- Allows all operations (SELECT, INSERT, UPDATE, DELETE) for both anon & authenticated users
@@ -195,6 +258,11 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ledger_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_settings ENABLE ROW LEVEL SECURITY;
 
+
+ALTER TABLE hrms_employees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hrms_attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hrms_leaves ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hrms_payroll ENABLE ROW LEVEL SECURITY;
 -- 2. Drop existing conflicting policies
 DROP POLICY IF EXISTS "Public full access customers" ON customers;
 DROP POLICY IF EXISTS "Public full access suppliers" ON suppliers;
@@ -231,6 +299,11 @@ CREATE POLICY "Public full access payments" ON payments FOR ALL TO public USING 
 CREATE POLICY "Public full access ledger_entries" ON ledger_entries FOR ALL TO public USING (true) WITH CHECK (true);
 CREATE POLICY "Public full access company_settings" ON company_settings FOR ALL TO public USING (true) WITH CHECK (true);
 
+
+CREATE POLICY "Public full access hrms_employees" ON hrms_employees FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access hrms_attendance" ON hrms_attendance FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access hrms_leaves" ON hrms_leaves FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access hrms_payroll" ON hrms_payroll FOR ALL TO public USING (true) WITH CHECK (true);
 -- 4. Grant table privileges
 GRANT ALL ON TABLE customers TO anon, authenticated, service_role;
 GRANT ALL ON TABLE suppliers TO anon, authenticated, service_role;

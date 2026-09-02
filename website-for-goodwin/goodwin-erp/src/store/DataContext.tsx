@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type {
   Customer, Supplier, Product, SalesInvoice, PurchaseOrder,
   Return, BatteryWarranty, Payment, LedgerEntry, CompanySettings,
   Lead, LeadActivity, CustomerType,
+  HrmsEmployee, HrmsAttendance, HrmsLeave, HrmsPayroll
 } from '../types';
 
 import { supabase } from '../lib/supabaseClient';
@@ -127,6 +129,18 @@ interface DataContextType {
   updateWarrantyStatus: (id: string, status: BatteryWarranty['status']) => void;
   updateSettings: (newSettings: Partial<CompanySettings>) => void;
 
+  // HRMS State & Actions
+  hrmsEmployees: HrmsEmployee[];
+  hrmsAttendance: HrmsAttendance[];
+  hrmsLeaves: HrmsLeave[];
+  hrmsPayroll: HrmsPayroll[];
+  addHrmsEmployee: (emp: Omit<HrmsEmployee, 'id' | 'created_at' | 'updated_at'>) => Promise<HrmsEmployee | null>;
+  updateHrmsEmployee: (id: string, updates: Partial<HrmsEmployee>) => Promise<HrmsEmployee | null>;
+  markAttendance: (attendance: Omit<HrmsAttendance, 'id' | 'created_at'>) => void;
+  applyLeave: (leave: Omit<HrmsLeave, 'id' | 'created_at'>) => void;
+  updateLeaveStatus: (id: string, status: string) => void;
+  processPayroll: (payroll: Omit<HrmsPayroll, 'id' | 'created_at'>) => void;
+
   // Lead Management Actions
   addLead: (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => Lead;
   updateLead: (id: string, updates: Partial<Lead>, silent?: boolean) => void;
@@ -158,7 +172,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
 
   const [settings, setSettings] = useState<CompanySettings>({
-    id: '1',
+    id: '00000000-0000-0000-0000-000000000001',
     name: 'Goodwin Batteries Pvt. Ltd.',
     gstin: '',
     address: '',
@@ -172,6 +186,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [leads, setLeads] = useState<Lead[]>([]);
 
   const [activities, setActivities] = useState<LeadActivity[]>([]);
+
+  const [hrmsEmployees, setHrmsEmployees] = useState<HrmsEmployee[]>([]);
+  const [hrmsAttendance, setHrmsAttendance] = useState<HrmsAttendance[]>([]);
+  const [hrmsLeaves, setHrmsLeaves] = useState<HrmsLeave[]>([]);
+  const [hrmsPayroll, setHrmsPayroll] = useState<HrmsPayroll[]>([]);
 
   const [cashBalance, setCashBalance] = useState<number>(145000);
   const [bankBalance, setBankBalance] = useState<number>(1850000);
@@ -190,111 +209,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
 
   // ── Supabase: Fetch cloud data on mount ─────────────────────────────────────
-  useEffect(() => {
-    if (!supabase) return;
+  const { data: qSettings } = useQuery({ queryKey: ['company_settings'], queryFn: async () => { const { data } = await supabase.from('company_settings').select('*').limit(1).maybeSingle(); return data as CompanySettings || null; }});
+  const { data: qCustomers } = useQuery({ queryKey: ['customers'], queryFn: async () => { const { data } = await supabase.from('customers').select('*').order('created_at', { ascending: false }); return data as Customer[] || []; }});
+  const { data: qSuppliers } = useQuery({ queryKey: ['suppliers'], queryFn: async () => { const { data } = await supabase.from('suppliers').select('*').order('created_at', { ascending: false }); return data as Supplier[] || []; }});
+  const { data: qProducts } = useQuery({ queryKey: ['products'], queryFn: async () => { const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false }); return data as Product[] || []; }});
+  const { data: qInvoices } = useQuery({ queryKey: ['invoices'], queryFn: async () => { const { data } = await supabase.from('sales_invoices').select('*').order('created_at', { ascending: false }); return data as SalesInvoice[] || []; }});
+  const { data: qPurchases } = useQuery({ queryKey: ['purchases'], queryFn: async () => { const { data } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false }); return data as PurchaseOrder[] || []; }});
+  const { data: qReturns } = useQuery({ queryKey: ['returns'], queryFn: async () => { const { data } = await supabase.from('returns').select('*').order('created_at', { ascending: false }); return data as Return[] || []; }});
+  const { data: qWarranties } = useQuery({ queryKey: ['warranties'], queryFn: async () => { const { data } = await supabase.from('battery_warranties').select('*').order('created_at', { ascending: false }); return data as BatteryWarranty[] || []; }});
+  const { data: qPayments } = useQuery({ queryKey: ['payments'], queryFn: async () => { const { data } = await supabase.from('payments').select('*').order('created_at', { ascending: false }); return data as Payment[] || []; }});
+  const { data: qLedgerEntries } = useQuery({ queryKey: ['ledgerEntries'], queryFn: async () => { const { data } = await supabase.from('ledger_entries').select('*').order('created_at', { ascending: false }); return data as LedgerEntry[] || []; }});
+  const { data: qLeads } = useQuery({ queryKey: ['leads'], queryFn: async () => { const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false }); return data as Lead[] || []; }});
+  const { data: qActivities } = useQuery({ queryKey: ['activities'], queryFn: async () => { const { data } = await supabase.from('lead_activities').select('*').order('created_at', { ascending: false }); return data as LeadActivity[] || []; }});
 
-    // Clean up local storage to ensure browser isn't storing old offline data
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('goodwin_')) localStorage.removeItem(key);
-    });
+  // Sync react-query data to context state to maintain backwards compatibility
+  useEffect(() => { if (qSettings) setSettings(qSettings); }, [qSettings]);
+  useEffect(() => { if (qCustomers) setCustomers(qCustomers); }, [qCustomers]);
+  useEffect(() => { if (qSuppliers) setSuppliers(qSuppliers); }, [qSuppliers]);
+  useEffect(() => { if (qProducts) setProducts(qProducts); }, [qProducts]);
+  useEffect(() => { if (qInvoices) setInvoices(qInvoices); }, [qInvoices]);
+  useEffect(() => { if (qPurchases) setPurchases(qPurchases); }, [qPurchases]);
+  useEffect(() => { if (qReturns) setReturns(qReturns); }, [qReturns]);
+  useEffect(() => { if (qWarranties) setWarranties(qWarranties); }, [qWarranties]);
+  useEffect(() => { if (qPayments) setPayments(qPayments); }, [qPayments]);
+  useEffect(() => { if (qLedgerEntries) setLedgerEntries(qLedgerEntries); }, [qLedgerEntries]);
+  useEffect(() => { if (qLeads) setLeads(qLeads); }, [qLeads]);
+  useEffect(() => { if (qActivities) setActivities(qActivities); }, [qActivities]);
 
-    const fetchAll = async () => {
-      const sb = supabase!;
-      const [custRes, suppRes, prodRes, invRes, poRes, retRes, warRes, payRes, ledRes, leadsRes, actRes] =
-        await Promise.all([
-          sb.from('customers').select('*').order('created_at', { ascending: false }),
-          sb.from('suppliers').select('*').order('created_at', { ascending: false }),
-          sb.from('products').select('*').order('created_at', { ascending: false }),
-          sb.from('sales_invoices').select('*').order('created_at', { ascending: false }),
-          sb.from('purchase_orders').select('*').order('created_at', { ascending: false }),
-          sb.from('returns').select('*').order('created_at', { ascending: false }),
-          sb.from('battery_warranties').select('*').order('created_at', { ascending: false }),
-          sb.from('payments').select('*').order('created_at', { ascending: false }),
-          sb.from('ledger_entries').select('*').order('created_at', { ascending: false }),
-          sb.from('leads').select('*').order('created_at', { ascending: false }),
-          sb.from('lead_activities').select('*').order('created_at', { ascending: false }),
-        ]);
-
-      if (custRes.error) {
-        console.error('[Supabase] Customers load error:', custRes.error);
-        toast.error(`Error loading Customers: ${custRes.error.message}`);
-      } else if (custRes.data) {
-        setCustomers(custRes.data as Customer[]);
-      }
-
-      if (suppRes.error) {
-        console.error('[Supabase] Suppliers load error:', suppRes.error);
-        toast.error(`Error loading Suppliers: ${suppRes.error.message}`);
-      } else if (suppRes.data) {
-        setSuppliers(suppRes.data as Supplier[]);
-      }
-
-      if (prodRes.error) {
-        console.error('[Supabase] Products load error:', prodRes.error);
-        toast.error(`Error loading Products: ${prodRes.error.message}`);
-      } else if (prodRes.data) {
-        setProducts(prodRes.data as Product[]);
-      }
-
-      if (invRes.error) {
-        console.error('[Supabase] Invoices load error:', invRes.error);
-        toast.error(`Error loading Invoices: ${invRes.error.message}`);
-      } else if (invRes.data) {
-        setInvoices(invRes.data as SalesInvoice[]);
-      }
-
-      if (poRes.error) {
-        console.error('[Supabase] POs load error:', poRes.error);
-        toast.error(`Error loading Purchases: ${poRes.error.message}`);
-      } else if (poRes.data) {
-        setPurchases(poRes.data as PurchaseOrder[]);
-      }
-
-      if (retRes.error) {
-        console.error('[Supabase] Returns load error:', retRes.error);
-        toast.error(`Error loading Returns: ${retRes.error.message}`);
-      } else if (retRes.data) {
-        setReturns(retRes.data as Return[]);
-      }
-
-      if (warRes.error) {
-        console.error('[Supabase] Warranties load error:', warRes.error);
-        toast.error(`Error loading Warranties: ${warRes.error.message}`);
-      } else if (warRes.data) {
-        setWarranties(warRes.data as BatteryWarranty[]);
-      }
-
-      if (payRes.error) {
-        console.error('[Supabase] Payments load error:', payRes.error);
-        toast.error(`Error loading Payments: ${payRes.error.message}`);
-      } else if (payRes.data) {
-        setPayments(payRes.data as Payment[]);
-      }
-
-      if (ledRes.error) {
-        console.error('[Supabase] Ledger load error:', ledRes.error);
-        toast.error(`Error loading LedgerEntries: ${ledRes.error.message}`);
-      } else if (ledRes.data) {
-        setLedgerEntries(ledRes.data as LedgerEntry[]);
-      }
-
-      if (leadsRes.error) {
-        console.error('[Supabase] Leads load error:', leadsRes.error);
-        toast.error(`Error loading Leads: ${leadsRes.error.message}`);
-      } else if (leadsRes.data) {
-        setLeads(leadsRes.data as Lead[]);
-      }
-
-      if (actRes.error) {
-        console.error('[Supabase] Lead activities load error:', actRes.error);
-        toast.error(`Error loading Activities: ${actRes.error.message}`);
-      } else if (actRes.data) {
-        setActivities(actRes.data as LeadActivity[]);
-      }
-    };
-
-    fetchAll();
-  }, []);
 
   // ── Supabase: Real-time subscriptions ──────────────────────────────────────
   useEffect(() => {
@@ -966,9 +907,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateSettings = (newSettings: Partial<CompanySettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
     if (supabase) {
+      // Remove local-only env fields before saving to Supabase
+      const { supabase_url, supabase_anon_key, ...dbSettings } = newSettings;
+      
       supabase.from('company_settings').upsert({
         id: settings.id || '00000000-0000-0000-0000-000000000001',
-        ...newSettings,
+        ...dbSettings,
       }).then(({ error }) => {
         if (error) {
           console.error('[Supabase] Settings update error:', error);
@@ -980,6 +924,61 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   // ── Lead Management Handlers ──────────────────────────────────────────────
+  // ── HRMS Actions ──────────────────────────────────────────────────────────
+  const addHrmsEmployee = async (emp: Omit<HrmsEmployee, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data, error } = await supabase.from('hrms_employees').insert([emp]).select().single();
+    if (error) { toast.error(`Failed to add employee: ${error.message}`); return null; }
+    setHrmsEmployees(prev => [data, ...prev]);
+    toast.success('Employee added');
+    return data;
+  };
+
+  const updateHrmsEmployee = async (id: string, updates: Partial<HrmsEmployee>) => {
+    const { data, error } = await supabase.from('hrms_employees').update(updates).eq('id', id).select().single();
+    if (error) { toast.error(`Failed to update employee: ${error.message}`); return null; }
+    setHrmsEmployees(prev => prev.map(e => e.id === id ? data : e));
+    toast.success('Employee updated');
+    return data;
+  };
+
+  const markAttendance = async (att: Omit<HrmsAttendance, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('hrms_attendance').upsert([att], { onConflict: 'employee_id,date' }).select('*, employee:hrms_employees(*)').single();
+    if (error) { toast.error(`Failed to mark attendance: ${error.message}`); return; }
+    
+    // Update local state: replace if exists, otherwise prepend
+    setHrmsAttendance(prev => {
+      const exists = prev.findIndex(a => a.employee_id === att.employee_id && a.date === att.date);
+      if (exists >= 0) {
+        const next = [...prev];
+        next[exists] = data;
+        return next;
+      }
+      return [data, ...prev];
+    });
+    toast.success('Attendance marked successfully');
+  };
+
+  const applyLeave = async (leave: Omit<HrmsLeave, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('hrms_leaves').insert([leave]).select('*, employee:hrms_employees(*)').single();
+    if (error) { toast.error('Failed to apply leave'); return; }
+    setHrmsLeaves(prev => [data, ...prev]);
+    toast.success('Leave applied successfully');
+  };
+
+  const updateLeaveStatus = async (id: string, status: string) => {
+    const { data, error } = await supabase.from('hrms_leaves').update({ status }).eq('id', id).select('*, employee:hrms_employees(*)').single();
+    if (error) { toast.error('Failed to update leave'); return; }
+    setHrmsLeaves(prev => prev.map(l => l.id === id ? data : l));
+    toast.success(`Leave ${status}`);
+  };
+
+  const processPayroll = async (payroll: Omit<HrmsPayroll, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('hrms_payroll').insert([payroll]).select('*, employee:hrms_employees(*)').single();
+    if (error) { toast.error('Failed to process payroll'); return; }
+    setHrmsPayroll(prev => [data, ...prev]);
+    toast.success('Payroll processed successfully');
+  };
+
   const addLead = (leadData: Omit<Lead, 'id' | 'created_at' | 'updated_at'>): Lead => {
     const newLead: Lead = {
       ...leadData,
@@ -1163,6 +1162,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         settings,
         leads,
         activities,
+        hrmsEmployees,
+        hrmsAttendance,
+        hrmsLeaves,
+        hrmsPayroll,
         cashBalance,
         bankBalance,
         addCustomer,
@@ -1184,6 +1187,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deleteLead,
         addActivity,
         convertLeadToParty,
+        addHrmsEmployee,
+        updateHrmsEmployee,
+        markAttendance,
+        applyLeave,
+        updateLeaveStatus,
+        processPayroll,
       }}
     >
       {children}

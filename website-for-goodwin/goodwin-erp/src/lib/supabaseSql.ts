@@ -1,5 +1,5 @@
 export const GOODWIN_SUPABASE_SQL = `-- ============================================================
--- GOODWIN ERP — COMPLETE SUPABASE DATABASE SCHEMA & RLS POLICIES
+-- GOODWIN ERP — SECURE SUPABASE DATABASE SCHEMA & RLS POLICIES
 -- Run this entire file in: Supabase Dashboard → SQL Editor → New Query → Run
 -- ============================================================
 
@@ -178,9 +178,59 @@ CREATE TABLE IF NOT EXISTS company_settings (
   updated_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ── 11. LEADS TABLE ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS leads (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name                VARCHAR(255) NOT NULL,
+  company_name        VARCHAR(255) NOT NULL,
+  phone               VARCHAR(50) NOT NULL,
+  email               VARCHAR(255) DEFAULT '',
+  whatsapp            VARCHAR(50) DEFAULT '',
+  address             TEXT DEFAULT '',
+  city                VARCHAR(100) DEFAULT '',
+  state               VARCHAR(100) DEFAULT '',
+  stage               VARCHAR(50) NOT NULL DEFAULT 'New',
+  expected_value      NUMERIC(12, 2) DEFAULT 0,
+  source              VARCHAR(50) NOT NULL DEFAULT 'WhatsApp',
+  requirement         TEXT DEFAULT '',
+  assigned_to         VARCHAR(100) DEFAULT 'Admin',
+  notes               TEXT DEFAULT '',
+  next_followup_date  DATE,
+  next_followup_time  VARCHAR(20),
+  lost_reason         VARCHAR(100),
+  lost_notes          TEXT,
+  party_id            UUID REFERENCES customers(id) ON DELETE SET NULL,
+  created_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at          TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ── 12. LEAD ACTIVITIES TABLE ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS lead_activities (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lead_id     UUID REFERENCES leads(id) ON DELETE CASCADE,
+  type        VARCHAR(50) NOT NULL DEFAULT 'Note',
+  description TEXT NOT NULL,
+  created_by  VARCHAR(100) DEFAULT 'Admin',
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ── 13. USER ROLES ───────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS user_roles (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role        VARCHAR(50) NOT NULL DEFAULT 'employee',
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Function to get user role securely
+CREATE OR REPLACE FUNCTION get_user_role()
+RETURNS VARCHAR AS $$
+  SELECT role FROM user_roles WHERE user_id = auth.uid() LIMIT 1;
+$$ LANGUAGE sql SECURITY DEFINER;
+
+
 -- ============================================================
--- ROW LEVEL SECURITY (RLS) POLICIES FOR SUPABASE
--- Allows all operations (SELECT, INSERT, UPDATE, DELETE) for both anon & authenticated users
+-- SECURE ROW LEVEL SECURITY (RLS) POLICIES
 -- ============================================================
 
 -- 1. Enable RLS on all tables
@@ -194,8 +244,11 @@ ALTER TABLE battery_warranties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ledger_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lead_activities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
 
--- 2. Drop existing conflicting policies
+-- 2. Drop existing insecure policies (if they exist)
 DROP POLICY IF EXISTS "Public full access customers" ON customers;
 DROP POLICY IF EXISTS "Public full access suppliers" ON suppliers;
 DROP POLICY IF EXISTS "Public full access products" ON products;
@@ -206,42 +259,78 @@ DROP POLICY IF EXISTS "Public full access battery_warranties" ON battery_warrant
 DROP POLICY IF EXISTS "Public full access payments" ON payments;
 DROP POLICY IF EXISTS "Public full access ledger_entries" ON ledger_entries;
 DROP POLICY IF EXISTS "Public full access company_settings" ON company_settings;
+DROP POLICY IF EXISTS "Public full access leads" ON leads;
+DROP POLICY IF EXISTS "Public full access lead_activities" ON lead_activities;
 
-DROP POLICY IF EXISTS "Allow authenticated full access" ON customers;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON suppliers;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON products;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON sales_invoices;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON purchase_orders;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON returns;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON battery_warranties;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON payments;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON ledger_entries;
-DROP POLICY IF EXISTS "Allow authenticated full access" ON company_settings;
-DROP POLICY IF EXISTS "Allow anon read settings" ON company_settings;
+-- 3. Create secure policies based on authentication and roles
+-- User Roles policy (Users can read their own role)
+CREATE POLICY "Users can read own role" ON user_roles FOR SELECT USING (auth.uid() = user_id);
 
--- 3. Create full permissive policies for public (anon + authenticated)
-CREATE POLICY "Public full access customers" ON customers FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access suppliers" ON suppliers FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access products" ON products FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access sales_invoices" ON sales_invoices FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access purchase_orders" ON purchase_orders FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access returns" ON returns FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access battery_warranties" ON battery_warranties FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access payments" ON payments FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access ledger_entries" ON ledger_entries FOR ALL TO public USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access company_settings" ON company_settings FOR ALL TO public USING (true) WITH CHECK (true);
+-- General authenticated access policies (Basic security: must be logged in)
+-- More granular policies will be added in later phases depending on exact RBAC needs.
+CREATE POLICY "Authenticated users can read customers" ON customers FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert customers" ON customers FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update customers" ON customers FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read suppliers" ON suppliers FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert suppliers" ON suppliers FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update suppliers" ON suppliers FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read products" ON products FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert products" ON products FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update products" ON products FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read sales_invoices" ON sales_invoices FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert sales_invoices" ON sales_invoices FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update sales_invoices" ON sales_invoices FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read purchase_orders" ON purchase_orders FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert purchase_orders" ON purchase_orders FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update purchase_orders" ON purchase_orders FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read returns" ON returns FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert returns" ON returns FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update returns" ON returns FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read battery_warranties" ON battery_warranties FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert battery_warranties" ON battery_warranties FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update battery_warranties" ON battery_warranties FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read payments" ON payments FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert payments" ON payments FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update payments" ON payments FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read ledger_entries" ON ledger_entries FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert ledger_entries" ON ledger_entries FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update ledger_entries" ON ledger_entries FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read company_settings" ON company_settings FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert company_settings" ON company_settings FOR INSERT TO authenticated WITH CHECK (get_user_role() = 'admin');
+CREATE POLICY "Authenticated users can update company_settings" ON company_settings FOR UPDATE TO authenticated USING (get_user_role() = 'admin');
+
+CREATE POLICY "Authenticated users can read leads" ON leads FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert leads" ON leads FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update leads" ON leads FOR UPDATE TO authenticated USING (true);
+
+CREATE POLICY "Authenticated users can read lead_activities" ON lead_activities FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated users can insert lead_activities" ON lead_activities FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated users can update lead_activities" ON lead_activities FOR UPDATE TO authenticated USING (true);
+
 
 -- 4. Grant table privileges
-GRANT ALL ON TABLE customers TO anon, authenticated, service_role;
-GRANT ALL ON TABLE suppliers TO anon, authenticated, service_role;
-GRANT ALL ON TABLE products TO anon, authenticated, service_role;
-GRANT ALL ON TABLE sales_invoices TO anon, authenticated, service_role;
-GRANT ALL ON TABLE purchase_orders TO anon, authenticated, service_role;
-GRANT ALL ON TABLE returns TO anon, authenticated, service_role;
-GRANT ALL ON TABLE battery_warranties TO anon, authenticated, service_role;
-GRANT ALL ON TABLE payments TO anon, authenticated, service_role;
-GRANT ALL ON TABLE ledger_entries TO anon, authenticated, service_role;
-GRANT ALL ON TABLE company_settings TO anon, authenticated, service_role;
+GRANT ALL ON TABLE customers TO authenticated, service_role;
+GRANT ALL ON TABLE suppliers TO authenticated, service_role;
+GRANT ALL ON TABLE products TO authenticated, service_role;
+GRANT ALL ON TABLE sales_invoices TO authenticated, service_role;
+GRANT ALL ON TABLE purchase_orders TO authenticated, service_role;
+GRANT ALL ON TABLE returns TO authenticated, service_role;
+GRANT ALL ON TABLE battery_warranties TO authenticated, service_role;
+GRANT ALL ON TABLE payments TO authenticated, service_role;
+GRANT ALL ON TABLE ledger_entries TO authenticated, service_role;
+GRANT ALL ON TABLE company_settings TO authenticated, service_role;
+GRANT ALL ON TABLE leads TO authenticated, service_role;
+GRANT ALL ON TABLE lead_activities TO authenticated, service_role;
+GRANT ALL ON TABLE user_roles TO authenticated, service_role;
 
 -- ── REALTIME LIVE UPDATES ────────────────────────────────────────────────────
 BEGIN;

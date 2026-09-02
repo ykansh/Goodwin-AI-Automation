@@ -3,8 +3,9 @@ import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../store/ThemeContext';
 import type { AppMode } from '../../types';
 import {
-  Plus, LogOut, ChevronDown, Building2, BookOpen, Shield, Sun, Moon, Menu, X, Target, Check
+  Plus, LogOut, ChevronDown, Building2, BookOpen, Shield, Sun, Moon, Menu, X, Target, Check, Users
 } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 
 interface HeaderProps {
   onOpenNewInvoiceModal: () => void;
@@ -56,6 +57,13 @@ export function Header({
       Icon: Target,
       activeClass: 'text-blue-500',
     },
+    {
+      mode: 'hrms',
+      label: 'Goodwin HRMS',
+      subtitle: 'Attendance, Leave & Payroll',
+      Icon: Users,
+      activeClass: 'text-[#00a631]', // Exact same as website (ERP)
+    },
   ];
 
   const activeModule = modules.find((m) => m.mode === mode)!;
@@ -74,16 +82,11 @@ export function Header({
           {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#00a631] text-white flex items-center justify-center font-extrabold text-lg shadow-md shadow-[#00a631]/30">
-            G
-          </div>
-          <div className="hidden xs:block">
-            <div className="font-extrabold text-[#3a3b39] dark:text-white text-sm sm:text-base leading-tight tracking-wide">
-              GOODWIN
-            </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <img src={logoImg} alt="Goodwin" className="h-10 sm:h-12 object-contain" />
+          <div className="hidden xs:block border-l-2 border-gray-200 dark:border-gray-700 pl-3">
             <div className="text-[10px] text-[#00a631] font-extrabold tracking-widest uppercase">
-              {mode === 'erp' ? 'ERP Suite' : mode === 'ledger' ? 'Ledger-Pro' : 'Lead Mgmt'}
+              {mode === 'erp' ? 'ERP Suite' : mode === 'ledger' ? 'Ledger-Pro' : mode === 'hrms' ? 'HRMS' : 'Lead Mgmt'}
             </div>
           </div>
         </div>

@@ -17,6 +17,7 @@ import { ReturnsPage } from './pages/erp/ReturnsPage';
 import { BatteryWarrantyPage } from './pages/erp/BatteryWarrantyPage';
 import { ReportsAnalyticsPage } from './pages/erp/ReportsAnalyticsPage';
 import { SettingsPage } from './pages/erp/SettingsPage';
+import { UserManagementPage } from './pages/erp/UserManagementPage';
 
 // Ledger-Pro Pages
 import { LedgerDashboard } from './pages/ledger/LedgerDashboard';
@@ -29,6 +30,15 @@ import { PaymentOutPage } from './pages/ledger/PaymentOutPage';
 import { LeadsPage } from './pages/leads/LeadsPage';
 import { PipelinePage } from './pages/leads/PipelinePage';
 import { FollowupsPage } from './pages/leads/FollowupsPage';
+
+// HRMS Pages
+import { HrmsDashboard } from './pages/hrms/HrmsDashboard';
+import { AttendancePage } from './pages/hrms/AttendancePage';
+import { LeavePage } from './pages/hrms/LeavePage';
+import { PayrollPage } from './pages/hrms/PayrollPage';
+import { EmployeesPage } from './pages/hrms/EmployeesPage';
+
+
 
 import { canAccess } from './lib/permissions';
 import { Toaster } from 'react-hot-toast';
@@ -45,6 +55,8 @@ function MainAppContent() {
   useEffect(() => {
     if (mode === 'leads') {
       setCurrentModule('leads');
+    } else if (mode === 'hrms') {
+      setCurrentModule('dashboard');
     } else {
       setCurrentModule('dashboard');
     }
@@ -80,6 +92,25 @@ function MainAppContent() {
       );
     }
 
+
+
+    if (mode === 'hrms') {
+      switch (currentModule) {
+        case 'dashboard':
+          return <HrmsDashboard onNavigate={(mod) => setCurrentModule(mod)} />;
+        case 'attendance':
+          return <AttendancePage />;
+        case 'leave':
+          return <LeavePage />;
+        case 'payroll':
+          return <PayrollPage />;
+        case 'employees':
+          return <EmployeesPage />;
+        default:
+          return <HrmsDashboard onNavigate={(mod) => setCurrentModule(mod)} />;
+      }
+    }
+
     if (mode === 'erp') {
       switch (currentModule) {
         case 'dashboard':
@@ -111,6 +142,8 @@ function MainAppContent() {
           return <ReportsAnalyticsPage />;
         case 'settings':
           return <SettingsPage />;
+        case 'user-management':
+          return <UserManagementPage />;
         default:
           return (
             <ErpDashboard
