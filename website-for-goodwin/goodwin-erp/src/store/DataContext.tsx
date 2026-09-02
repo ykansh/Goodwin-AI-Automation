@@ -4,7 +4,8 @@ import type {
   Customer, Supplier, Product, SalesInvoice, PurchaseOrder,
   Return, BatteryWarranty, Payment, LedgerEntry, CompanySettings,
   Lead, LeadActivity, CustomerType,
-  HrmsEmployee, HrmsAttendance, HrmsLeave, HrmsPayroll
+  HrmsEmployee, HrmsAttendance, HrmsLeave, HrmsPayroll,
+  HrmsProject, HrmsMilestone, HrmsTask, HrmsTimesheet
 } from '../types';
 
 import { supabase } from '../lib/supabaseClient';
@@ -134,12 +135,26 @@ interface DataContextType {
   hrmsAttendance: HrmsAttendance[];
   hrmsLeaves: HrmsLeave[];
   hrmsPayroll: HrmsPayroll[];
+  hrmsProjects: HrmsProject[];
+  hrmsMilestones: HrmsMilestone[];
+  hrmsTasks: HrmsTask[];
+  hrmsTimesheets: HrmsTimesheet[];
+  
+  addHrmsProject: (proj: Omit<HrmsProject, 'id' | 'created_at' | 'updated_at'>) => Promise<HrmsProject | null>;
+  updateHrmsProject: (id: string, updates: Partial<HrmsProject>) => Promise<HrmsProject | null>;
+  addHrmsMilestone: (milestone: Omit<HrmsMilestone, 'id' | 'created_at'>) => Promise<HrmsMilestone | null>;
+  addHrmsTask: (task: Omit<HrmsTask, 'id' | 'created_at' | 'updated_at'>) => Promise<HrmsTask | null>;
+  updateHrmsTask: (id: string, updates: Partial<HrmsTask>) => Promise<HrmsTask | null>;
+  addHrmsTimesheet: (timesheet: Omit<HrmsTimesheet, 'id' | 'created_at'>) => Promise<HrmsTimesheet | null>;
+  updateHrmsTimesheet: (id: string, updates: Partial<HrmsTimesheet>) => Promise<HrmsTimesheet | null>;
+
   addHrmsEmployee: (emp: Omit<HrmsEmployee, 'id' | 'created_at' | 'updated_at'>) => Promise<HrmsEmployee | null>;
   updateHrmsEmployee: (id: string, updates: Partial<HrmsEmployee>) => Promise<HrmsEmployee | null>;
   markAttendance: (attendance: Omit<HrmsAttendance, 'id' | 'created_at'>) => void;
   applyLeave: (leave: Omit<HrmsLeave, 'id' | 'created_at'>) => void;
   updateLeaveStatus: (id: string, status: string) => void;
   processPayroll: (payroll: Omit<HrmsPayroll, 'id' | 'created_at'>) => void;
+  updateHrmsPayroll: (id: string, updates: Partial<HrmsPayroll>) => Promise<HrmsPayroll | null>;
 
   // Lead Management Actions
   addLead: (lead: Omit<Lead, 'id' | 'created_at' | 'updated_at'>) => Lead;
@@ -191,6 +206,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [hrmsAttendance, setHrmsAttendance] = useState<HrmsAttendance[]>([]);
   const [hrmsLeaves, setHrmsLeaves] = useState<HrmsLeave[]>([]);
   const [hrmsPayroll, setHrmsPayroll] = useState<HrmsPayroll[]>([]);
+  const [hrmsProjects, setHrmsProjects] = useState<HrmsProject[]>([]);
+  const [hrmsMilestones, setHrmsMilestones] = useState<HrmsMilestone[]>([]);
+  const [hrmsTasks, setHrmsTasks] = useState<HrmsTask[]>([]);
+  const [hrmsTimesheets, setHrmsTimesheets] = useState<HrmsTimesheet[]>([]);
 
   const [cashBalance, setCashBalance] = useState<number>(145000);
   const [bankBalance, setBankBalance] = useState<number>(1850000);
@@ -222,6 +241,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const { data: qLeads } = useQuery({ queryKey: ['leads'], queryFn: async () => { const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false }); return data as Lead[] || []; }});
   const { data: qActivities } = useQuery({ queryKey: ['activities'], queryFn: async () => { const { data } = await supabase.from('lead_activities').select('*').order('created_at', { ascending: false }); return data as LeadActivity[] || []; }});
 
+  // HRMS Queries
+  const { data: qHrmsEmployees } = useQuery({ queryKey: ['hrms_employees'], queryFn: async () => { const { data } = await supabase.from('hrms_employees').select('*').order('created_at', { ascending: false }); return data as HrmsEmployee[] || []; }});
+  const { data: qHrmsAttendance } = useQuery({ queryKey: ['hrms_attendance'], queryFn: async () => { const { data } = await supabase.from('hrms_attendance').select('*, employee:hrms_employees(*)').order('date', { ascending: false }); return data as HrmsAttendance[] || []; }});
+  const { data: qHrmsLeaves } = useQuery({ queryKey: ['hrms_leaves'], queryFn: async () => { const { data } = await supabase.from('hrms_leaves').select('*, employee:hrms_employees(*)').order('created_at', { ascending: false }); return data as HrmsLeave[] || []; }});
+  const { data: qHrmsPayroll } = useQuery({ queryKey: ['hrms_payroll'], queryFn: async () => { const { data } = await supabase.from('hrms_payroll').select('*, employee:hrms_employees(*)').order('created_at', { ascending: false }); return data as HrmsPayroll[] || []; }});
+  const { data: qHrmsProjects } = useQuery({ queryKey: ['hrms_projects'], queryFn: async () => { const { data } = await supabase.from('hrms_projects').select('*').order('created_at', { ascending: false }); return data as HrmsProject[] || []; }});
+  const { data: qHrmsMilestones } = useQuery({ queryKey: ['hrms_milestones'], queryFn: async () => { const { data } = await supabase.from('hrms_milestones').select('*').order('due_date', { ascending: true }); return data as HrmsMilestone[] || []; }});
+  const { data: qHrmsTasks } = useQuery({ queryKey: ['hrms_tasks'], queryFn: async () => { const { data } = await supabase.from('hrms_tasks').select('*, employee:hrms_employees(*), project:hrms_projects(*)').order('created_at', { ascending: false }); return data as HrmsTask[] || []; }});
+  const { data: qHrmsTimesheets } = useQuery({ queryKey: ['hrms_timesheets'], queryFn: async () => { const { data } = await supabase.from('hrms_timesheets').select('*, employee:hrms_employees(*), task:hrms_tasks(*)').order('date', { ascending: false }); return data as HrmsTimesheet[] || []; }});
+
   // Sync react-query data to context state to maintain backwards compatibility
   useEffect(() => { if (qSettings) setSettings(qSettings); }, [qSettings]);
   useEffect(() => { if (qCustomers) setCustomers(qCustomers); }, [qCustomers]);
@@ -235,6 +264,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (qLedgerEntries) setLedgerEntries(qLedgerEntries); }, [qLedgerEntries]);
   useEffect(() => { if (qLeads) setLeads(qLeads); }, [qLeads]);
   useEffect(() => { if (qActivities) setActivities(qActivities); }, [qActivities]);
+  useEffect(() => { if (qHrmsEmployees) setHrmsEmployees(qHrmsEmployees); }, [qHrmsEmployees]);
+  useEffect(() => { if (qHrmsAttendance) setHrmsAttendance(qHrmsAttendance); }, [qHrmsAttendance]);
+  useEffect(() => { if (qHrmsLeaves) setHrmsLeaves(qHrmsLeaves); }, [qHrmsLeaves]);
+  useEffect(() => { if (qHrmsPayroll) setHrmsPayroll(qHrmsPayroll); }, [qHrmsPayroll]);
+  useEffect(() => { if (qHrmsProjects) setHrmsProjects(qHrmsProjects); }, [qHrmsProjects]);
+  useEffect(() => { if (qHrmsMilestones) setHrmsMilestones(qHrmsMilestones); }, [qHrmsMilestones]);
+  useEffect(() => { if (qHrmsTasks) setHrmsTasks(qHrmsTasks); }, [qHrmsTasks]);
+  useEffect(() => { if (qHrmsTimesheets) setHrmsTimesheets(qHrmsTimesheets); }, [qHrmsTimesheets]);
 
 
   // ── Supabase: Real-time subscriptions ──────────────────────────────────────
@@ -288,6 +325,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (payload.eventType === 'INSERT') setActivities((p) => [payload.new as LeadActivity, ...p.filter((x) => x.id !== (payload.new as LeadActivity).id)]);
         if (payload.eventType === 'UPDATE') setActivities((p) => p.map((x) => x.id === (payload.new as LeadActivity).id ? payload.new as LeadActivity : x));
         if (payload.eventType === 'DELETE') setActivities((p) => p.filter((x) => x.id !== (payload.old as LeadActivity).id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hrms_employees' }, (payload) => {
+        if (payload.eventType === 'INSERT') setHrmsEmployees((p) => [payload.new as HrmsEmployee, ...p.filter((x) => x.id !== (payload.new as HrmsEmployee).id)]);
+        if (payload.eventType === 'UPDATE') setHrmsEmployees((p) => p.map((x) => x.id === (payload.new as HrmsEmployee).id ? payload.new as HrmsEmployee : x));
+        if (payload.eventType === 'DELETE') setHrmsEmployees((p) => p.filter((x) => x.id !== (payload.old as HrmsEmployee).id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hrms_attendance' }, (payload) => {
+        if (payload.eventType === 'INSERT') setHrmsAttendance((p) => [payload.new as HrmsAttendance, ...p.filter((x) => x.id !== (payload.new as HrmsAttendance).id)]);
+        if (payload.eventType === 'UPDATE') setHrmsAttendance((p) => p.map((x) => x.id === (payload.new as HrmsAttendance).id ? payload.new as HrmsAttendance : x));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hrms_projects' }, (payload) => {
+        if (payload.eventType === 'INSERT') setHrmsProjects((p) => [payload.new as HrmsProject, ...p.filter((x) => x.id !== (payload.new as HrmsProject).id)]);
+        if (payload.eventType === 'UPDATE') setHrmsProjects((p) => p.map((x) => x.id === (payload.new as HrmsProject).id ? payload.new as HrmsProject : x));
+        if (payload.eventType === 'DELETE') setHrmsProjects((p) => p.filter((x) => x.id !== (payload.old as HrmsProject).id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hrms_tasks' }, (payload) => {
+        if (payload.eventType === 'INSERT') setHrmsTasks((p) => [payload.new as HrmsTask, ...p.filter((x) => x.id !== (payload.new as HrmsTask).id)]);
+        if (payload.eventType === 'UPDATE') setHrmsTasks((p) => p.map((x) => x.id === (payload.new as HrmsTask).id ? payload.new as HrmsTask : x));
+        if (payload.eventType === 'DELETE') setHrmsTasks((p) => p.filter((x) => x.id !== (payload.old as HrmsTask).id));
       })
       .subscribe();
 
@@ -960,7 +1016,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const applyLeave = async (leave: Omit<HrmsLeave, 'id' | 'created_at'>) => {
     const { data, error } = await supabase.from('hrms_leaves').insert([leave]).select('*, employee:hrms_employees(*)').single();
-    if (error) { toast.error('Failed to apply leave'); return; }
+    if (error) { toast.error(`Failed to apply leave: ${error.message}`); return; }
     setHrmsLeaves(prev => [data, ...prev]);
     toast.success('Leave applied successfully');
   };
@@ -972,11 +1028,77 @@ export function DataProvider({ children }: { children: ReactNode }) {
     toast.success(`Leave ${status}`);
   };
 
+
+  // ── HRMS Projects & Tasks ──────────────────────────────────────────────────
+  const addHrmsProject = async (proj: Omit<HrmsProject, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data, error } = await supabase.from('hrms_projects').insert([proj]).select().single();
+    if (error) { toast.error(`Failed to create project: ${error.message}`); return null; }
+    setHrmsProjects(prev => [data, ...prev]);
+    toast.success('Project created');
+    return data;
+  };
+
+  const updateHrmsProject = async (id: string, updates: Partial<HrmsProject>) => {
+    const { data, error } = await supabase.from('hrms_projects').update(updates).eq('id', id).select().single();
+    if (error) { toast.error(`Failed to update project: ${error.message}`); return null; }
+    setHrmsProjects(prev => prev.map(p => p.id === id ? data : p));
+    toast.success('Project updated');
+    return data;
+  };
+
+  const addHrmsMilestone = async (milestone: Omit<HrmsMilestone, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('hrms_milestones').insert([milestone]).select().single();
+    if (error) { toast.error(`Failed to add milestone: ${error.message}`); return null; }
+    setHrmsMilestones(prev => [...prev, data]);
+    toast.success('Milestone added');
+    return data;
+  };
+
+  const addHrmsTask = async (task: Omit<HrmsTask, 'id' | 'created_at' | 'updated_at'>) => {
+    const { data, error } = await supabase.from('hrms_tasks').insert([task]).select('*, employee:hrms_employees(*), project:hrms_projects(*)').single();
+    if (error) { toast.error(`Failed to create task: ${error.message}`); return null; }
+    setHrmsTasks(prev => [data, ...prev]);
+    toast.success('Task created');
+    return data;
+  };
+
+  const updateHrmsTask = async (id: string, updates: Partial<HrmsTask>) => {
+    const { data, error } = await supabase.from('hrms_tasks').update(updates).eq('id', id).select('*, employee:hrms_employees(*), project:hrms_projects(*)').single();
+    if (error) { toast.error(`Failed to update task: ${error.message}`); return null; }
+    setHrmsTasks(prev => prev.map(t => t.id === id ? data : t));
+    toast.success('Task updated');
+    return data;
+  };
+
+  const addHrmsTimesheet = async (timesheet: Omit<HrmsTimesheet, 'id' | 'created_at'>) => {
+    const { data, error } = await supabase.from('hrms_timesheets').insert([timesheet]).select('*, employee:hrms_employees(*), task:hrms_tasks(*)').single();
+    if (error) { toast.error(`Failed to log timesheet: ${error.message}`); return null; }
+    setHrmsTimesheets(prev => [data, ...prev]);
+    toast.success('Timesheet logged');
+    return data;
+  };
+
+  const updateHrmsTimesheet = async (id: string, updates: Partial<HrmsTimesheet>) => {
+    const { data, error } = await supabase.from('hrms_timesheets').update(updates).eq('id', id).select('*, employee:hrms_employees(*), task:hrms_tasks(*)').single();
+    if (error) { toast.error(`Failed to update timesheet: ${error.message}`); return null; }
+    setHrmsTimesheets(prev => prev.map(t => t.id === id ? data : t));
+    toast.success('Timesheet updated');
+    return data;
+  };
+
   const processPayroll = async (payroll: Omit<HrmsPayroll, 'id' | 'created_at'>) => {
     const { data, error } = await supabase.from('hrms_payroll').insert([payroll]).select('*, employee:hrms_employees(*)').single();
-    if (error) { toast.error('Failed to process payroll'); return; }
+    if (error) { toast.error(`Failed to process payroll: ${error.message}`); return; }
     setHrmsPayroll(prev => [data, ...prev]);
     toast.success('Payroll processed successfully');
+  };
+
+  const updateHrmsPayroll = async (id: string, updates: Partial<HrmsPayroll>) => {
+    const { data, error } = await supabase.from('hrms_payroll').update(updates).eq('id', id).select('*, employee:hrms_employees(*)').single();
+    if (error) { toast.error(`Failed to update payroll: ${error.message}`); return null; }
+    setHrmsPayroll(prev => prev.map(p => p.id === id ? data : p));
+    toast.success('Payroll updated');
+    return data;
   };
 
   const addLead = (leadData: Omit<Lead, 'id' | 'created_at' | 'updated_at'>): Lead => {
@@ -1166,6 +1288,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         hrmsAttendance,
         hrmsLeaves,
         hrmsPayroll,
+        hrmsProjects,
+        hrmsMilestones,
+        hrmsTasks,
+        hrmsTimesheets,
         cashBalance,
         bankBalance,
         addCustomer,
@@ -1193,6 +1319,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         applyLeave,
         updateLeaveStatus,
         processPayroll,
+        updateHrmsPayroll,
+        addHrmsProject,
+        updateHrmsProject,
+        addHrmsMilestone,
+        addHrmsTask,
+        updateHrmsTask,
+        addHrmsTimesheet,
+        updateHrmsTimesheet,
       }}
     >
       {children}

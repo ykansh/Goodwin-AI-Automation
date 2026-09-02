@@ -37,6 +37,7 @@ import { AttendancePage } from './pages/hrms/AttendancePage';
 import { LeavePage } from './pages/hrms/LeavePage';
 import { PayrollPage } from './pages/hrms/PayrollPage';
 import { EmployeesPage } from './pages/hrms/EmployeesPage';
+import { ProjectsPage } from './pages/hrms/ProjectsPage';
 
 
 
@@ -98,6 +99,8 @@ function MainAppContent() {
       switch (currentModule) {
         case 'dashboard':
           return <HrmsDashboard onNavigate={(mod) => setCurrentModule(mod)} />;
+        case 'projects':
+          return <ProjectsPage />;
         case 'attendance':
           return <AttendancePage />;
         case 'leave':

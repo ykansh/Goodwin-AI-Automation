@@ -38,6 +38,7 @@ const hrmsPermissions: ModulePermissions = {
   attendance: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
   leave: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
   payroll: ['admin', 'manager', 'accounts'],
+  projects: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
 };
 
 export function canAccess(role: UserRole, module: string, mode: AppMode): boolean {
@@ -82,6 +83,7 @@ export const leadsSidebarItems = [
 
 export const hrmsSidebarItems = [
   { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/hrms/dashboard', module: 'dashboard' },
+  { key: 'projects', label: 'Projects & Tasks', icon: 'Briefcase', path: '/hrms/projects', module: 'projects' },
   { key: 'employees', label: 'Employees', icon: 'Users', path: '/hrms/employees', module: 'employees' },
   { key: 'attendance', label: 'Attendance', icon: 'Clock', path: '/hrms/attendance', module: 'attendance' },
   { key: 'leave', label: 'Leave', icon: 'Calendar', path: '/hrms/leave', module: 'leave' },

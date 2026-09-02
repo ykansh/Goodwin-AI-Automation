@@ -337,9 +337,57 @@ export interface HrmsPayroll {
   deductions: number;
   net_salary: number;
   status: string; // Draft, Processed, Paid
-  created_at: string;
+  created_at?: string;
   employee?: HrmsEmployee;
 }
 
+export interface HrmsProject {
+  id: string;
+  name: string;
+  description: string;
+  client_id?: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  budget: number;
+  created_at?: string;
+  updated_at?: string;
+}
 
+export interface HrmsMilestone {
+  id: string;
+  project_id: string;
+  name: string;
+  due_date: string;
+  status: string;
+  created_at?: string;
+}
 
+export interface HrmsTask {
+  id: string;
+  project_id: string;
+  milestone_id?: string;
+  title: string;
+  description: string;
+  assigned_to?: string;
+  priority: string;
+  status: string;
+  due_date: string;
+  created_at?: string;
+  updated_at?: string;
+  employee?: HrmsEmployee;
+  project?: HrmsProject;
+}
+
+export interface HrmsTimesheet {
+  id: string;
+  task_id: string;
+  employee_id: string;
+  date: string;
+  hours_worked: number;
+  notes: string;
+  status: string;
+  created_at?: string;
+  employee?: HrmsEmployee;
+  task?: HrmsTask;
+}
