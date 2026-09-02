@@ -74,3 +74,10 @@ Made an automation for content.
         8) if true and false == goes back to first 
         9) posting and storing data 
 Did made account on bitwarden. 
+
+02/08/2026
+
+Website completed successfully.
+Supabase integrated. 
+credentials created. 
+not posted on vercel yet. 
