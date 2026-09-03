@@ -81,3 +81,8 @@ Website completed successfully.
 Supabase integrated. 
 credentials created. 
 not posted on vercel yet. 
+
+03/08/2026
+
+deployment on vercel 
+SOP created pdf
