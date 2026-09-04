@@ -116,19 +116,28 @@ interface DataContextType {
   // Actions with connected auto-updates
   addCustomer: (customer: Omit<Customer, 'id' | 'created_at' | 'uoi'> & { outstanding?: number }) => void;
   updateCustomer: (id: string, updates: Partial<Customer>) => void;
+  deleteCustomer: (id: string) => void;
   addSupplier: (supplier: Omit<Supplier, 'id' | 'created_at' | 'uoi'> & { outstanding?: number }) => void;
   updateSupplier: (id: string, updates: Partial<Supplier>) => void;
+  deleteSupplier: (id: string) => void;
   addProduct: (product: Omit<Product, 'id' | 'created_at'>) => void;
   updateProduct: (id: string, updates: Partial<Product>) => void;
+  deleteProduct: (id: string) => void;
 
   createSalesInvoice: (invoice: Omit<SalesInvoice, 'id' | 'created_at' | 'invoice_number' | 'outstanding'> & { initial_payment?: number }) => SalesInvoice;
+  deleteSalesInvoice: (id: string) => void;
   createPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'created_at' | 'po_number' | 'outstanding'> & { initial_payment?: number }) => PurchaseOrder;
+  deletePurchaseOrder: (id: string) => void;
   createPaymentIn: (payment: Omit<Payment, 'id' | 'created_at' | 'receipt_number' | 'direction'>) => void;
   createPaymentOut: (payment: Omit<Payment, 'id' | 'created_at' | 'receipt_number' | 'direction'>) => void;
+  deletePayment: (id: string) => void;
   createReturn: (ret: Omit<Return, 'id' | 'created_at' | 'note_number'>) => void;
+  deleteReturn: (id: string) => void;
   registerWarranty: (warranty: Omit<BatteryWarranty, 'id' | 'created_at' | 'warranty_id'>) => void;
   updateWarrantyStatus: (id: string, status: BatteryWarranty['status']) => void;
+  deleteWarranty: (id: string) => void;
   updateSettings: (newSettings: Partial<CompanySettings>) => void;
+  deleteLedgerEntry: (id: string) => void;
 
   // HRMS State & Actions
   hrmsEmployees: HrmsEmployee[];
@@ -151,8 +160,10 @@ interface DataContextType {
   addHrmsEmployee: (emp: Omit<HrmsEmployee, 'id' | 'created_at' | 'updated_at'>) => Promise<HrmsEmployee | null>;
   updateHrmsEmployee: (id: string, updates: Partial<HrmsEmployee>) => Promise<HrmsEmployee | null>;
   markAttendance: (attendance: Omit<HrmsAttendance, 'id' | 'created_at'>) => void;
+  deleteAttendance: (id: string) => void;
   applyLeave: (leave: Omit<HrmsLeave, 'id' | 'created_at'>) => void;
   updateLeaveStatus: (id: string, status: string) => void;
+  deleteLeave: (id: string) => void;
   processPayroll: (payroll: Omit<HrmsPayroll, 'id' | 'created_at'>) => void;
   updateHrmsPayroll: (id: string, updates: Partial<HrmsPayroll>) => Promise<HrmsPayroll | null>;
 
@@ -481,6 +492,58 @@ export function DataProvider({ children }: { children: ReactNode }) {
     toast.success('Supplier details updated');
   };
 
+  const deleteCustomer = async (id: string) => {
+    if (supabase) {
+      // Manually cascade delete dependent records to prevent FK constraints
+      await supabase.from('sales_invoices').delete().eq('customer_id', id);
+      await supabase.from('battery_warranties').delete().eq('customer_id', id);
+      await supabase.from('returns').delete().eq('party_id', id);
+      await supabase.from('payments').delete().eq('party_id', id);
+      await supabase.from('ledger_entries').delete().eq('party_id', id);
+
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    
+    // Update local state to remove all references
+    setInvoices((prev) => prev.filter((inv) => inv.customer_id !== id));
+    setWarranties((prev) => prev.filter((w) => w.customer_id !== id));
+    setReturns((prev) => prev.filter((r) => r.party_id !== id));
+    setPayments((prev) => prev.filter((p) => p.party_id !== id));
+    setLedgerEntries((prev) => prev.filter((le) => le.party_id !== id));
+    setCustomers((prev) => prev.filter((c) => c.id !== id));
+    
+    toast.success('Customer and all associated records deleted');
+  };
+
+  const deleteSupplier = async (id: string) => {
+    if (supabase) {
+      // Manually cascade delete dependent records to prevent FK constraints
+      await supabase.from('purchase_orders').delete().eq('supplier_id', id);
+      await supabase.from('returns').delete().eq('party_id', id);
+      await supabase.from('payments').delete().eq('party_id', id);
+      await supabase.from('ledger_entries').delete().eq('party_id', id);
+
+      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    
+    // Update local state to remove all references
+    setPurchases((prev) => prev.filter((po) => po.supplier_id !== id));
+    setReturns((prev) => prev.filter((r) => r.party_id !== id));
+    setPayments((prev) => prev.filter((p) => p.party_id !== id));
+    setLedgerEntries((prev) => prev.filter((le) => le.party_id !== id));
+    setSuppliers((prev) => prev.filter((s) => s.id !== id));
+    
+    toast.success('Supplier and all associated records deleted');
+  };
+
   const addProduct = (productData: Omit<Product, 'id' | 'created_at'>) => {
     const newProduct: Product = {
       ...productData,
@@ -511,6 +574,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
       });
     }
     toast.success('Product updated');
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (supabase) {
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) {
+        if (error.code === '23503') {
+          toast.error('Cannot delete: Product is used in existing invoices or POs. Delete them first.');
+        } else {
+          toast.error(`Supabase Error: ${error.message}`);
+        }
+        return;
+      }
+    }
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    toast.success('Product deleted');
   };
 
   // AUTOMATIC CONNECTED SYSTEM UPDATES: Sales Invoice
@@ -650,6 +729,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return newInvoice;
   };
 
+  const deleteSalesInvoice = async (id: string) => {
+    setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+    // Also remove ledger entries for this invoice to keep it balanced
+    setLedgerEntries((prev) => prev.filter((le) => le.reference_id !== id));
+    
+    if (supabase) {
+      const { error } = await supabase.from('sales_invoices').delete().eq('id', id);
+      await supabase.from('ledger_entries').delete().eq('reference_id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Sales invoice and related ledger entries deleted');
+  };
+
   // AUTOMATIC CONNECTED SYSTEM UPDATES: Purchase Order
   const createPurchaseOrder = (
     poData: Omit<PurchaseOrder, 'id' | 'created_at' | 'po_number' | 'outstanding'> & { initial_payment?: number }
@@ -738,6 +833,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
     toast.success(`Purchase Order ${poNumber} logged! Stock & Supplier balances updated.`);
     return newPO;
+  };
+
+  const deletePurchaseOrder = async (id: string) => {
+    setPurchases((prev) => prev.filter((po) => po.id !== id));
+    // Also remove ledger entries for this PO
+    setLedgerEntries((prev) => prev.filter((le) => le.reference_id !== id));
+    if (supabase) {
+      const { error } = await supabase.from('purchase_orders').delete().eq('id', id);
+      await supabase.from('ledger_entries').delete().eq('reference_id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Purchase order and related ledger entries deleted');
   };
 
   // AUTOMATIC CONNECTED SYSTEM UPDATES: Payment Received
@@ -871,6 +981,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     toast.success(`Payment Out ₹${paymentData.amount.toLocaleString('en-IN')} logged. Supplier payable updated!`);
   };
 
+
+
   // AUTOMATIC CONNECTED SYSTEM UPDATES: Returns
   const createReturn = (retData: Omit<Return, 'id' | 'created_at' | 'note_number'>) => {
     const noteNum = getNextReturnNumber(returns, retData.type);
@@ -922,6 +1034,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     toast.success(`${retData.type.toUpperCase()} Note ${noteNum} created! Inventory & Balances updated.`);
   };
 
+  const deleteReturn = async (id: string) => {
+    setReturns((prev) => prev.filter((r) => r.id !== id));
+    if (supabase) {
+      const { error } = await supabase.from('returns').delete().eq('id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Return deleted');
+  };
+
   const registerWarranty = (warrantyData: Omit<BatteryWarranty, 'id' | 'created_at' | 'warranty_id'>) => {
     const warrantyId = getNextWarrantyId(warranties);
     const customer = customers.find((c) => c.id === warrantyData.customer_id);
@@ -958,6 +1082,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
       });
     }
     toast.success(`Warranty status updated to ${status.toUpperCase()}`);
+  };
+
+  const deleteWarranty = async (id: string) => {
+    setWarranties((prev) => prev.filter((w) => w.id !== id));
+    if (supabase) {
+      const { error } = await supabase.from('battery_warranties').delete().eq('id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Warranty deleted');
+  };
+
+  const deleteLedgerEntry = async (id: string) => {
+    setLedgerEntries((prev) => prev.filter(entry => entry.id !== id));
+    if (supabase) {
+      const { error } = await supabase.from('ledger_entries').delete().eq('id', id);
+      if (error) {
+        console.error('[Supabase] Delete ledger entry error:', error);
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Ledger entry deleted successfully');
   };
 
   const updateSettings = (newSettings: Partial<CompanySettings>) => {
@@ -1086,11 +1235,51 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return data;
   };
 
+  const deleteAttendance = async (id: string) => {
+    setHrmsAttendance((prev) => prev.filter((a) => a.id !== id));
+    if (supabase) {
+      const { error } = await supabase.from('hrms_attendance').delete().eq('id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Attendance record deleted');
+  };
+
+  const deleteLeave = async (id: string) => {
+    setHrmsLeaves((prev) => prev.filter((l) => l.id !== id));
+    if (supabase) {
+      const { error } = await supabase.from('hrms_leaves').delete().eq('id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Leave request deleted');
+  };
+
   const processPayroll = async (payroll: Omit<HrmsPayroll, 'id' | 'created_at'>) => {
     const { data, error } = await supabase.from('hrms_payroll').insert([payroll]).select('*, employee:hrms_employees(*)').single();
     if (error) { toast.error(`Failed to process payroll: ${error.message}`); return; }
     setHrmsPayroll(prev => [data, ...prev]);
-    toast.success('Payroll processed successfully');
+    toast.success(`Payment logged successfully! Balances updated.`);
+  };
+
+  const deletePayment = async (id: string) => {
+    setPayments((prev) => prev.filter((p) => p.id !== id));
+    // Also remove ledger entries for this payment to keep it balanced
+    setLedgerEntries((prev) => prev.filter((le) => le.reference_id !== id));
+    
+    if (supabase) {
+      const { error } = await supabase.from('payments').delete().eq('id', id);
+      await supabase.from('ledger_entries').delete().eq('reference_id', id);
+      if (error) {
+        toast.error(`Supabase Error: ${error.message}`);
+        return;
+      }
+    }
+    toast.success('Payment and related ledger entries deleted');
   };
 
   const updateHrmsPayroll = async (id: string, updates: Partial<HrmsPayroll>) => {
@@ -1296,18 +1485,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
         bankBalance,
         addCustomer,
         updateCustomer,
+        deleteCustomer,
         addSupplier,
         updateSupplier,
+        deleteSupplier,
         addProduct,
         updateProduct,
+        deleteProduct,
         createSalesInvoice,
+        deleteSalesInvoice,
         createPurchaseOrder,
+        deletePurchaseOrder,
         createPaymentIn,
         createPaymentOut,
+        deletePayment,
         createReturn,
+        deleteReturn,
         registerWarranty,
         updateWarrantyStatus,
+        deleteWarranty,
         updateSettings,
+        deleteLedgerEntry,
         addLead,
         updateLead,
         deleteLead,
@@ -1316,8 +1514,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         addHrmsEmployee,
         updateHrmsEmployee,
         markAttendance,
+        deleteAttendance,
         applyLeave,
         updateLeaveStatus,
+        deleteLeave,
         processPayroll,
         updateHrmsPayroll,
         addHrmsProject,

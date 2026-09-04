@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, ShieldAlert, Key, Users, Plus, Save, AlertOctagon } from 'lucide-react';
+import { Shield, ShieldAlert, Key, Users, Plus, Save, AlertOctagon, Trash2 } from 'lucide-react';
 import { getAdminClient } from '../../lib/supabaseAdmin';
 import { useAuth } from '../../store/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -152,6 +152,25 @@ export function UserManagementPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, email: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user ${email}? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      const adminClient = getAdminClient(serviceKey);
+      if (!adminClient) throw new Error('Not configured');
+
+      const { error } = await adminClient.auth.admin.deleteUser(userId);
+      if (error) throw error;
+
+      toast.success(`User ${email} deleted successfully`);
+      fetchUsers(adminClient);
+    } catch (err: any) {
+      toast.error('Failed to delete user: ' + err.message);
+    }
+  };
+
   // Only allow admin
   if (user?.role !== 'admin') {
     return (
@@ -283,7 +302,14 @@ export function UserManagementPage() {
                         </select>
                       </td>
                       <td>
-                        <span className="text-xs text-gray-400">Manage via Supabase</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteUser(u.id, u.email)}
+                          disabled={isSelf}
+                          className="px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 hover:dark:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg cursor-pointer transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
                       </td>
                     </tr>
                   );

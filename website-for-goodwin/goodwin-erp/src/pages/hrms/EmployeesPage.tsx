@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useData } from '../../store/DataContext';
 import { useAuth } from '../../store/AuthContext';
-import { Users, Plus, X, Trash2 } from 'lucide-react';
+import { Users, Plus, X, Trash2, Edit2 } from 'lucide-react';
 
 export function EmployeesPage() {
   const { hrmsEmployees, addHrmsEmployee, updateHrmsEmployee } = useData();
   const { user } = useAuth();
   
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -20,7 +21,38 @@ export function EmployeesPage() {
     status: 'Active'
   });
 
+  const resetForm = () => {
+    setFormData({
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone: '',
+      department: '',
+      designation: '',
+      joining_date: new Date().toISOString().split('T')[0],
+      basic_salary: 0,
+      status: 'Active'
+    });
+    setEditingId(null);
+  };
+
   const canAddEmployee = user?.role === 'admin' || user?.role === 'hr';
+
+  const handleEdit = (employee: any) => {
+    setFormData({
+      first_name: employee.first_name,
+      last_name: employee.last_name,
+      email: employee.email,
+      phone: employee.phone || '',
+      department: employee.department || '',
+      designation: employee.designation || '',
+      joining_date: employee.joining_date ? new Date(employee.joining_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      basic_salary: employee.basic_salary || 0,
+      status: employee.status || 'Active'
+    });
+    setEditingId(employee.id);
+    setShowModal(true);
+  };
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this employee? Their past attendance records will be preserved.")) {
@@ -28,32 +60,29 @@ export function EmployeesPage() {
     }
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Generate a unique employee ID
-    const employee_id = `EMP-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
-    
-    const empData = {
-      ...formData,
-      employee_id
-    };
-    
-    const result = await addHrmsEmployee(empData);
-    if (result) {
-      setShowModal(false);
-      setFormData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        department: '',
-        designation: '',
-        joining_date: new Date().toISOString().split('T')[0],
-        basic_salary: 0,
-        status: 'Active'
-      });
+    if (editingId) {
+      const result = await updateHrmsEmployee(editingId, formData);
+      if (result) {
+        setShowModal(false);
+        resetForm();
+      }
+    } else {
+      // Generate a unique employee ID
+      const employee_id = `EMP-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+      
+      const empData = {
+        ...formData,
+        employee_id
+      };
+      
+      const result = await addHrmsEmployee(empData);
+      if (result) {
+        setShowModal(false);
+        resetForm();
+      }
     }
   };
 
@@ -67,7 +96,10 @@ export function EmployeesPage() {
         
         {canAddEmployee && (
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              resetForm();
+              setShowModal(true);
+            }}
             className="flex items-center gap-2 bg-[#00a631] text-white px-4 py-2 rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" />
@@ -113,13 +145,22 @@ export function EmployeesPage() {
                   </td>
                   {canAddEmployee && (
                     <td className="p-4 text-right">
-                      <button 
-                        onClick={() => handleDelete(record.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Delete Employee"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleEdit(record)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                          title="Edit Employee"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(record.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Delete Employee"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -138,9 +179,14 @@ export function EmployeesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800">
             <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-              <h2 className="text-xl font-extrabold text-[#3a3b39] dark:text-white">Add New Employee</h2>
+              <h2 className="text-xl font-extrabold text-[#3a3b39] dark:text-white">
+                {editingId ? 'Edit Employee' : 'Add New Employee'}
+              </h2>
               <button 
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  resetForm();
+                }}
                 className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
@@ -240,7 +286,10 @@ export function EmployeesPage() {
               <div className="pt-6 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 mt-6">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
                   className="px-6 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
@@ -249,7 +298,7 @@ export function EmployeesPage() {
                   type="submit"
                   className="px-6 py-2.5 bg-[#00a631] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
                 >
-                  Save Employee
+                  {editingId ? 'Update Employee' : 'Save Employee'}
                 </button>
               </div>
             </form>

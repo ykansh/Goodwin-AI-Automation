@@ -1,6 +1,6 @@
 import type { Customer, Supplier } from '../../types';
 import { useData } from '../../store/DataContext';
-import { X, History } from 'lucide-react';
+import { X, History, Trash2 } from 'lucide-react';
 
 interface CustomerLedgerModalProps {
   party: Customer | Supplier | null;
@@ -9,7 +9,7 @@ interface CustomerLedgerModalProps {
 }
 
 export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: CustomerLedgerModalProps) {
-  const { ledgerEntries } = useData();
+  const { ledgerEntries, deleteLedgerEntry } = useData();
 
   if (!party) return null;
 
@@ -109,6 +109,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
                       <th className="pb-3 text-right">Debit (₹)</th>
                       <th className="pb-3 text-right">Credit (₹)</th>
                       <th className="pb-3 text-right">Running Balance (₹)</th>
+                      <th className="pb-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-[#2d302d]">
@@ -125,6 +126,19 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
                         </td>
                         <td className="py-3 text-right font-extrabold text-[#3a3b39] dark:text-white">
                           ₹{entry.balance.toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 text-right">
+                          <button
+                            onClick={() => {
+                              if (window.confirm("Are you sure you want to delete this ledger entry? This action cannot be undone.")) {
+                                deleteLedgerEntry(entry.id);
+                              }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors inline-flex"
+                            title="Delete Entry"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     ))}

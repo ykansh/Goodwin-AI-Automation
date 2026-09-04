@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useData } from '../../store/DataContext';
 import { NewPurchaseModal } from '../../components/modals/NewPurchaseModal';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 
 export function PurchasesPOsPage() {
-  const { purchases } = useData();
+  const { purchases, deletePurchaseOrder } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -107,13 +107,26 @@ export function PurchasesPOsPage() {
 
                     {/* ACTIONS */}
                     <td className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => alert(`Purchase PO #${po.po_number}`)}
-                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                      >
-                        View PO
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => alert(`Purchase PO #${po.po_number}`)}
+                          className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        >
+                          View PO
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this PO?")) {
+                              deletePurchaseOrder(po.id);
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

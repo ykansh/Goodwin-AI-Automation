@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useData } from '../../store/DataContext';
 import { NewPaymentInModal } from '../../components/modals/NewPaymentInModal';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 
 export function PaymentInPage() {
-  const { payments } = useData();
+  const { payments, deletePayment } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -104,13 +104,26 @@ export function PaymentInPage() {
                       ₹{p.amount.toLocaleString('en-IN')}.00
                     </td>
                     <td className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => alert(`Receipt #${p.receipt_number}`)}
-                        className="px-3 py-1 bg-gray-100 dark:bg-[#2d302d] hover:bg-gray-200 dark:hover:bg-[#373a37] text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl cursor-pointer transition-colors"
-                      >
-                        View Receipt
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => alert(`Receipt #${p.receipt_number}`)}
+                          className="px-3 py-1 bg-gray-100 dark:bg-[#2d302d] hover:bg-gray-200 dark:hover:bg-[#373a37] text-gray-700 dark:text-gray-200 text-xs font-bold rounded-xl cursor-pointer transition-colors"
+                        >
+                          View Receipt
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this payment receipt?")) {
+                              deletePayment(p.id);
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 inline-block" /> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

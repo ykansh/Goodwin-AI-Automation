@@ -3,10 +3,10 @@ import { useData } from '../../store/DataContext';
 import type { Product } from '../../types';
 import { NewProductModal } from '../../components/modals/NewProductModal';
 import { EditProductModal } from '../../components/modals/EditProductModal';
-import { Search, Plus } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 
 export function ProductsInventoryPage() {
-  const { products } = useData();
+  const { products, deleteProduct } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -132,15 +132,28 @@ export function ProductsInventoryPage() {
                       {p.warranty_months} mos
                     </td>
 
-                    {/* ACTIONS: Edit */}
+                    {/* ACTIONS: Edit / Delete */}
                     <td className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => setEditingProduct(p)}
-                        className="px-3 py-1 bg-gray-100 dark:bg-[#252825] hover:bg-gray-200 dark:hover:bg-[#2d302d] text-[#3a3b39] dark:text-gray-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingProduct(p)}
+                          className="px-3 py-1 bg-gray-100 dark:bg-[#252825] hover:bg-gray-200 dark:hover:bg-[#2d302d] text-[#3a3b39] dark:text-gray-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this product?")) {
+                              deleteProduct(p.id);
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

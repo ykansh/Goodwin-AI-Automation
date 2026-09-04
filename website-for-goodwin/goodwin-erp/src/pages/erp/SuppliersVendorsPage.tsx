@@ -4,10 +4,10 @@ import type { Supplier } from '../../types';
 import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal';
 import { NewSupplierModal } from '../../components/modals/NewSupplierModal';
 import { EditSupplierModal } from '../../components/modals/EditSupplierModal';
-import { Search, Truck, Edit3, History } from 'lucide-react';
+import { Search, Truck, Edit3, History, Trash2 } from 'lucide-react';
 
 export function SuppliersVendorsPage() {
-  const { suppliers } = useData();
+  const { suppliers, deleteSupplier } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLedgerSupplier, setSelectedLedgerSupplier] = useState<Supplier | null>(null);
@@ -123,6 +123,19 @@ export function SuppliersVendorsPage() {
                       >
                         <History className="w-3.5 h-3.5" />
                         <span>Ledger</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this supplier?")) {
+                            deleteSupplier(s.id);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
                       </button>
                     </td>
                   </tr>

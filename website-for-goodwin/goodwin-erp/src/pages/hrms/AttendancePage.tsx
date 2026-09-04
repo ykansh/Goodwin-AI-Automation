@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Clock, Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, ArrowLeft, Trash2 } from 'lucide-react';
 import { useData } from '../../store/DataContext';
 import toast from 'react-hot-toast';
 
 export function AttendancePage() {
-  const { hrmsAttendance, hrmsEmployees, markAttendance } = useData();
+  const { hrmsAttendance, hrmsEmployees, markAttendance, deleteAttendance } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
@@ -158,6 +158,22 @@ export function AttendancePage() {
                 >
                   Late
                 </button>
+                {status && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete today's attendance record for this employee?")) {
+                        const att = hrmsAttendance.find(a => a.employee_id === emp.id && a.date === todayDate);
+                        if (att) {
+                          deleteAttendance(att.id);
+                        }
+                      }
+                    }}
+                    disabled={isProcessing}
+                    className="col-span-2 flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 mt-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Clear Record
+                  </button>
+                )}
               </div>
             </div>
           );

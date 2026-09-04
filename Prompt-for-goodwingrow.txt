@@ -1,0 +1,129 @@
+You are a professional ui/ux and web-dev. you excel in react. your design style and color selection goes with brands colour. You have mastery in spacing in clean ui. you often use coolvetnica as text . 
+your expertise is in 
+UI:
+
+* Modern enterprise SaaS UI
+* Tailwind CSS
+* Responsive desktop + tablet + mobile
+
+Brand color ; Design style: 
+look - simple , minimal and standard , animations should be smooth. 
+fonts - montserrat
+colours - #00a631(primary) #3a3b39 (secondary) #cde06c (tertiary) #f5f4f0 (fourth)
+
+make a website for goodwin grow :
+you have to make a website from scratch . INCLUDE SEARCH BAR EDIT OPTIONS CREATE OPTIONS AND DELETE OPTIONS WHEREVER NEEDED AND THEY SHOULD BE FUNCTIONAL TOO 
+
+Build a real working enterprise application connected to *LIVE SUPABASE / PostgreSQL*, with authentication, RBAC, database relationships, workflows, audit logs,
+
+a drop down option in which we have options i.e.
+
+Marketing , Operations , HRMS , Finance , AI slop , ADMIN
+
+in “marketing” include : 
+
+it includes a navigation bar in left 
+
+which has dashboard , campaigns 
+
+
+	dashboard: I want a six sections. centred and padded and follows professional design style. 
+		1st section contains Monthly revenue (monthly editable to weekly and daily) 
+		2nd section contains info of Leads in pipeline.
+		3rd section Hot Leads and number.
+		4th section contains “tasks Due today”
+		5th contains Team Members number 
+		6th contains Total expenses 
+	Campaign tracker : contains a table of  following info ->>  client , campaign name , platform , type , budget , spend , reach , clicks , leads , cost/lead , Status , notes 
+	Content Calendar: Plan, schedule and manage content —>> I WANT CALENDER IN THIS DIVIDED MONTH WISE AND WHEN WE OPEN A DATE  , IT CONTAINS A TABLE WHICH HAS EMPLOYEE NAME AND TASKS ACCORDING 
+
+📱 Social Media :Social posts and platform wise performance
+👥 Leads
+Marketing-generated leads and lead sources
+
+📢 Ads
+Ad campaigns, spend, leads, CPL, ROAS
+
+🎨 Creatives
+Marketing creatives/assets
+
+
+
+in Operations include : 
+it includes a navigation bar in left
+	client tracker : contains a table of  following info ->> client name , buisness type , package , monthly value , status , start date , next review , account manager , whatsapp , mail , notes 
+	Lead Tracker : contains a table of  following info ->> client name , buisness , source , contact , status , potential value , first contact , last follow up , next follow up , assigned to , Proposal sent , notes
+	
+	Task manager :  contains a table of  following info ->> Task , client , assigned to , category , due date , priority , status , notes 
+	Projects: contains a table of  following info ->>  project id , project name  , client , team (assigned to) , phase (drop down menu editable) , date started , expected completion , review
+	Workflows : i want rounded rectangle which adjusts with text and arrows which we attach and show next phase. i don’t want any table in this. 
+	Assets : info related to assets. 
+
+in HRMS include : 
+it includes a navigation bar in left:
+	
+	Team and HR : name , role , type , salary , join date , status , phone , email , skills , notes 
+	Employees - table and  at the top a search bar which has a search vector and text “search” , a filter option
+	 Attendance - separate sections for every employee created , a filter option
+	 Leave - table	top a search bar which has a search vector and text “search” , a filter option
+	 Payroll - table 	top a search bar which has a search vector and text “search” , a filter option
+	 Recruit - sections for every recruit , it shows its update(in , reject , etc). clicking on it goes to new page where it has all the info of recruit. top a search bar which has a search vector and text “search” , a filter option
+	 Onboarding -  table	top a search bar which has a search vector and text “search” , a filter option
+
+in Finance include : 
+it includes a navigation bar in left:  
+
+	Revenue Tracker : contains a table of  following info ->> invoice# , client , description , amount , invoice data , due date , paid date , status , payment mode , notes
+	expense & Budget Tracker : contains a table of  following info ->>  Expense , category , vendor , amount , Date , paid by ,  recurring , notes 
+	Receivables
+	Payables
+	Ledger
+	Reports : table including all the important info 
+
+
+in AI slop include : 
+it includes no navigation bar in left on the front we want. 
+
+
+	AI tools and logs : tool name , category ,used for , monthly cost , subscription , login email , renewal date , notes.
+	
+
+in ADMIN include : 
+it includes no navigation bar in left on the front we want. 
+
+1) Supabase cloud DB connection : where it shows it is connected or not shows ping 
+2)Supabase Project URL
+3) Supabase Anon (Public) Key 
+4) test connection button - from which we can test our supabse connection, 
+    copy  sql schema button.
+    open sql editor 
+5) setup instruction : section containing how to setup supabase 
+6) Company Info - Choitram , Indore 
+
+
+AUDIT
+→ PLAN
+→ BUILD
+→ TEST
+→ SECURITY CHECK
+→ BUILD CHECK
+→ DATABASE CHECK
+→ UX CHECK
+→ FIX
+→ CONTINUE
+
+Continue autonomously until the entire Goodwin Grow AI ERP is production-ready.
+
+The final product must feel like a combination of:
+
+**Keka + Zoho + HubSpot + Monday + Notion + Power BI + AI Agent Platform**
+
+but customized specifically for **Goodwin Grow AI**.
+
+The goal is one unified platform:
+
+# GOODWIN GROW AI
+
+**One Company → One Database → One ERP → One AI Brain → Complete Business Control.**
+
+

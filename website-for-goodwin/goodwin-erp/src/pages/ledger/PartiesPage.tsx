@@ -5,10 +5,10 @@ import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal
 import { NewCustomerModal } from '../../components/modals/NewCustomerModal';
 import { EditCustomerModal } from '../../components/modals/EditCustomerModal';
 import { EditSupplierModal } from '../../components/modals/EditSupplierModal';
-import { Search, UserPlus, Filter, Edit3, History } from 'lucide-react';
+import { Search, UserPlus, Filter, Edit3, History, Trash2 } from 'lucide-react';
 
 export function PartiesPage() {
-  const { customers, suppliers } = useData();
+  const { customers, suppliers, deleteCustomer, deleteSupplier } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -181,6 +181,23 @@ export function PartiesPage() {
                       >
                         <History className="w-3.5 h-3.5" />
                         <span>Ledger</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this party?")) {
+                            if (p.partyKind === 'customer') {
+                              deleteCustomer(p.id);
+                            } else {
+                              deleteSupplier(p.id);
+                            }
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
                       </button>
                     </td>
                   </tr>

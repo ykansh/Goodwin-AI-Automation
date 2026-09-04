@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useData } from '../../store/DataContext';
 import { NewWarrantyModal } from '../../components/modals/NewWarrantyModal';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 
 export function BatteryWarrantyPage() {
-  const { warranties, updateWarrantyStatus } = useData();
+  const { warranties, updateWarrantyStatus, deleteWarranty } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -126,6 +126,17 @@ export function BatteryWarrantyPage() {
                         className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                       >
                         View Card
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this warranty registration?")) {
+                            deleteWarranty(w.id);
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1 inline-flex"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
                       </button>
                     </td>
                   </tr>

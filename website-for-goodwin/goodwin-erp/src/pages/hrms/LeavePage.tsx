@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Plus, Calendar, X } from 'lucide-react';
+import { Plus, Calendar, X, Trash2 } from 'lucide-react';
 import { useData } from '../../store/DataContext';
 import toast from 'react-hot-toast';
 
 export function LeavePage() {
-  const { hrmsLeaves, hrmsEmployees, applyLeave, updateLeaveStatus } = useData();
+  const { hrmsLeaves, hrmsEmployees, applyLeave, updateLeaveStatus, deleteLeave } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -90,6 +90,17 @@ export function LeavePage() {
                         <button onClick={() => updateLeaveStatus(record.id, 'Rejected')} className="text-red-600 hover:text-red-800 font-bold text-sm">Reject</button>
                       </>
                     )}
+                    <button 
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this leave request?")) {
+                          deleteLeave(record.id);
+                        }
+                      }} 
+                      className="text-gray-400 hover:text-red-600 transition-colors ml-2"
+                      title="Delete Leave Request"
+                    >
+                      <Trash2 className="w-4 h-4 inline-block" />
+                    </button>
                   </td>
                 </tr>
               ))}

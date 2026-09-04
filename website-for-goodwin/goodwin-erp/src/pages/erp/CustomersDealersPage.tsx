@@ -4,10 +4,10 @@ import type { Customer } from '../../types';
 import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal';
 import { NewCustomerModal } from '../../components/modals/NewCustomerModal';
 import { EditCustomerModal } from '../../components/modals/EditCustomerModal';
-import { Search, UserPlus, Filter, Edit3, History } from 'lucide-react';
+import { Search, UserPlus, Filter, Edit3, History, Trash2 } from 'lucide-react';
 
 export function CustomersDealersPage() {
-  const { customers } = useData();
+  const { customers, deleteCustomer } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -152,6 +152,20 @@ export function CustomersDealersPage() {
                       >
                         <History className="w-3.5 h-3.5" />
                         <span>Ledger</span>
+                      </button>
+
+                      {/* Action 3: Delete */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this customer?")) {
+                            deleteCustomer(c.id);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
                       </button>
                     </td>
                   </tr>

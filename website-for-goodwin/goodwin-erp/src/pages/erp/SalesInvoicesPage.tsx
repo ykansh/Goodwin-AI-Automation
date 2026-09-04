@@ -3,7 +3,7 @@ import { useData } from '../../store/DataContext';
 import type { SalesInvoice } from '../../types';
 import { InvoiceViewModal } from '../../components/modals/InvoiceViewModal';
 import { NewInvoiceModal } from '../../components/modals/NewInvoiceModal';
-import { Plus, Printer, Search } from 'lucide-react';
+import { Plus, Printer, Search, Trash2 } from 'lucide-react';
 
 export function SalesInvoicesPage({
   showCreateModalInitially = false,
@@ -12,7 +12,7 @@ export function SalesInvoicesPage({
   showCreateModalInitially?: boolean;
   onCloseCreateModal?: () => void;
 }) {
-  const { invoices } = useData();
+  const { invoices, deleteSalesInvoice } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<SalesInvoice | null>(null);
@@ -123,15 +123,28 @@ export function SalesInvoicesPage({
                       ₹{inv.outstanding.toLocaleString('en-IN')}.00
                     </td>
 
-                    {/* ACTIONS: Invoice Printer Button */}
+                    {/* ACTIONS: Invoice Printer Button & Delete */}
                     <td className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedInvoice(inv)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-[#3a3b39] text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                      >
-                        <Printer className="w-3.5 h-3.5" /> Invoice
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedInvoice(inv)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-[#3a3b39] text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5" /> Invoice
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this invoice?")) {
+                              deleteSalesInvoice(inv.id);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

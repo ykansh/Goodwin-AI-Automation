@@ -4,7 +4,7 @@ import type { Lead, LeadStage } from '../../types';
 import {
   Plus, Search, MoreHorizontal,
   ChevronLeft, ChevronRight, Users, TrendingUp,
-  Clock, Sparkles, Calendar, Building2, AlertOctagon
+  Clock, Sparkles, Calendar, Building2, AlertOctagon, Trash2
 } from 'lucide-react';
 import { LeadFormModal } from '../../components/leads/LeadFormModal';
 import { LeadDetailsDrawer } from '../../components/leads/LeadDetailsDrawer';
@@ -22,7 +22,7 @@ const STAGE_BADGES: Record<LeadStage, { bg: string; text: string; border: string
 };
 
 export function LeadsPage() {
-  const { leads, settings } = useData();
+  const { leads, settings, deleteLead } = useData();
   const assignees = settings?.battery_configs?.salespersons?.length > 0 ? settings.battery_configs.salespersons : ['Admin'];
 
   // Search, Filters & Sort state
@@ -507,6 +507,20 @@ export function LeadsPage() {
                                     <span>Mark Lost</span>
                                   </button>
                                 )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuId(null);
+                                    if (window.confirm("Are you sure you want to delete this lead?")) {
+                                      deleteLead(lead.id);
+                                    }
+                                  }}
+                                  className="w-full px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-left cursor-pointer flex items-center gap-2 mt-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Delete Lead</span>
+                                </button>
                               </div>
                             )}
                           </div>

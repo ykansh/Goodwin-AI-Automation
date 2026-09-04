@@ -75,7 +75,7 @@ Made an automation for content.
         9) posting and storing data 
 Did made account on bitwarden. 
 
-02/08/2026
+02/08/2026                   (neutral review)
 
 Website completed successfully.
 Supabase integrated. 
@@ -86,3 +86,10 @@ not posted on vercel yet.
 
 deployment on vercel 
 SOP created pdf
+
+04/08/2025
+
+designed prompt for the goodwin frow website 
+learnt Stitch
+MCP 
+made a website. 
