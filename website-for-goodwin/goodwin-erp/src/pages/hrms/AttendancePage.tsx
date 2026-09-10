@@ -51,9 +51,50 @@ export function AttendancePage() {
     }
   };
 
-  const getTodayStatus = (employeeId: string) => {
-    const att = hrmsAttendance.find(a => a.employee_id === employeeId && a.date === todayDate);
-    return att ? att.status : null;
+  const getTodayRecord = (employeeId: string) => {
+    return hrmsAttendance.find(a => a.employee_id === employeeId && a.date === todayDate) || null;
+  };
+
+  const handleClockIn = async (employeeId: string) => {
+    setLoading(employeeId);
+    try {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      const currentAtt = getTodayRecord(employeeId);
+      await markAttendance({
+        employee_id: employeeId,
+        date: todayDate,
+        status: currentAtt?.status || 'Present',
+        check_in: timeString,
+        check_out: currentAtt?.check_out,
+        notes: currentAtt?.notes || ''
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleClockOut = async (employeeId: string) => {
+    setLoading(employeeId);
+    try {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      const currentAtt = getTodayRecord(employeeId);
+      await markAttendance({
+        employee_id: employeeId,
+        date: todayDate,
+        status: currentAtt?.status || 'Present',
+        check_in: currentAtt?.check_in,
+        check_out: timeString,
+        notes: currentAtt?.notes || ''
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred');
+    } finally {
+      setLoading(null);
+    }
   };
 
   if (selectedEmployeeId) {
@@ -89,7 +130,8 @@ export function AttendancePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredEmployees.map((emp) => {
           const name = `${emp.first_name} ${emp.last_name}`.trim();
-          const status = getTodayStatus(emp.id);
+          const currentAtt = getTodayRecord(emp.id);
+          const status = currentAtt?.status || null;
           const isProcessing = loading === emp.id;
           
           return (
@@ -121,59 +163,83 @@ export function AttendancePage() {
                 {status ? status.toUpperCase() : 'PENDING'}
               </p>
 
-              <div className="grid grid-cols-2 gap-2 mt-auto w-full">
-                <button
-                  onClick={() => handleMarkAttendance(emp.id, 'Present')}
-                  disabled={isProcessing || status === 'Present'}
-                  className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
-                    status === 'Present' ? 'bg-[#00a631] text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#00a631] hover:text-white'
-                  }`}
-                >
-                  Present
-                </button>
-                <button
-                  onClick={() => handleMarkAttendance(emp.id, 'Absent')}
-                  disabled={isProcessing || status === 'Absent'}
-                  className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
-                    status === 'Absent' ? 'bg-red-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-500 hover:text-white'
-                  }`}
-                >
-                  Absent
-                </button>
-                <button
-                  onClick={() => handleMarkAttendance(emp.id, 'Half-Day')}
-                  disabled={isProcessing || status === 'Half-Day'}
-                  className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
-                    status === 'Half-Day' ? 'bg-purple-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-500 hover:text-white'
-                  }`}
-                >
-                  Half Day
-                </button>
-                <button
-                  onClick={() => handleMarkAttendance(emp.id, 'Late')}
-                  disabled={isProcessing || status === 'Late'}
-                  className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
-                    status === 'Late' ? 'bg-yellow-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-yellow-500 hover:text-white'
-                  }`}
-                >
-                  Late
-                </button>
-                {status && (
+              <div className="flex flex-col gap-2 mt-auto w-full">
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => {
-                      if (window.confirm("Are you sure you want to delete today's attendance record for this employee?")) {
-                        const att = hrmsAttendance.find(a => a.employee_id === emp.id && a.date === todayDate);
-                        if (att) {
-                          deleteAttendance(att.id);
-                        }
-                      }
-                    }}
-                    disabled={isProcessing}
-                    className="col-span-2 flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 mt-1"
+                    onClick={() => handleClockIn(emp.id)}
+                    disabled={isProcessing || !!currentAtt?.check_in}
+                    className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
+                      currentAtt?.check_in ? 'bg-emerald-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-emerald-500 hover:text-white'
+                    }`}
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Clear Record
+                    Clock In {currentAtt?.check_in ? `(${currentAtt.check_in})` : ''}
                   </button>
-                )}
+                  <button
+                    onClick={() => handleClockOut(emp.id)}
+                    disabled={isProcessing || !currentAtt?.check_in || !!currentAtt?.check_out}
+                    className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
+                      currentAtt?.check_out ? 'bg-orange-500 text-white opacity-50 cursor-not-allowed' : (!currentAtt?.check_in ? 'bg-gray-100 dark:bg-gray-800 opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-orange-500 hover:text-white')
+                    }`}
+                  >
+                    Clock Out {currentAtt?.check_out ? `(${currentAtt.check_out})` : ''}
+                  </button>
+                </div>
+                
+                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center mt-2 mb-1">Manual Override</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => handleMarkAttendance(emp.id, 'Present')}
+                    disabled={isProcessing || status === 'Present'}
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      status === 'Present' ? 'bg-[#00a631] text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#00a631] hover:text-white'
+                    }`}
+                  >
+                    Present
+                  </button>
+                  <button
+                    onClick={() => handleMarkAttendance(emp.id, 'Absent')}
+                    disabled={isProcessing || status === 'Absent'}
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      status === 'Absent' ? 'bg-red-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-500 hover:text-white'
+                    }`}
+                  >
+                    Absent
+                  </button>
+                  <button
+                    onClick={() => handleMarkAttendance(emp.id, 'Half-Day')}
+                    disabled={isProcessing || status === 'Half-Day'}
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      status === 'Half-Day' ? 'bg-purple-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-500 hover:text-white'
+                    }`}
+                  >
+                    Half Day
+                  </button>
+                  <button
+                    onClick={() => handleMarkAttendance(emp.id, 'Late')}
+                    disabled={isProcessing || status === 'Late'}
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      status === 'Late' ? 'bg-yellow-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-yellow-500 hover:text-white'
+                    }`}
+                  >
+                    Late
+                  </button>
+                  {status && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete today's attendance record for this employee?")) {
+                          const att = hrmsAttendance.find(a => a.employee_id === emp.id && a.date === todayDate);
+                          if (att) {
+                            deleteAttendance(att.id);
+                          }
+                        }
+                      }}
+                      disabled={isProcessing}
+                      className="col-span-2 flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 mt-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Clear Record
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -234,10 +300,9 @@ function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string
     else { setCurrentMonth(m => m + 1); }
   };
 
-  const getDayStatus = (day: number) => {
+  const getDayRecord = (day: number) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const record = attendanceForMonth.find(a => a.date === dateStr);
-    return record ? record.status : null;
+    return attendanceForMonth.find(a => a.date === dateStr) || null;
   };
 
   const getStatusColor = (status: string | null) => {
@@ -281,15 +346,26 @@ function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string
         
         <div className="grid grid-cols-7 gap-2 sm:gap-4">
           {days.map((day, idx) => {
-            if (!day) return <div key={`empty-${idx}`} className="h-16 sm:h-24 rounded-2xl" />;
-            const status = getDayStatus(day);
+            if (!day) return <div key={`empty-${idx}`} className="h-20 sm:h-[110px] rounded-2xl" />;
+            const record = getDayRecord(day);
+            const status = record?.status || null;
             return (
               <div 
                 key={day} 
-                className={`h-16 sm:h-24 rounded-2xl flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800 transition-transform hover:scale-105 ${getStatusColor(status)}`}
+                className={`h-20 sm:h-[110px] rounded-2xl flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800 transition-transform hover:scale-105 ${getStatusColor(status)}`}
               >
-                <span className="text-lg sm:text-2xl font-black">{day}</span>
-                {status && <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest mt-1 hidden sm:block">{status}</span>}
+                <span className="text-lg sm:text-xl font-black leading-tight">{day}</span>
+                {status && (
+                  <>
+                    <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest mt-0.5 hidden sm:block">{status}</span>
+                    {(record?.check_in || record?.check_out) && (
+                      <div className="mt-1 text-[9px] sm:text-[10px] text-center font-medium bg-black/10 dark:bg-black/20 rounded px-1.5 py-0.5 hidden sm:block">
+                        {record.check_in && <div>In: <span className="font-bold">{record.check_in}</span></div>}
+                        {record.check_out && <div>Out: <span className="font-bold">{record.check_out}</span></div>}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             );
           })}

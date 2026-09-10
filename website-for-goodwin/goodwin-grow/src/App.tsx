@@ -5,14 +5,31 @@ import { MarketingLayout } from './pages/marketing/MarketingLayout';
 import { MarketingDashboard } from './pages/marketing/MarketingDashboard';
 import { CampaignTracker } from './pages/marketing/CampaignTracker';
 import { ContentCalendar } from './pages/marketing/ContentCalendar';
+import { SocialMedia } from './pages/marketing/SocialMedia';
+import { Leads } from './pages/marketing/Leads';
+import { Ads } from './pages/marketing/Ads';
+import { Creatives } from './pages/marketing/Creatives';
 import { OperationsLayout } from './pages/operations/OperationsLayout';
 import { ClientTracker } from './pages/operations/ClientTracker';
+import { LeadTracker } from './pages/operations/LeadTracker';
+import { TaskManager } from './pages/operations/TaskManager';
+import { Projects } from './pages/operations/Projects';
 import { Workflows } from './pages/operations/Workflows';
+import { Assets } from './pages/operations/Assets';
 import { HRMSLayout } from './pages/hrms/HRMSLayout';
 import { Employees } from './pages/hrms/Employees';
 import { Attendance } from './pages/hrms/Attendance';
+import { Leave } from './pages/hrms/Leave';
+import { Payroll } from './pages/hrms/Payroll';
+import { Recruitment } from './pages/hrms/Recruitment';
+import { Onboarding } from './pages/hrms/Onboarding';
 import { FinanceLayout } from './pages/finance/FinanceLayout';
 import { RevenueTracker } from './pages/finance/RevenueTracker';
+import { Expenses } from './pages/finance/Expenses';
+import { Receivables } from './pages/finance/Receivables';
+import { Payables } from './pages/finance/Payables';
+import { Ledger } from './pages/finance/Ledger';
+import { Reports } from './pages/finance/Reports';
 import { AITools } from './pages/ai-slop/AITools';
 import { AdminPanel } from './pages/admin/AdminPanel';
 import { Login } from './pages/auth/Login';
@@ -38,21 +55,21 @@ function App() {
             <Route path="dashboard" element={<MarketingDashboard />} />
             <Route path="campaigns" element={<CampaignTracker />} />
             <Route path="calendar" element={<ContentCalendar />} />
-            <Route path="social" element={<PlaceholderPage title="Social Media" />} />
-            <Route path="leads" element={<PlaceholderPage title="Leads" />} />
-            <Route path="ads" element={<PlaceholderPage title="Ads" />} />
-            <Route path="creatives" element={<PlaceholderPage title="Creatives" />} />
+            <Route path="social" element={<SocialMedia />} />
+            <Route path="leads" element={<Leads />} />
+            <Route path="ads" element={<Ads />} />
+            <Route path="creatives" element={<Creatives />} />
           </Route>
           
           {/* Operations Module */}
           <Route path="operations" element={<OperationsLayout />}>
             <Route index element={<Navigate to="clients" replace />} />
             <Route path="clients" element={<ClientTracker />} />
-            <Route path="leads" element={<PlaceholderPage title="Lead Tracker" />} />
-            <Route path="tasks" element={<PlaceholderPage title="Task Manager" />} />
-            <Route path="projects" element={<PlaceholderPage title="Projects" />} />
+            <Route path="leads" element={<LeadTracker />} />
+            <Route path="tasks" element={<TaskManager />} />
+            <Route path="projects" element={<Projects />} />
             <Route path="workflows" element={<Workflows />} />
-            <Route path="assets" element={<PlaceholderPage title="Assets" />} />
+            <Route path="assets" element={<Assets />} />
           </Route>
           
           {/* HRMS Module */}
@@ -60,21 +77,21 @@ function App() {
             <Route index element={<Navigate to="employees" replace />} />
             <Route path="employees" element={<Employees />} />
             <Route path="attendance" element={<Attendance />} />
-            <Route path="leave" element={<PlaceholderPage title="Leave Management" />} />
-            <Route path="payroll" element={<PlaceholderPage title="Payroll" />} />
-            <Route path="recruit" element={<PlaceholderPage title="Recruitment" />} />
-            <Route path="onboarding" element={<PlaceholderPage title="Onboarding" />} />
+            <Route path="leave" element={<Leave />} />
+            <Route path="payroll" element={<Payroll />} />
+            <Route path="recruit" element={<Recruitment />} />
+            <Route path="onboarding" element={<Onboarding />} />
           </Route>
           
           {/* Finance Module */}
           <Route path="finance" element={<FinanceLayout />}>
             <Route index element={<Navigate to="revenue" replace />} />
             <Route path="revenue" element={<RevenueTracker />} />
-            <Route path="expenses" element={<PlaceholderPage title="Expense Tracker" />} />
-            <Route path="receivables" element={<PlaceholderPage title="Receivables" />} />
-            <Route path="payables" element={<PlaceholderPage title="Payables" />} />
-            <Route path="ledger" element={<PlaceholderPage title="Ledger" />} />
-            <Route path="reports" element={<PlaceholderPage title="Reports" />} />
+            <Route path="expenses" element={<Expenses />} />
+            <Route path="receivables" element={<Receivables />} />
+            <Route path="payables" element={<Payables />} />
+            <Route path="ledger" element={<Ledger />} />
+            <Route path="reports" element={<Reports />} />
           </Route>
 
           {/* AI Slop Module */}

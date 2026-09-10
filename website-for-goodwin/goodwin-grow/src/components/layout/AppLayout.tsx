@@ -3,6 +3,10 @@ import { Outlet, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { ArrowLeft } from 'lucide-react';
+import { useStore } from '../../lib/store';
+import { useFinanceStore } from '../../lib/financeStore';
+import { useMarketingStore } from '../../lib/marketingStore';
+import { useOperationsStore } from '../../lib/operationsStore';
 
 export const AppLayout = () => {
   const location = useLocation();
@@ -11,6 +15,25 @@ export const AppLayout = () => {
 
   const hideSidebarRoutes = ['/ai-slop', '/admin'];
   const shouldHideSidebar = hideSidebarRoutes.some(route => location.pathname.startsWith(route));
+  
+  const fetchInitialData = useStore(state => state.fetchInitialData);
+  const fetchFinanceData = useFinanceStore(state => state.fetchFinanceData);
+  const fetchMarketingData = useMarketingStore(state => state.fetchMarketingData);
+  const fetchOperationsData = useOperationsStore(state => state.fetchOperationsData);
+  
+  const isLoadingHRMS = useStore(state => state.isLoading);
+  const isLoadingFinance = useFinanceStore(state => state.isLoading);
+  const isLoadingMarketing = useMarketingStore(state => state.isLoading);
+  const isLoadingOps = useOperationsStore(state => state.isLoading);
+
+  const isLoading = isLoadingHRMS || isLoadingFinance || isLoadingMarketing || isLoadingOps;
+
+  React.useEffect(() => {
+    fetchInitialData();
+    fetchFinanceData();
+    fetchMarketingData();
+    fetchOperationsData();
+  }, [fetchInitialData, fetchFinanceData, fetchMarketingData, fetchOperationsData]);
 
   return (
     <div className="flex h-screen w-full bg-canvas overflow-hidden">
@@ -44,8 +67,13 @@ export const AppLayout = () => {
         )}
 
         <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-          {/* Outlet renders the matched child route */}
-          <Outlet />
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     </div>

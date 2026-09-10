@@ -12,26 +12,73 @@ import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
-
-// Mock Data
-const initialCampaigns = [
-  { id: 1, client: 'Acme Corp', name: 'Q3 Product Launch', platform: 'LinkedIn', type: 'B2B Lead Gen', budget: 15000, spend: 12400, reach: 45000, clicks: 1200, leads: 85, cpl: 145.88, status: 'active', notes: 'Running smoothly' },
-  { id: 2, client: 'Globex', name: 'Summer Promo', platform: 'Instagram', type: 'B2C Sales', budget: 5000, spend: 5000, reach: 120000, clicks: 5400, leads: 320, cpl: 15.62, status: 'completed', notes: 'Exceeded targets' },
-  { id: 3, client: 'Soylent', name: 'Brand Awareness', platform: 'Google Ads', type: 'Search', budget: 10000, spend: 2300, reach: 15000, clicks: 800, leads: 12, cpl: 191.66, status: 'active', notes: 'Monitor CPL closely' },
-];
+import { useMarketingStore } from '../../lib/marketingStore';
 
 export const CampaignTracker = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [campaigns, setCampaigns] = useState(initialCampaigns);
+  const campaigns = useMarketingStore((state: any) => state.campaigns);
+  const setCampaigns = useMarketingStore((state: any) => state.setCampaigns);
+  const addCampaign = useMarketingStore((state: any) => state.addCampaign);
+  const updateCampaign = useMarketingStore((state: any) => state.updateCampaign);
+  const deleteCampaign = useMarketingStore((state: any) => state.deleteCampaign);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    id: 0,
+    client: '',
+    name: '',
+    platform: '',
+    type: 'B2B Lead Gen',
+    budget: 0,
+    spent: 0,
+    reach: 0,
+    clicks: 0,
+    leads: 0,
+    status: 'active',
+    notes: ''
+  });
   
-  const filteredCampaigns = campaigns.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.client.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCampaigns = campaigns.filter((c: any) => 
+    c.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || 
+    c.client?.toLowerCase()?.includes(searchTerm.toLowerCase())
   );
 
-  const handleDelete = (id: number) => {
-    setCampaigns(campaigns.filter(c => c.id !== id));
+  const handleDelete = async (id: number) => {
+    await deleteCampaign(id);
+  };
+
+  const handleOpenCreateModal = () => {
+    setFormData({
+      id: 0,
+      client: '',
+      name: '',
+      platform: '',
+      type: 'B2B Lead Gen',
+      budget: 0,
+      spent: 0,
+      reach: 0,
+      clicks: 0,
+      leads: 0,
+      status: 'active',
+      notes: ''
+    });
+    setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (campaign: any) => {
+    setFormData(campaign);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (isEditing) {
+      await updateCampaign(formData.id, formData);
+    } else {
+      await addCampaign(formData);
+    }
+    setIsModalOpen(false);
   };
 
   return (
@@ -49,7 +96,7 @@ export const CampaignTracker = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
+        <Button onClick={handleOpenCreateModal} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           New Campaign
         </Button>
@@ -72,16 +119,16 @@ export const CampaignTracker = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCampaigns.map((campaign) => (
+            {filteredCampaigns.map((campaign: any) => (
               <TableRow key={campaign.id}>
-                <TableCell className="font-medium text-secondary-dark">{campaign.client}</TableCell>
+                <TableCell className="font-medium text-secondary-dark">{campaign.client || 'Internal'}</TableCell>
                 <TableCell>{campaign.name}</TableCell>
                 <TableCell>{campaign.platform}</TableCell>
-                <TableCell>{campaign.type}</TableCell>
-                <TableCell className="text-right">${campaign.budget.toLocaleString()}</TableCell>
-                <TableCell className="text-right">${campaign.spend.toLocaleString()}</TableCell>
-                <TableCell className="text-right font-medium">{campaign.leads}</TableCell>
-                <TableCell className="text-right">${campaign.cpl.toFixed(2)}</TableCell>
+                <TableCell>{campaign.type || 'Standard'}</TableCell>
+                <TableCell className="text-right">${Number(campaign.budget || 0).toLocaleString()}</TableCell>
+                <TableCell className="text-right">${Number(campaign.spent || 0).toLocaleString()}</TableCell>
+                <TableCell className="text-right font-medium">{campaign.leads || 0}</TableCell>
+                <TableCell className="text-right">${(campaign.leads ? (Number(campaign.spent || 0) / campaign.leads) : 0).toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge variant={campaign.status === 'active' ? 'success' : campaign.status === 'completed' ? 'default' : 'warning'}>
                     {campaign.status}
@@ -89,7 +136,7 @@ export const CampaignTracker = () => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end space-x-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-secondary-light hover:text-primary">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(campaign)} className="h-8 w-8 text-secondary-light hover:text-primary">
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(campaign.id)} className="h-8 w-8 text-secondary-light hover:text-danger">
@@ -110,29 +157,46 @@ export const CampaignTracker = () => {
         </Table>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Campaign">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing ? "Edit Campaign" : "Create Campaign"}>
         <div className="space-y-4">
           <div className="space-y-2">
              <label className="enterprise-label">Client Name</label>
-             <Input placeholder="e.g. Acme Corp" />
+             <Input 
+               placeholder="e.g. Acme Corp" 
+               value={formData.client} 
+               onChange={(e) => setFormData({...formData, client: e.target.value})} 
+             />
           </div>
           <div className="space-y-2">
              <label className="enterprise-label">Campaign Name</label>
-             <Input placeholder="e.g. Q4 Launch" />
+             <Input 
+               placeholder="e.g. Q4 Launch" 
+               value={formData.name} 
+               onChange={(e) => setFormData({...formData, name: e.target.value})} 
+             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="enterprise-label">Budget ($)</label>
-              <Input type="number" placeholder="0.00" />
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                value={formData.budget || ''} 
+                onChange={(e) => setFormData({...formData, budget: Number(e.target.value)})} 
+              />
             </div>
             <div className="space-y-2">
               <label className="enterprise-label">Platform</label>
-              <Input placeholder="e.g. LinkedIn" />
+              <Input 
+                placeholder="e.g. LinkedIn" 
+                value={formData.platform} 
+                onChange={(e) => setFormData({...formData, platform: e.target.value})} 
+              />
             </div>
           </div>
           <div className="pt-4 flex justify-end space-x-2 border-t border-canvas-variant">
             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button onClick={() => setIsModalOpen(false)}>Create</Button>
+            <Button onClick={handleSave}>{isEditing ? "Save Changes" : "Create"}</Button>
           </div>
         </div>
       </Modal>

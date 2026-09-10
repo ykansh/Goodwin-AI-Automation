@@ -72,6 +72,15 @@ CREATE TABLE IF NOT EXISTS sales_invoices (
   grand_total     NUMERIC(12, 2) NOT NULL DEFAULT 0,
   status          VARCHAR(50) DEFAULT 'pending',
   outstanding     NUMERIC(12, 2) DEFAULT 0,
+  billing_state_ut TEXT,
+  shipping_state_ut TEXT,
+  transport_address TEXT,
+  transport_contact_number TEXT,
+  place_of_supply TEXT,
+  place_of_delivery TEXT,
+  reference_name  TEXT,
+  pvt_marka       TEXT,
+  transport_gstin TEXT,
   created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -321,3 +330,16 @@ BEGIN;
   DROP PUBLICATION IF EXISTS supabase_realtime;
   CREATE PUBLICATION supabase_realtime FOR ALL TABLES;
 COMMIT;
+
+-- ── MIGRATIONS ───────────────────────────────────────────────────────────────
+-- Run this if you already created the sales_invoices table to add the new fields
+ALTER TABLE sales_invoices
+ADD COLUMN IF NOT EXISTS billing_state_ut TEXT,
+ADD COLUMN IF NOT EXISTS shipping_state_ut TEXT,
+ADD COLUMN IF NOT EXISTS transport_address TEXT,
+ADD COLUMN IF NOT EXISTS transport_contact_number TEXT,
+ADD COLUMN IF NOT EXISTS place_of_supply TEXT,
+ADD COLUMN IF NOT EXISTS place_of_delivery TEXT,
+ADD COLUMN IF NOT EXISTS reference_name TEXT,
+ADD COLUMN IF NOT EXISTS pvt_marka TEXT,
+ADD COLUMN IF NOT EXISTS transport_gstin TEXT;

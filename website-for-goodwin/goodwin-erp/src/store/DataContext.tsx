@@ -125,6 +125,7 @@ interface DataContextType {
   deleteProduct: (id: string) => void;
 
   createSalesInvoice: (invoice: Omit<SalesInvoice, 'id' | 'created_at' | 'invoice_number' | 'outstanding'> & { initial_payment?: number }) => SalesInvoice;
+  updateSalesInvoice: (id: string, updates: Partial<SalesInvoice>) => void;
   deleteSalesInvoice: (id: string) => void;
   createPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'created_at' | 'po_number' | 'outstanding'> & { initial_payment?: number }) => PurchaseOrder;
   deletePurchaseOrder: (id: string) => void;
@@ -727,6 +728,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
     toast.success(`Sales Invoice ${invNumber} generated! Modules updated.`);
     return newInvoice;
+  };
+
+  const updateSalesInvoice = (id: string, updates: Partial<SalesInvoice>) => {
+    setInvoices((prev) => prev.map((inv) => (inv.id === id ? { ...inv, ...updates } : inv)));
+    if (supabase) {
+      supabase.from('sales_invoices').update(updates).eq('id', id).then(({ error }) => {
+        if (error) {
+          console.error('[Supabase] Invoice update error:', error);
+          toast.error(`Supabase Error: ${error.message}`);
+        }
+      });
+    }
+    toast.success('Sales Invoice updated successfully');
   };
 
   const deleteSalesInvoice = async (id: string) => {
@@ -1493,6 +1507,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updateProduct,
         deleteProduct,
         createSalesInvoice,
+        updateSalesInvoice,
         deleteSalesInvoice,
         createPurchaseOrder,
         deletePurchaseOrder,

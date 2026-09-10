@@ -64,16 +64,22 @@ export function UserManagementPage() {
       const { data: authData, error: authErr } = await adminClient.auth.admin.listUsers();
       if (authErr) throw authErr;
       
-      // 2. Fetch roles
-      const { data: roleData, error: roleErr } = await supabase.from('user_roles').select('*');
-      if (roleErr) throw roleErr;
-
       const rMap: Record<string, UserRole> = {};
+      
+      // Fallback: Populate roles from metadata
+      authData.users?.forEach((u: any) => {
+         rMap[u.id] = u.user_metadata?.role || 'employee';
+      });
+
+      // 2. Fetch roles from table (ignoring error if table doesn't exist)
+      const { data: roleData } = await adminClient.from('user_roles').select('*');
+      
       if (roleData) {
         roleData.forEach((r: any) => {
           rMap[r.user_id] = r.role as UserRole;
         });
       }
+      
       setRolesMap(rMap);
       setUsersList(authData.users || []);
     } catch (err: any) {
@@ -95,16 +101,20 @@ export function UserManagementPage() {
       const adminClient = getAdminClient(serviceKey);
       if (!adminClient) throw new Error('Not configured');
 
-      // Update in database (user_roles table) using adminClient to bypass RLS
-      const { error } = await adminClient
+      // 1. Update auth user metadata
+      const { error: metaError } = await adminClient.auth.admin.updateUserById(userId, {
+        user_metadata: { role: newRoleValue }
+      });
+      if (metaError) throw metaError;
+
+      // 2. Update in database (user_roles table), ignore if table missing
+      await adminClient
         .from('user_roles')
         .upsert({ user_id: userId, role: newRoleValue }, { onConflict: 'user_id' });
       
-      if (error) throw error;
-      
       // Update local state
       setRolesMap(prev => ({ ...prev, [userId]: newRoleValue }));
-      toast.success('Role updated successfully');
+      toast.success('Role updated successfully! User will need to refresh their page.');
     } catch (err: any) {
       toast.error('Failed to update role: ' + err.message);
     }
@@ -130,12 +140,10 @@ export function UserManagementPage() {
       if (error) throw error;
       if (!data.user) throw new Error('User creation failed');
 
-      // Insert role using adminClient to bypass RLS
-      const { error: roleError } = await adminClient
+      // Insert role using adminClient (ignore error if table missing)
+      await adminClient
         .from('user_roles')
         .upsert({ user_id: data.user.id, role: newRole }, { onConflict: 'user_id' });
-
-      if (roleError) throw roleError;
 
       toast.success(`User ${newEmail} created as ${newRole}!`);
       setShowAddModal(false);

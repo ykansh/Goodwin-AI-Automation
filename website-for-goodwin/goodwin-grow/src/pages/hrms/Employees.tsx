@@ -11,14 +11,41 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
+import { Modal } from '../../components/ui/Modal';
+import { Select } from '../../components/ui/Select';
 
-const mockEmployees = [
-  { id: 1, name: 'Alice Smith', role: 'Senior Dev', type: 'Full-time', salary: 120000, joinDate: '2023-01-15', status: 'active', phone: '555-0101', email: 'alice@goodwin.com', skills: 'React, Node', notes: 'Top performer' },
-  { id: 2, name: 'Bob Johnson', role: 'Marketing Lead', type: 'Full-time', salary: 95000, joinDate: '2024-03-01', status: 'on_leave', phone: '555-0202', email: 'bob@goodwin.com', skills: 'SEO, Ads', notes: 'Maternity leave' },
-];
+import { useStore } from '../../lib/store';
 
 export const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const employees = useStore((state) => state.employees);
+  const deleteEmployee = useStore((state) => state.deleteEmployee);
+  const addEmployee = useStore((state) => state.addEmployee);
+  
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    role: '',
+    type: 'Full-time',
+    salary: 0,
+    status: 'active',
+    phone: '',
+    email: '',
+    skills: '',
+    notes: ''
+  });
+
+  const handleAddEmployee = async () => {
+    if (!newEmployee.name) return;
+    await addEmployee(newEmployee);
+    setIsAddModalOpen(false);
+    setNewEmployee({ name: '', role: '', type: 'Full-time', salary: 0, status: 'active', phone: '', email: '', skills: '', notes: '' });
+  };
+
+  const filteredEmployees = employees.filter(emp => 
+    emp.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+    emp.role?.toLowerCase()?.includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -42,7 +69,7 @@ export const Employees = () => {
           </Button>
         </div>
         
-        <Button className="w-full sm:w-auto">
+        <Button className="w-full sm:w-auto" onClick={() => setIsAddModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Employee
         </Button>
@@ -64,7 +91,7 @@ export const Employees = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockEmployees.map((emp) => (
+            {filteredEmployees.map((emp) => (
               <TableRow key={emp.id}>
                 <TableCell className="font-medium text-secondary-dark">{emp.name}</TableCell>
                 <TableCell>{emp.role}</TableCell>
@@ -86,7 +113,7 @@ export const Employees = () => {
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:text-danger">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:text-danger" onClick={() => deleteEmployee(emp.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -96,6 +123,47 @@ export const Employees = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add New Employee">
+        <div className="space-y-4 mt-4">
+          <div>
+            <label className="enterprise-label">Name</label>
+            <Input 
+              value={newEmployee.name} 
+              onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+              placeholder="Full Name"
+            />
+          </div>
+          <div>
+            <label className="enterprise-label">Role</label>
+            <Input 
+              value={newEmployee.role} 
+              onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})}
+              placeholder="e.g. Software Engineer"
+            />
+          </div>
+          <div>
+            <label className="enterprise-label">Type</label>
+            <Select 
+              value={newEmployee.type} 
+              onChange={(e) => setNewEmployee({...newEmployee, type: e.target.value})}
+              options={[{value: 'Full-time', label: 'Full-time'}, {value: 'Part-time', label: 'Part-time'}, {value: 'Contractor', label: 'Contractor'}]}
+            />
+          </div>
+          <div>
+            <label className="enterprise-label">Salary</label>
+            <Input 
+              type="number"
+              value={newEmployee.salary.toString()} 
+              onChange={(e) => setNewEmployee({...newEmployee, salary: Number(e.target.value)})}
+            />
+          </div>
+          <div className="flex justify-end space-x-2 pt-4 border-t border-canvas-variant mt-6">
+            <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddEmployee}>Add Employee</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

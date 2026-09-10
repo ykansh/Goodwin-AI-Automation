@@ -4,6 +4,9 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
+import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
+import { useStore } from '../../lib/store';
 import { 
   format, 
   addMonths, 
@@ -14,7 +17,9 @@ import {
   endOfWeek, 
   isSameMonth, 
   isSameDay, 
-  addDays 
+  addDays,
+  isBefore,
+  startOfToday
 } from 'date-fns';
 
 // Mock Tasks per Date
@@ -29,9 +34,23 @@ const mockTasks: Record<string, any[]> = {
 };
 
 export const ContentCalendar = () => {
+  const employees = useStore(state => state.employees);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tasks, setTasks] = useState<Record<string, any[]>>(mockTasks);
+  const [newTaskName, setNewTaskName] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+
+  const updateTaskStatus = (dateKey: string, taskId: number, newStatus: string) => {
+    setTasks(prev => {
+      if (!prev[dateKey]) return prev;
+      const updatedDayTasks = prev[dateKey].map(t => 
+        t.id === taskId ? { ...t, status: newStatus } : t
+      );
+      return { ...prev, [dateKey]: updatedDayTasks };
+    });
+  };
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -92,15 +111,26 @@ export const ContentCalendar = () => {
         formattedDate = format(day, dateFormat);
         const cloneDay = day;
         const dateKey = format(cloneDay, 'yyyy-MM-dd');
-        const hasTasks = mockTasks[dateKey] && mockTasks[dateKey].length > 0;
+        const dayTasks = tasks[dateKey] || [];
+        const hasTasks = dayTasks.length > 0;
+        const allCompleted = hasTasks && dayTasks.every(t => t.status === 'completed');
+        const isPastAndNotCompleted = hasTasks && !allCompleted && isBefore(cloneDay, startOfToday());
+        
+        let bgColorClass = !isSameMonth(day, monthStart)
+          ? "bg-canvas text-secondary-light/50 hover:bg-canvas-variant/30"
+          : isSameDay(day, new Date()) 
+            ? "bg-primary/5 text-primary-dark hover:bg-canvas-variant/30" 
+            : "bg-canvas-surface text-secondary-dark hover:bg-canvas-variant/30";
+
+        if (allCompleted) {
+          bgColorClass = "bg-green-500/10 text-secondary-dark hover:bg-green-500/20";
+        } else if (isPastAndNotCompleted) {
+          bgColorClass = "bg-red-500/10 text-secondary-dark hover:bg-red-500/20";
+        }
 
         days.push(
           <div
-            className={`flex-1 min-h-[100px] border-b border-r border-canvas-variant p-2 cursor-pointer transition-colors hover:bg-canvas-variant/30 ${
-              !isSameMonth(day, monthStart)
-                ? "bg-canvas text-secondary-light/50"
-                : isSameDay(day, new Date()) ? "bg-primary/5 text-primary-dark" : "bg-canvas-surface text-secondary-dark"
-            }`}
+            className={`flex-1 min-h-[100px] border-b border-r border-canvas-variant p-2 cursor-pointer transition-colors ${bgColorClass}`}
             key={day.toString()}
             onClick={() => onDateClick(cloneDay)}
           >
@@ -113,7 +143,7 @@ export const ContentCalendar = () => {
               )}
             </div>
             <div className="mt-2 space-y-1">
-               {hasTasks && mockTasks[dateKey].map(t => (
+               {hasTasks && tasks[dateKey].map(t => (
                   <div key={t.id} className="text-[10px] bg-canvas px-1.5 py-0.5 rounded text-secondary-dark truncate border border-canvas-variant">
                     {t.task}
                   </div>
@@ -147,7 +177,50 @@ export const ContentCalendar = () => {
         title={`Tasks for ${selectedDate ? format(selectedDate, 'MMM do, yyyy') : ''}`}
         className="max-w-2xl"
       >
-        <div className="mt-4">
+        <div className="mt-4 space-y-6">
+          <div className="flex gap-4 items-end">
+            <div className="flex-1 space-y-2">
+              <label className="enterprise-label">Task Name</label>
+              <Input 
+                placeholder="e.g. Publish Newsletter" 
+                value={newTaskName} 
+                onChange={(e) => setNewTaskName(e.target.value)}
+              />
+            </div>
+            <div className="flex-1 space-y-2">
+              <label className="enterprise-label">Assignee</label>
+              <Select 
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                options={[
+                  { value: '', label: 'Select Employee...' },
+                  ...employees.map(emp => ({ value: emp.name, label: emp.name }))
+                ]}
+              />
+            </div>
+            <Button 
+              onClick={() => {
+                if (!selectedDate || !newTaskName || !selectedEmployee) return;
+                const dateKey = format(selectedDate, 'yyyy-MM-dd');
+                const newTask = {
+                  id: Date.now(),
+                  employee: selectedEmployee,
+                  task: newTaskName,
+                  status: 'pending'
+                };
+                setTasks(prev => ({
+                  ...prev,
+                  [dateKey]: [...(prev[dateKey] || []), newTask]
+                }));
+                setNewTaskName('');
+                setSelectedEmployee('');
+              }}
+              disabled={!newTaskName || !selectedEmployee}
+            >
+              Create Task
+            </Button>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -157,15 +230,21 @@ export const ContentCalendar = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {selectedDate && mockTasks[format(selectedDate, 'yyyy-MM-dd')] ? (
-                mockTasks[format(selectedDate, 'yyyy-MM-dd')].map(t => (
+              {selectedDate && tasks[format(selectedDate, 'yyyy-MM-dd')] ? (
+                tasks[format(selectedDate, 'yyyy-MM-dd')].map(t => (
                   <TableRow key={t.id}>
                     <TableCell className="font-medium text-secondary-dark">{t.employee}</TableCell>
                     <TableCell>{t.task}</TableCell>
                     <TableCell>
-                      <Badge variant={t.status === 'completed' ? 'success' : 'warning'}>
-                        {t.status}
-                      </Badge>
+                      <Select 
+                        value={t.status}
+                        onChange={(e) => updateTaskStatus(format(selectedDate, 'yyyy-MM-dd'), t.id, e.target.value)}
+                        options={[
+                          { value: 'pending', label: 'Pending' },
+                          { value: 'completed', label: 'Completed' }
+                        ]}
+                        className="h-8 py-1 text-xs w-32"
+                      />
                     </TableCell>
                   </TableRow>
                 ))

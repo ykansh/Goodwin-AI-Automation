@@ -20,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ── Fetch secure role from DB ───────────────────────────────────────────────
-async function fetchSecureRole(userId: string): Promise<UserRole> {
+async function fetchSecureRole(userId: string, metaRole?: UserRole): Promise<UserRole> {
   try {
     const { data, error } = await supabase.rpc('get_user_role');
     if (error || !data) {
@@ -31,19 +31,19 @@ async function fetchSecureRole(userId: string): Promise<UserRole> {
         .eq('user_id', userId)
         .single();
       
-      if (roleError || !roleData) return 'employee';
+      if (roleError || !roleData) return metaRole || 'employee';
       return roleData.role as UserRole;
     }
     return data as UserRole;
   } catch {
-    return 'employee';
+    return metaRole || 'employee';
   }
 }
 
 async function mapSupabaseUser(sbUser: import('@supabase/supabase-js').User): Promise<User> {
   const meta = sbUser.user_metadata ?? {};
-  // Securely fetch role from DB
-  const secureRole = await fetchSecureRole(sbUser.id);
+  // Securely fetch role from DB or fallback to meta.role
+  const secureRole = await fetchSecureRole(sbUser.id, meta.role as UserRole);
   
   return {
     id: sbUser.id,

@@ -2,9 +2,28 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Select } from '../../components/ui/Select';
 import { TrendingUp, Users, Flame, CheckCircle, UserCircle, CreditCard, DollarSign } from 'lucide-react';
+import { useStore } from '../../lib/store';
+import { useFinanceStore } from '../../lib/financeStore';
+import { useMarketingStore } from '../../lib/marketingStore';
+import { useOperationsStore } from '../../lib/operationsStore';
 
 export const MarketingDashboard = () => {
   const [revenuePeriod, setRevenuePeriod] = useState('monthly');
+  
+  const employees = useStore(state => state.employees);
+  const marketingLeads = useMarketingStore(state => state.marketingLeads);
+  const tasks = useOperationsStore(state => state.tasks);
+  const expenses = useFinanceStore(state => state.expenses);
+  const receivables = useFinanceStore(state => state.receivables);
+
+  // Compute metrics
+  const revenue = receivables?.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0) || 0;
+  const pipelineLeads = marketingLeads?.length || 0;
+  const hotLeads = marketingLeads?.filter(l => l.status === 'Hot' || l.status === 'hot')?.length || 0;
+  
+  const today = new Date().toISOString().split('T')[0];
+  const tasksDueToday = tasks?.filter(t => t.date === today)?.length || 0;
+  const totalExpenses = expenses?.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0) || 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-8">
@@ -32,7 +51,7 @@ export const MarketingDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">
-                  {revenuePeriod === 'monthly' ? '$142,300' : revenuePeriod === 'weekly' ? '$34,500' : '$5,200'}
+                  ${revenuePeriod === 'monthly' ? revenue.toLocaleString() : revenuePeriod === 'weekly' ? Math.round(revenue / 4).toLocaleString() : Math.round(revenue / 30).toLocaleString()}
                 </div>
                 <p className="text-xs text-primary font-medium flex items-center mt-1">
                   <TrendingUp className="h-3 w-3 mr-1" /> +12.5% vs last {revenuePeriod.replace('ly', '')}
@@ -56,7 +75,7 @@ export const MarketingDashboard = () => {
           <CardContent>
              <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">842</div>
+                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">{pipelineLeads}</div>
                 <p className="text-xs text-secondary-light font-medium mt-1">Across 12 campaigns</p>
               </div>
             </div>
@@ -76,7 +95,7 @@ export const MarketingDashboard = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">47</div>
+                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">{hotLeads}</div>
                 <p className="text-xs text-tertiary-dark font-medium flex items-center mt-1">
                   Requires immediate action
                 </p>
@@ -96,7 +115,7 @@ export const MarketingDashboard = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">12</div>
+                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">{tasksDueToday}</div>
                 <p className="text-xs text-warning font-medium mt-1">5 High Priority</p>
               </div>
             </div>
@@ -114,7 +133,7 @@ export const MarketingDashboard = () => {
           <CardContent>
              <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">24</div>
+                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">{employees.length}</div>
                 <p className="text-xs text-secondary-light font-medium mt-1">3 currently online</p>
               </div>
             </div>
@@ -132,7 +151,7 @@ export const MarketingDashboard = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">$42,150</div>
+                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">${totalExpenses.toLocaleString()}</div>
                 <p className="text-xs text-secondary-light font-medium mt-1">Monthly aggregate</p>
               </div>
             </div>

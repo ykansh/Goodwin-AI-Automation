@@ -92,6 +92,15 @@ export interface SalesInvoice {
   grand_total: number;
   status: InvoiceStatus;
   outstanding: number;
+  billing_state_ut?: string;
+  shipping_state_ut?: string;
+  transport_address?: string;
+  transport_contact_number?: string;
+  place_of_supply?: string;
+  place_of_delivery?: string;
+  reference_name?: string;
+  pvt_marka?: string;
+  transport_gstin?: string;
   created_at: string;
 }
 

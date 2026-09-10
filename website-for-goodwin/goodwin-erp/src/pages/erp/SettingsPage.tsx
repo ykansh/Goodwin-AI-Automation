@@ -24,11 +24,18 @@ export function SettingsPage() {
   const [showKey,      setShowKey]      = useState(false);
   const [showSqlCode,  setShowSqlCode]  = useState(false);
 
-  // ── Battery configs state ──────────────────────────────────────────────────
   const [voltages,     setVoltages]     = useState(settings.battery_configs.voltages.join(', '));
   const [ahRatings,    setAhRatings]    = useState(settings.battery_configs.ah_ratings.join(', '));
   const [warehouses,   setWarehouses]   = useState(settings.battery_configs.warehouses.join('\n'));
   const [salespersons, setSalespersons] = useState(settings.battery_configs.salespersons.join(', '));
+
+  // ── Company Profile state ──────────────────────────────────────────────────
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [companyName, setCompanyName] = useState(settings.name);
+  const [companyGstin, setCompanyGstin] = useState(settings.gstin);
+  const [companyAddress, setCompanyAddress] = useState(settings.address);
+  const [bankName, setBankName] = useState(settings.bank_details?.bank_name || '');
+  const [accountNumber, setAccountNumber] = useState(settings.bank_details?.account_number || '');
 
   // ── Auto-check connection on mount ─────────────────────────────────────────
   useEffect(() => {
@@ -112,6 +119,21 @@ export function SettingsPage() {
         salespersons: salespersons.split(',').map((s) => s.trim()).filter(Boolean),
       },
     });
+  };
+
+  const handleSaveCompany = () => {
+    updateSettings({
+      name: companyName,
+      gstin: companyGstin,
+      address: companyAddress,
+      bank_details: {
+        ...(settings.bank_details || {}),
+        bank_name: bankName,
+        account_number: accountNumber
+      }
+    });
+    setIsEditingCompany(false);
+    toast.success('Company & Bank Profile updated!');
   };
 
   // ── Status badge helper ────────────────────────────────────────────────────
@@ -313,22 +335,65 @@ export function SettingsPage() {
 
           {/* Company Profile Info */}
           <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
-            <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
-              <Building2 className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
-              <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
-                Company & Bank Profile
-              </h2>
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
+              <div className="flex items-center gap-3">
+                <Building2 className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
+                <h2 className="text-base font-black text-[#3a3b39] dark:text-white leading-snug">
+                  Company & Bank Profile
+                </h2>
+              </div>
+              {!isEditingCompany && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingCompany(true)}
+                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-bold rounded-lg transition-colors cursor-pointer text-[#3a3b39] dark:text-white"
+                >
+                  Edit
+                </button>
+              )}
             </div>
-            <div className="space-y-2 text-xs leading-relaxed">
-              <p className="font-extrabold text-[#3a3b39] dark:text-white text-sm">{settings.name}</p>
-              <p className="text-gray-500 dark:text-gray-400">
-                GSTIN: <span className="font-mono font-bold text-[#3a3b39] dark:text-white">{settings.gstin}</span>
-              </p>
-              <p className="text-gray-500 dark:text-gray-400">Address: {settings.address}</p>
-              <p className="text-gray-500 dark:text-gray-400">
-                Bank: {settings.bank_details.bank_name} &nbsp;|&nbsp; A/C: {settings.bank_details.account_number}
-              </p>
-            </div>
+            
+            {isEditingCompany ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Company Name</label>
+                  <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} className="w-full glass-input px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">GSTIN</label>
+                  <input type="text" value={companyGstin} onChange={e => setCompanyGstin(e.target.value)} className="w-full glass-input px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Address</label>
+                  <input type="text" value={companyAddress} onChange={e => setCompanyAddress(e.target.value)} className="w-full glass-input px-3 py-2 text-xs font-bold" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Bank Name</label>
+                    <input type="text" value={bankName} onChange={e => setBankName(e.target.value)} className="w-full glass-input px-3 py-2 text-xs font-bold" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Account Number</label>
+                    <input type="text" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} className="w-full glass-input px-3 py-2 text-xs font-bold" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <button onClick={() => setIsEditingCompany(false)} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs font-bold rounded-lg transition-colors cursor-pointer">Cancel</button>
+                  <button onClick={handleSaveCompany} className="px-4 py-2 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer">Save</button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 text-xs leading-relaxed">
+                <p className="font-extrabold text-[#3a3b39] dark:text-white text-sm">{settings.name}</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  GSTIN: <span className="font-mono font-bold text-[#3a3b39] dark:text-white">{settings.gstin}</span>
+                </p>
+                <p className="text-gray-500 dark:text-gray-400">Address: {settings.address}</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Bank: {settings.bank_details?.bank_name || 'N/A'} &nbsp;|&nbsp; A/C: {settings.bank_details?.account_number || 'N/A'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

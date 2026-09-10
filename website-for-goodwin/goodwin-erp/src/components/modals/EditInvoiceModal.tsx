@@ -1,40 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../../store/DataContext';
 import { X, Plus, Trash2, Calculator, CheckCircle } from 'lucide-react';
+import type { SalesInvoice } from '../../types';
 
-interface NewInvoiceModalProps {
+interface EditInvoiceModalProps {
+  invoice: SalesInvoice;
   onClose: () => void;
 }
 
-export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
-  const { customers, products, createSalesInvoice } = useData();
+export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
+  const { customers, products, updateSalesInvoice } = useData();
 
-  const [customerId, setCustomerId] = useState(customers[0]?.id || '');
-  const [invoiceType, setInvoiceType] = useState('GST Tax Invoice');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [customerId, setCustomerId] = useState(invoice.customer_id || customers[0]?.id || '');
+  const [invoiceType, setInvoiceType] = useState(invoice.invoice_type || 'GST Tax Invoice');
+  const [date, setDate] = useState(invoice.date || new Date().toISOString().split('T')[0]);
   const [initialPayment, setInitialPayment] = useState(0);
 
-  const [billingStateUt, setBillingStateUt] = useState('');
-  const [shippingStateUt, setShippingStateUt] = useState('');
-  const [transportAddress, setTransportAddress] = useState('');
-  const [transportContactNumber, setTransportContactNumber] = useState('');
-  const [placeOfSupply, setPlaceOfSupply] = useState('Madhya Pradesh');
-  const [placeOfDelivery, setPlaceOfDelivery] = useState('');
-  const [referenceName, setReferenceName] = useState('');
-  const [pvtMarka, setPvtMarka] = useState('');
-  const [transportGstin, setTransportGstin] = useState('');
+  const [billingStateUt, setBillingStateUt] = useState(invoice.billing_state_ut || '');
+  const [shippingStateUt, setShippingStateUt] = useState(invoice.shipping_state_ut || '');
+  const [transportAddress, setTransportAddress] = useState(invoice.transport_address || '');
+  const [transportContactNumber, setTransportContactNumber] = useState(invoice.transport_contact_number || '');
+  const [placeOfSupply, setPlaceOfSupply] = useState(invoice.place_of_supply || 'Madhya Pradesh');
+  const [placeOfDelivery, setPlaceOfDelivery] = useState(invoice.place_of_delivery || '');
+  const [referenceName, setReferenceName] = useState(invoice.reference_name || '');
+  const [pvtMarka, setPvtMarka] = useState(invoice.pvt_marka || '');
+  const [transportGstin, setTransportGstin] = useState(invoice.transport_gstin || '');
 
 
   const [items, setItems] = useState<
     { product_id: string; quantity: number; rate: number; gst_percent: number }[]
-  >([
-    {
-      product_id: products[0]?.id || '',
-      quantity: 10,
-      rate: products[0]?.selling_price || 3200,
-      gst_percent: products[0]?.gst_percent || 28,
-    },
-  ]);
+  >(invoice.items.map(item => ({
+    product_id: item.product_id,
+    quantity: item.quantity,
+    rate: item.rate,
+    gst_percent: item.gst_percent
+  })));
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
 
@@ -102,7 +102,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
     e.preventDefault();
     if (!selectedCustomer) return;
 
-    createSalesInvoice({
+    updateSalesInvoice(invoice.id, {
       date,
       invoice_type: invoiceType,
       customer_id: selectedCustomer.id,
@@ -111,8 +111,6 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
       taxable_amount: taxableTotal,
       gst_amount: gstTotal,
       grand_total: grandTotal,
-      status: initialPayment >= grandTotal ? 'paid' : initialPayment > 0 ? 'partial' : 'pending',
-      initial_payment: Number(initialPayment),
       billing_state_ut: billingStateUt,
       shipping_state_ut: shippingStateUt,
       transport_address: transportAddress,
@@ -122,6 +120,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
       reference_name: referenceName,
       pvt_marka: pvtMarka,
       transport_gstin: transportGstin,
+      // Since initial payment was already processed when creating, we're just updating the invoice's details
     });
 
     onClose();
@@ -144,10 +143,10 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
             <div>
               <h1 className="text-lg sm:text-xl font-black text-[#3a3b39] dark:text-white flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <span>Create New Sales Invoice / Order</span>
+                <span>Edit Sales Invoice / Order</span>
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                Goodwin ERP Real-time Module Sync: Stock, Customer Ledger & Sales will auto-update
+                Goodwin ERP: Update invoice details (Note: Stock and Ledger auto-updates require manual checking for edits)
               </p>
             </div>
           </div>
@@ -381,18 +380,8 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
             <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                 <div>
-                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
-                    Upfront Payment / Cash Received (₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={initialPayment}
-                    onChange={(e) => setInitialPayment(Number(e.target.value))}
-                    placeholder="0"
-                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold text-[#00a631]"
-                  />
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    Remaining balance of ₹{Math.max(0, grandTotal - initialPayment).toLocaleString('en-IN')} will post as customer ledger debit.
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                    Modifying upfront payment directly is disabled in edit mode. Record a new payment instead.
                   </p>
                 </div>
 
@@ -430,7 +419,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
               className="h-10 sm:h-11 px-6 sm:px-8 rounded-xl bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />
-              <span>Issue Invoice & Save Record</span>
+              <span>Update Invoice</span>
             </button>
           </div>
         </div>

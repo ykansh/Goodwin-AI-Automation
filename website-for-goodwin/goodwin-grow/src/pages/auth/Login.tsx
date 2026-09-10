@@ -30,8 +30,12 @@ export const Login = () => {
           
           {/* Logo & Header */}
           <div className="flex flex-col items-center mb-10 text-center">
-            <div className="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
-              <Sparkles className="w-8 h-8" />
+            <div className="w-24 h-24 mb-6 shadow-lg rounded-full overflow-hidden border-2 border-primary/20 hover:scale-105 transition-transform duration-300 bg-black flex items-center justify-center">
+              <img 
+                src="/logo.png" 
+                alt="Goodwin Grow AI Logo" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <h1 className="text-3xl font-display text-secondary mb-2">Welcome Back</h1>
             <p className="text-secondary-light">Sign in to continue to Goodwin Grow</p>

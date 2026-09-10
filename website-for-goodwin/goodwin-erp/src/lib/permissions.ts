@@ -5,38 +5,38 @@ interface ModulePermissions {
 }
 
 const erpPermissions: ModulePermissions = {
-  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
-  customers: ['admin', 'manager', 'sales'],
-  suppliers: ['admin', 'manager', 'inventory'],
-  products: ['admin', 'manager', 'inventory'],
-  sales: ['admin', 'manager', 'sales'],
-  purchases: ['admin', 'manager', 'inventory'],
-  returns: ['admin', 'manager', 'sales'],
-  warranty: ['admin', 'manager', 'inventory'],
-  reports: ['admin', 'manager', 'accounts'],
-  settings: ['admin', 'manager'],
-  'user-management': ['admin'],
+  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  customers: ['admin', 'manager', 'sales', 'employee'],
+  suppliers: ['admin', 'manager', 'inventory', 'employee'],
+  products: ['admin', 'manager', 'inventory', 'employee'],
+  sales: ['admin', 'manager', 'sales', 'employee'],
+  purchases: ['admin', 'manager', 'inventory', 'employee'],
+  returns: ['admin', 'manager', 'sales', 'employee'],
+  warranty: ['admin', 'manager', 'inventory', 'employee'],
+  reports: ['admin', 'manager', 'accounts', 'employee'],
+  settings: ['admin', 'manager', 'employee'],
+  'user-management': ['admin', 'employee'],
 };
 
 const ledgerPermissions: ModulePermissions = {
-  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
-  parties: ['admin', 'manager', 'accounts', 'sales'],
-  sales: ['admin', 'manager', 'accounts', 'sales'],
-  'payment-in': ['admin', 'manager', 'accounts'],
-  'payment-out': ['admin', 'manager', 'accounts'],
+  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  parties: ['admin', 'manager', 'accounts', 'sales', 'employee'],
+  sales: ['admin', 'manager', 'accounts', 'sales', 'employee'],
+  'payment-in': ['admin', 'manager', 'accounts', 'employee'],
+  'payment-out': ['admin', 'manager', 'accounts', 'employee'],
 };
 
 const leadsPermissions: ModulePermissions = {
-  leads: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
-  pipeline: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
-  'follow-ups': ['admin', 'manager', 'accounts', 'sales', 'inventory'],
+  leads: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  pipeline: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  'follow-ups': ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
 };
 
 const hrmsPermissions: ModulePermissions = {
   dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
   employees: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
   attendance: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  leave: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
+  leave: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
   payroll: ['admin', 'manager', 'accounts'],
   projects: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
 };

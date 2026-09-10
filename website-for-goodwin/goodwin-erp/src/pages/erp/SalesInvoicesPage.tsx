@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../../store/DataContext';
 import type { SalesInvoice } from '../../types';
 import { InvoiceViewModal } from '../../components/modals/InvoiceViewModal';
 import { NewInvoiceModal } from '../../components/modals/NewInvoiceModal';
-import { Plus, Printer, Search, Trash2 } from 'lucide-react';
+import { EditInvoiceModal } from '../../components/modals/EditInvoiceModal';
+import { Plus, Printer, Search, Trash2, Edit } from 'lucide-react';
 
 export function SalesInvoicesPage({
   showCreateModalInitially = false,
@@ -17,6 +18,13 @@ export function SalesInvoicesPage({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<SalesInvoice | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(showCreateModalInitially);
+  const [invoiceToEdit, setInvoiceToEdit] = useState<SalesInvoice | null>(null);
+
+  useEffect(() => {
+    if (showCreateModalInitially) {
+      setShowCreateModal(true);
+    }
+  }, [showCreateModalInitially]);
 
   const filteredInvoices = invoices.filter(
     (inv) =>
@@ -135,6 +143,13 @@ export function SalesInvoicesPage({
                         </button>
                         <button
                           type="button"
+                          onClick={() => setInvoiceToEdit(inv)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100/50 hover:bg-blue-200 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                        >
+                          <Edit className="w-3.5 h-3.5" /> Edit
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => {
                             if (window.confirm("Are you sure you want to delete this invoice?")) {
                               deleteSalesInvoice(inv.id);
@@ -164,6 +179,13 @@ export function SalesInvoicesPage({
             setShowCreateModal(false);
             if (onCloseCreateModal) onCloseCreateModal();
           }}
+        />
+      )}
+
+      {invoiceToEdit && (
+        <EditInvoiceModal
+          invoice={invoiceToEdit}
+          onClose={() => setInvoiceToEdit(null)}
         />
       )}
     </div>

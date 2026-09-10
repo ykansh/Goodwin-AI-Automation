@@ -68,6 +68,7 @@ export function ErpDashboard({
       subColor: 'text-[#00a631]',
       icon: <TrendingUp className="w-5 h-5" />,
       iconBg: 'bg-[#00a631]/10 text-[#00a631]',
+      onClickKey: 'sales',
     },
     {
       label: 'Stock Valuation',
@@ -76,6 +77,7 @@ export function ErpDashboard({
       subColor: 'text-gray-500 dark:text-gray-400',
       icon: <Package className="w-5 h-5" />,
       iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+      onClickKey: 'products',
     },
     {
       label: 'Customer Outstanding',
@@ -85,6 +87,7 @@ export function ErpDashboard({
       subColor: 'text-gray-500 dark:text-gray-400',
       icon: <Users className="w-5 h-5" />,
       iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+      onClickKey: 'customers',
     },
     {
       label: 'Warranties & Alerts',
@@ -94,6 +97,7 @@ export function ErpDashboard({
       subColor: 'text-amber-700 dark:text-amber-400',
       icon: <ShieldCheck className="w-5 h-5" />,
       iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+      onClickKey: 'warranty',
     },
   ];
 
@@ -134,13 +138,14 @@ export function ErpDashboard({
         {kpiCards.map((card, i) => (
           <div
             key={i}
+            onClick={() => { if (card.onClickKey && onNavigate) onNavigate(card.onClickKey); }}
             /* Card — min padding */
-            className="glass-card card-padded flex flex-col justify-between min-h-[160px] overflow-hidden"
+            className="glass-card card-padded flex flex-col justify-between min-h-[160px] overflow-hidden cursor-pointer hover:border-[#00a631]/50 hover:shadow-md transition-all group"
           >
             {/* Row 1: Label + Icon */}
             <div className="flex items-start justify-between gap-4">
               <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400
-                               uppercase tracking-widest leading-normal">
+                               uppercase tracking-widest leading-normal group-hover:text-[#00a631] transition-colors">
                 {card.label}
               </span>
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
