@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Plus, ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, ArrowLeft, Edit, Trash2, Download } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import { Select } from '../../components/ui/Select';
 import { useFinanceStore } from '../../lib/financeStore';
 import { useOperationsStore } from '../../lib/operationsStore';
 
@@ -45,16 +46,40 @@ export const Expenses = () => {
   ) || [];
 
   const handleSave = async () => {
-    if (editingExpense !== null) {
-      await updateExpense(formData.id, formData);
-    } else {
-      await addExpense(formData);
+    try {
+      if (editingExpense !== null) {
+        await updateExpense(formData.id, formData);
+      } else {
+        await addExpense(formData);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      alert('Failed to save expense: ' + err.message);
     }
-    setIsModalOpen(false);
   };
 
   const handleDelete = async (id: string) => {
-    await deleteExpense(id);
+    if (window.confirm('Are you sure you want to delete this expense?')) {
+      try {
+        await deleteExpense(id);
+      } catch (err: any) {
+        alert('Failed to delete expense: ' + err.message);
+      }
+    }
+  };
+
+  const handleExport = (projectExpenses: any[], projectName: string) => {
+    const csvHeader = "Date,Description,Category,Amount\n";
+    const csvRows = projectExpenses.map(e => 
+      `${e.date},"${e.description}","${e.category}",${e.amount}`
+    );
+    const blob = new Blob([csvHeader + csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expenses_${projectName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const openAddModal = (projectId: string | 'others') => {
@@ -101,10 +126,16 @@ export const Expenses = () => {
           <div className="text-secondary-dark font-medium">
             Total Spent: <span className="text-danger font-bold ml-2">${totalSpent.toLocaleString()}</span>
           </div>
-          <Button onClick={() => openAddModal(selectedProjectId)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Expense
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="secondary" onClick={() => handleExport(projectExpenses, getProjectName(selectedProjectId))}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button onClick={() => openAddModal(selectedProjectId)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Expense
+            </Button>
+          </div>
         </div>
 
         <div className="bg-canvas-surface rounded-lg border border-canvas-variant shadow-sm overflow-hidden">
@@ -164,7 +195,7 @@ export const Expenses = () => {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 bg-canvas-surface p-4 rounded-lg border border-canvas-variant shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-4 bg-canvas-surface p-4 rounded-lg border border-canvas-variant shadow-sm justify-between">
         <div className="relative w-full sm:w-72">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-secondary-light" />
@@ -177,6 +208,10 @@ export const Expenses = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button variant="secondary" onClick={() => handleExport(expenses || [], 'All_Projects')}>
+          <Download className="h-4 w-4 mr-2" />
+          Export All
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -240,6 +275,20 @@ export const Expenses = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <label className="enterprise-label">Category</label>
+              <Select 
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                options={[
+                  {value: 'Software', label: 'Software'},
+                  {value: 'Hardware', label: 'Hardware'},
+                  {value: 'Marketing', label: 'Marketing'},
+                  {value: 'Travel', label: 'Travel'},
+                  {value: 'Other', label: 'Other'}
+                ]}
+              />
+            </div>
+            <div>
               <label className="enterprise-label">Amount ($)</label>
               <Input 
                 type="number" 
@@ -247,6 +296,14 @@ export const Expenses = () => {
                 step="0.01"
                 value={formData.amount}
                 onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
+              />
+            </div>
+            <div>
+              <label className="enterprise-label">Date</label>
+              <Input 
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
               />
             </div>
           </div>

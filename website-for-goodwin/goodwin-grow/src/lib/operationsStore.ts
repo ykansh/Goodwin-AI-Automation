@@ -267,19 +267,33 @@ export const useOperationsStore = create<OperationsState>((set, get) => ({
   },
 
   updateWorkflow: async (projectId, nodes, edges) => {
-    const { error } = await supabase.from('workflows').upsert({
-      project_id: projectId, nodes, edges
-    }, { onConflict: 'project_id' });
-    if (error) return console.error(error);
+    const existing = get().workflows.find(w => w.projectId === projectId);
     
-    // Update local state
-    set(state => {
-      const existing = state.workflows.find(w => w.projectId === projectId);
-      if (existing) {
-        return { workflows: state.workflows.map(w => w.projectId === projectId ? { ...w, nodes, edges } : w) };
+    // Clean nodes and edges of any undefined values that Supabase might reject
+    const cleanNodes = JSON.parse(JSON.stringify(nodes));
+    const cleanEdges = JSON.parse(JSON.stringify(edges));
+    
+    if (existing && existing.id && existing.id !== 'new') {
+      const { error } = await supabase.from('workflows').update({
+        nodes: cleanNodes, edges: cleanEdges
+      }).eq('id', existing.id);
+      if (error) throw error;
+      
+      set(state => ({
+        workflows: state.workflows.map(w => w.projectId === projectId ? { ...w, nodes, edges } : w)
+      }));
+    } else {
+      const { data, error } = await supabase.from('workflows').insert({
+        project_id: projectId, nodes: cleanNodes, edges: cleanEdges
+      }).select().single();
+      if (error) throw error;
+      
+      if (data) {
+        set(state => ({
+          workflows: [...state.workflows.filter(w => w.projectId !== projectId), { id: data.id, projectId: data.project_id, nodes: data.nodes, edges: data.edges }]
+        }));
       }
-      return { workflows: [...state.workflows, { id: 'new', projectId, nodes, edges }] };
-    });
+    }
   },
 
   setProjects: (updater) => set(state => ({ projects: updater(state.projects) })),

@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { Badge } from '../../components/ui/Badge';
 import { useStore, type AttendanceRecord, type AttendanceStatus } from '../../lib/store';
 import { 
   format, 
@@ -21,6 +22,9 @@ import {
 export const Attendance = () => {
   const attendance = useStore((state) => state.attendance);
   const updateAttendance = useStore((state) => state.updateAttendance);
+  const clockIn = useStore((state) => state.clockIn);
+  const clockOut = useStore((state) => state.clockOut);
+  const markAbsences = useStore((state) => state.markAbsences);
   const employees = useStore((state) => state.employees);
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
@@ -50,6 +54,11 @@ export const Attendance = () => {
     if (!selectedEmployee) return;
     const dateKey = format(day, 'yyyy-MM-dd');
     const existingRecord = attendance[dateKey]?.[selectedEmployee];
+    
+    if (existingRecord?.isFinalized) {
+      alert('This record is finalized and cannot be edited.');
+      return;
+    }
     
     setSelectedDate(day);
     if (existingRecord) {
@@ -213,9 +222,18 @@ export const Attendance = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold font-display text-secondary-dark tracking-tight">Attendance Tracking</h1>
-        <p className="text-secondary-light text-sm mt-1">Select an employee to view or edit their attendance records.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold font-display text-secondary-dark tracking-tight">Attendance Tracking</h1>
+          <p className="text-secondary-light text-sm mt-1">Select an employee to view or edit their attendance records.</p>
+        </div>
+        <Button onClick={() => {
+          markAbsences(format(new Date(), 'yyyy-MM-dd'));
+          alert('Absences marked for today for all missing clock-ins.');
+        }}>
+          <UserCheck className="h-4 w-4 mr-2" />
+          Mark Absences (Today)
+        </Button>
       </div>
 
       {renderEmployeeGrid()}
@@ -237,6 +255,38 @@ export const Attendance = () => {
               <p className="text-sm text-secondary-light">Daily attendance and working hours</p>
             </div>
           </div>
+
+          {(() => {
+            const todayStr = format(new Date(), 'yyyy-MM-dd');
+            const todaysRecord = selectedEmployee ? attendance[todayStr]?.[selectedEmployee] : null;
+            return (
+              <div className="flex justify-between items-center bg-canvas p-4 rounded-lg border border-canvas-variant mb-6 shadow-sm">
+                <div>
+                  <p className="font-semibold text-secondary-dark mb-1">Today's Activity</p>
+                  <p className="text-sm text-secondary-light">
+                    {todaysRecord ? `Status: ${todaysRecord.status} | Arrival: ${todaysRecord.arrival || '--'} | Departure: ${todaysRecord.departure || '--'}` : 'Not clocked in yet'}
+                  </p>
+                </div>
+                <div className="flex space-x-2 items-center">
+                  {!todaysRecord && selectedEmployee && (
+                    <Button onClick={() => clockIn(selectedEmployee)}>
+                      <Clock className="w-4 h-4 mr-2" />
+                      Clock In
+                    </Button>
+                  )}
+                  {todaysRecord && !todaysRecord.isFinalized && selectedEmployee && (
+                    <Button variant="secondary" onClick={() => clockOut(selectedEmployee)}>
+                      <Clock className="w-4 h-4 mr-2" />
+                      Clock Out
+                    </Button>
+                  )}
+                  {todaysRecord?.isFinalized && (
+                    <Badge variant="success">Finalized</Badge>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {renderCalendar()}
         </div>

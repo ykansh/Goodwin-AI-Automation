@@ -10,16 +10,46 @@ import {
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
-import { Plus, Search, Bot, ExternalLink } from 'lucide-react';
-
-const mockAITools = [
-  { id: 1, name: 'ChatGPT Enterprise', category: 'LLM', usedFor: 'Content, Coding', cost: 1200, sub: 'Annual', email: 'ai@goodwin.com', renewal: '2027-01-15', notes: 'API access enabled' },
-  { id: 2, name: 'Midjourney', category: 'Image Generation', usedFor: 'Marketing Creatives', cost: 60, sub: 'Monthly', email: 'design@goodwin.com', renewal: '2026-10-01', notes: 'Pro plan' },
-  { id: 3, name: 'GitHub Copilot', category: 'Coding', usedFor: 'Dev Team', cost: 190, sub: 'Annual', email: 'dev@goodwin.com', renewal: '2027-03-20', notes: '10 seats' },
-];
+import { Modal } from '../../components/ui/Modal';
+import { Select } from '../../components/ui/Select';
+import { Plus, Search, Bot, ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { useStore } from '../../lib/store';
+import type { AITool } from '../../lib/store';
 
 export const AITools = () => {
+  const { aiTools, addAITool, updateAITool, deleteAITool } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState<Partial<AITool> | null>(null);
+
+  const filteredTools = aiTools.filter(tool => 
+    tool.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    tool.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSave = async () => {
+    try {
+      if (isEditing?.id) {
+        await updateAITool(isEditing.id, isEditing);
+      } else {
+        await addAITool(isEditing as Omit<AITool, 'id'>);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      alert('Failed to save AI tool: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this tool?')) {
+      try {
+        await deleteAITool(id);
+      } catch (err: any) {
+        alert('Failed to delete tool: ' + err.message);
+      }
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -46,7 +76,10 @@ export const AITools = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button className="w-full sm:w-auto bg-tertiary text-secondary-dark hover:bg-tertiary-dark hover:text-white">
+        <Button className="w-full sm:w-auto bg-tertiary text-secondary-dark hover:bg-tertiary-dark hover:text-white" onClick={() => {
+          setIsEditing({ category: 'LLM', sub: 'Monthly' });
+          setIsModalOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Tool
         </Button>
@@ -64,10 +97,11 @@ export const AITools = () => {
               <TableHead>Login Email</TableHead>
               <TableHead>Renewal Date</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockAITools.map((tool) => (
+            {filteredTools.map((tool) => (
               <TableRow key={tool.id}>
                 <TableCell className="font-medium text-secondary-dark flex items-center">
                   {tool.name}
@@ -84,11 +118,108 @@ export const AITools = () => {
                 <TableCell className="text-xs text-secondary-light max-w-[150px] truncate" title={tool.notes}>
                   {tool.notes}
                 </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <button onClick={() => { setIsEditing(tool); setIsModalOpen(true); }} className="p-1 hover:bg-canvas-variant rounded">
+                      <Pencil className="h-4 w-4 text-secondary-light" />
+                    </button>
+                    <button onClick={() => handleDelete(tool.id)} className="p-1 hover:bg-danger/10 rounded">
+                      <Trash2 className="h-4 w-4 text-danger" />
+                    </button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
+            {filteredTools.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8 text-secondary-light">
+                  No AI tools found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing?.id ? 'Edit AI Tool' : 'Add AI Tool'}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Tool Name</label>
+            <Input 
+              value={isEditing?.name || ''} 
+              onChange={e => setIsEditing({...isEditing, name: e.target.value})} 
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Category</label>
+              <Input 
+                value={isEditing?.category || ''} 
+                onChange={e => setIsEditing({...isEditing, category: e.target.value})} 
+                placeholder="e.g. LLM, Image Generation"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Used For</label>
+              <Input 
+                value={isEditing?.usedFor || ''} 
+                onChange={e => setIsEditing({...isEditing, usedFor: e.target.value})} 
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Cost ($)</label>
+              <Input 
+                type="number"
+                value={isEditing?.cost || ''} 
+                onChange={e => setIsEditing({...isEditing, cost: parseFloat(e.target.value)})} 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Subscription</label>
+              <Select 
+                value={isEditing?.sub || 'Monthly'} 
+                onChange={e => setIsEditing({...isEditing, sub: e.target.value})}
+                options={[
+                  {value: 'Monthly', label: 'Monthly'},
+                  {value: 'Annual', label: 'Annual'},
+                  {value: 'One-time', label: 'One-time'}
+                ]}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Login Email</label>
+              <Input 
+                type="email"
+                value={isEditing?.email || ''} 
+                onChange={e => setIsEditing({...isEditing, email: e.target.value})} 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Renewal Date</label>
+              <Input 
+                type="date"
+                value={isEditing?.renewal || ''} 
+                onChange={e => setIsEditing({...isEditing, renewal: e.target.value})} 
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Notes</label>
+            <Input 
+              value={isEditing?.notes || ''} 
+              onChange={e => setIsEditing({...isEditing, notes: e.target.value})} 
+            />
+          </div>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave}>Save Tool</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

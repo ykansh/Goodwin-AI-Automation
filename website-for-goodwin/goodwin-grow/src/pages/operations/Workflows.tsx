@@ -390,8 +390,12 @@ export const Workflows = () => {
 
   const handleSave = async (nodes: Node[], edges: Edge[]) => {
     if (!selectedProjectId) return;
-    await updateWorkflow(selectedProjectId, nodes, edges);
-    alert('Workflow saved!');
+    try {
+      await updateWorkflow(selectedProjectId, nodes, edges);
+      alert('Workflow saved!');
+    } catch (e: any) {
+      alert('Failed to save workflow: ' + e.message);
+    }
   };
 
   return (

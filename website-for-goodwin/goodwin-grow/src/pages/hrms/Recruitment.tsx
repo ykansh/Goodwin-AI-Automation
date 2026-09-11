@@ -1,14 +1,71 @@
 import React, { useState } from 'react';
-import { Search, Filter, Plus, FileText, Briefcase, ArrowRight } from 'lucide-react';
+import { Search, Filter, Plus, FileText, Briefcase, ArrowRight, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
+import { Modal } from '../../components/ui/Modal';
+import { Select } from '../../components/ui/Select';
 import { useStore } from '../../lib/store';
 
 export const Recruitment = () => {
   const recruits = useStore(state => state.recruits);
   const moveToOnboarding = useStore(state => state.moveToOnboarding);
+  const addRecruit = useStore(state => state.addRecruit);
+  const updateRecruit = useStore(state => state.updateRecruit);
+  const deleteRecruit = useStore(state => state.deleteRecruit);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [cvLink, setCvLink] = useState('');
+  const [portfolioLink, setPortfolioLink] = useState('');
+  const [status, setStatus] = useState('Screening');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !role) return;
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        await updateRecruit(editingId, { name, role, cvLink, portfolioLink, status });
+      } else {
+        await addRecruit({ name, role, cvLink, portfolioLink, status, checklist: [] });
+      }
+      setIsModalOpen(false);
+      setEditingId(null);
+      setName('');
+      setRole('');
+      setCvLink('');
+      setPortfolioLink('');
+      setStatus('Screening');
+    } catch (err: any) {
+      alert('Failed to save candidate: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (candidate: any) => {
+    setEditingId(candidate.id);
+    setName(candidate.name);
+    setRole(candidate.role);
+    setCvLink(candidate.cvLink || '');
+    setPortfolioLink(candidate.portfolioLink || '');
+    setStatus(candidate.status);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this candidate?')) return;
+    try {
+      await deleteRecruit(id);
+    } catch (err: any) {
+      alert('Failed to delete candidate: ' + err.message);
+    }
+  };
 
   const filteredRecruits = recruits.filter(r => 
     r.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || 
@@ -31,7 +88,15 @@ export const Recruitment = () => {
           <h1 className="text-2xl font-bold font-display text-secondary-dark tracking-tight">Recruitment Pipeline</h1>
           <p className="text-secondary-light text-sm mt-1">Manage active candidates and move them to onboarding.</p>
         </div>
-        <Button>
+        <Button onClick={() => {
+          setEditingId(null);
+          setName('');
+          setRole('');
+          setCvLink('');
+          setPortfolioLink('');
+          setStatus('Screening');
+          setIsModalOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Candidate
         </Button>
@@ -76,7 +141,17 @@ export const Recruitment = () => {
                     <p className="text-sm text-secondary-light">{candidate.role}</p>
                   </div>
                 </div>
-                <Badge variant={getStatusBadge(candidate.status) as any}>{candidate.status}</Badge>
+                <div className="flex flex-col items-end space-y-2">
+                  <div className="flex space-x-1">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-secondary-light hover:text-primary" onClick={() => handleEdit(candidate)}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-secondary-light hover:text-danger" onClick={() => handleDelete(candidate.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Badge variant={getStatusBadge(candidate.status) as any}>{candidate.status}</Badge>
+                </div>
               </div>
 
               <div className="space-y-3 flex-1">
@@ -106,6 +181,48 @@ export const Recruitment = () => {
           ))}
         </div>
       )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Candidate" : "Add Candidate"}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Name</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. John Doe" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Role</label>
+            <Input value={role} onChange={(e) => setRole(e.target.value)} required placeholder="e.g. Frontend Developer" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">CV Link</label>
+              <Input value={cvLink} onChange={(e) => setCvLink(e.target.value)} placeholder="https://..." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Portfolio Link</label>
+              <Input value={portfolioLink} onChange={(e) => setPortfolioLink(e.target.value)} placeholder="https://..." />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Status</label>
+            <Select 
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              options={[
+                { value: 'Screening', label: 'Screening' },
+                { value: 'Interviewing', label: 'Interviewing' },
+                { value: 'Offered', label: 'Offered' }
+              ]}
+              required
+            />
+          </div>
+          <div className="pt-4 flex justify-end space-x-2">
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save Candidate'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

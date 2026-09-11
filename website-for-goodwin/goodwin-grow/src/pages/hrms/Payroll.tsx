@@ -1,17 +1,90 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, MoreHorizontal, DollarSign } from 'lucide-react';
+import { Search, Filter, Download, MoreHorizontal, DollarSign, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
-
-const mockPayroll = [
-  { id: 1, name: 'Sarah Jenkins', month: 'Sept 2026', basic: 5000, allowances: 500, deductions: 200, net: 5300, status: 'Paid' },
-  { id: 2, name: 'Mike Ross', month: 'Sept 2026', basic: 4500, allowances: 300, deductions: 150, net: 4650, status: 'Pending' },
-  { id: 3, name: 'Elena Gilbert', month: 'Sept 2026', basic: 4800, allowances: 400, deductions: 100, net: 5100, status: 'Paid' },
-];
+import { Modal } from '../../components/ui/Modal';
+import { Select } from '../../components/ui/Select';
+import { useStore } from '../../lib/store';
 
 export const Payroll = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const payroll = useStore(state => state.payroll);
+  const runPayroll = useStore(state => state.runPayroll);
+  const updatePayroll = useStore(state => state.updatePayroll);
+  const deletePayroll = useStore(state => state.deletePayroll);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState('Pending');
+
+  const handleEdit = (record: any) => {
+    setEditingId(record.id);
+    setEditStatus(record.status);
+    setIsEditModalOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    try {
+      await updatePayroll(editingId, { status: editStatus });
+      setIsEditModalOpen(false);
+      setEditingId(null);
+    } catch (err: any) {
+      alert('Failed to update: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this payroll record?')) return;
+    try {
+      await deletePayroll(id);
+    } catch (err: any) {
+      alert('Failed to delete: ' + err.message);
+    }
+  };
+
+  const filteredPayroll = payroll.filter(p => 
+    p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.month?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleRunPayroll = async () => {
+    setIsRunning(true);
+    try {
+      await runPayroll();
+      alert('Payroll run successfully!');
+    } catch (err: any) {
+      alert('Failed to run payroll: ' + err.message);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (filteredPayroll.length === 0) {
+      alert('No data to export');
+      return;
+    }
+    const headers = ['Employee', 'Month', 'Basic Salary', 'Allowances', 'Deductions', 'Net Salary', 'Status'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredPayroll.map(p => 
+        `"${p.name}","${p.month}",${p.basic},${p.allowances},${p.deductions},${p.net},"${p.status}"`
+      )
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'payroll_export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -24,9 +97,9 @@ export const Payroll = () => {
           <h1 className="text-2xl font-bold font-display text-secondary-dark tracking-tight">Payroll Management</h1>
           <p className="text-secondary-light text-sm mt-1">Manage employee salaries, deductions, and payslips.</p>
         </div>
-        <Button>
+        <Button onClick={handleRunPayroll} disabled={isRunning}>
           <DollarSign className="h-4 w-4 mr-2" />
-          Run Payroll
+          {isRunning ? 'Running...' : 'Run Payroll'}
         </Button>
       </div>
 
@@ -50,7 +123,7 @@ export const Payroll = () => {
           </Button>
         </div>
         
-        <Button variant="secondary">
+        <Button variant="secondary" onClick={handleExport}>
           <Download className="h-4 w-4 mr-2" />
           Export Report
         </Button>
@@ -70,8 +143,15 @@ export const Payroll = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-canvas-variant">
-              {mockPayroll.map((record) => (
-                <tr key={record.id} className="hover:bg-canvas/30 transition-colors">
+              {filteredPayroll.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-secondary-light">
+                    No payroll data found.
+                  </td>
+                </tr>
+              ) : (
+                filteredPayroll.map((record) => (
+                  <tr key={record.id} className="hover:bg-canvas/30 transition-colors">
                   <td className="px-6 py-4 font-medium text-secondary-dark">
                     {record.name}
                   </td>
@@ -89,17 +169,44 @@ export const Payroll = () => {
                       {record.status}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right flex justify-end space-x-2">
                     <Button variant="ghost" size="sm" className="text-primary hover:text-primary-dark">
                       Payslip
                     </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-secondary-light hover:text-primary" onClick={() => handleEdit(record)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-secondary-light hover:text-danger" onClick={() => handleDelete(record.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
       </div>
+
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Payroll Record">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Status</label>
+            <Select 
+              value={editStatus}
+              onChange={(e) => setEditStatus(e.target.value)}
+              options={[
+                { value: 'Pending', label: 'Pending' },
+                { value: 'Paid', label: 'Paid' },
+                { value: 'Cancelled', label: 'Cancelled' }
+              ]}
+            />
+          </div>
+          <div className="pt-4 flex justify-end space-x-2">
+            <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button onClick={saveEdit}>Save Changes</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

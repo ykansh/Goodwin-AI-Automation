@@ -29,20 +29,49 @@ export const Receivables = () => {
   };
 
   const handleDelete = async (id: string) => {
-    await deleteReceivable(id);
+    if (window.confirm('Are you sure you want to delete this receivable?')) {
+      try {
+        await deleteReceivable(id);
+      } catch (err: any) {
+        alert('Failed to delete receivable: ' + err.message);
+      }
+    }
   };
 
   const handleSave = async () => {
-    if (isEditing?.id) {
-      await updateReceivable(isEditing.id, isEditing);
-    } else {
-      await addReceivable(isEditing);
+    try {
+      if (isEditing?.id) {
+        await updateReceivable(isEditing.id, isEditing);
+      } else {
+        await addReceivable(isEditing);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      alert('Failed to save receivable: ' + err.message);
     }
-    setIsModalOpen(false);
   };
 
-  const handleStatusChange = (id: string, newStatus: string) => {
-    setReceivables((prev: any) => prev.map((r: any) => r.id === id ? { ...r, status: newStatus } : r));
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      // @ts-ignore
+      await useFinanceStore.getState().updateReceivableStatus(id, newStatus);
+    } catch (err: any) {
+      alert('Failed to update status: ' + err.message);
+    }
+  };
+
+  const handleExport = () => {
+    const csvHeader = "Client,Invoice Number,Amount,Due Date,Status\n";
+    const csvRows = receivables.map((r: any) => 
+      `"${r.client}","${r.invoiceNumber}",${r.amount},${r.dueDate},${r.status}`
+    );
+    const blob = new Blob([csvHeader + csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `receivables_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -53,7 +82,7 @@ export const Receivables = () => {
           <p className="text-secondary-light text-sm mt-1">Track incoming payments and unpaid invoices.</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>

@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* Force Tailwind dark: prefix to activate when .dark class is on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #00a631;
+  --color-primary-light: #33b85a;
+  --color-primary-dark: #008a29;
+  --color-secondary: #3a3b39;
+  --color-secondary-light: #5a5b59;
+  --color-tertiary: #cde06c;
+  --color-tertiary-light: #dbe98f;
+  --color-background: #f5f4f0;
+  --color-background-dark: #141614;
+  --font-sans: 'Montserrat', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f0ee;
+  color: #3a3b39;
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark body {
+  background-color: #111211;
+  color: #e5e7eb;
+}
+
+/* =============================================
+   FLAT CARD SYSTEM (no blur, no translucency)
+   ============================================= */
+
+/* Generic surface panel — light header, sidebar, page sections */
+.glass {
+  background: #ffffff;
+  border: 1px solid #e5e7e5;
+  border-radius: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark .glass {
+  background: #1e211e;
+  border-color: #2d302d;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Strong surface — header bar, sidebar, modal backgrounds */
+.glass-strong {
+  background: #ffffff;
+  border: 1px solid #e0e2e0;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark .glass-strong {
+  background: #181a18;
+  border-color: #282b28;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Card — KPI cards, list item rows, small panels */
+.glass-card {
+  background: #f8f9f8;
+  border: 1px solid #e8eae8;
+  border-radius: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.glass-card:hover {
+  background: #f2f4f2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
+
+html.dark .glass-card {
+  background: #202420;
+  border-color: #2a2e2a;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+}
+
+html.dark .glass-card:hover {
+  background: #262a26;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* Inputs */
+.glass-input {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: #00a631;
+  box-shadow: 0 0 0 3px rgba(0, 166, 49, 0.15);
+}
+
+html.dark .glass-input {
+  background: #252825;
+  border-color: #374137;
+  color: #f3f4f6;
+}
+
+html.dark .glass-input:focus {
+  border-color: #00a631;
+  box-shadow: 0 0 0 3px rgba(0, 166, 49, 0.25);
+}
+
+html.dark .glass-input option {
+  background: #252825;
+  color: #f3f4f6;
+}
+
+/* =============================================
+   BACKGROUND — no floating orbs
+   ============================================= */
+.bg-gradient-orbs {
+  display: none; /* removed — was causing visual noise */
+}
+
+/* =============================================
+   CUSTOM SCROLLBAR
+   ============================================= */
+::-webkit-scrollbar {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c8cac8;
+  border-radius: 0.25rem;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #3a3e3a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a4a0;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #505450;
+}
+
+/* =============================================
+   DATA TABLE
+   ============================================= */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.data-table thead th {
+  background: #f8f9f8;
+  padding: 0.875rem 1.25rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7e5;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+html.dark .data-table thead th {
+  background: #1e211e;
+  color: #9ca3af;
+  border-bottom: 1px solid #2d302d;
+}
+
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(0, 166, 49, 0.04);
+}
+
+html.dark .data-table tbody tr:hover {
+  background: rgba(0, 166, 49, 0.08);
+}
+
+.data-table tbody td {
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #f0f1f0;
+  color: #374151;
+}
+
+html.dark .data-table tbody td {
+  border-bottom: 1px solid #242724;
+  color: #e5e7eb;
+}
+
+/* =============================================
+   ANIMATIONS
+   ============================================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in    { animation: fadeIn 0.25s ease forwards; }
+.animate-scale-in   { animation: scaleIn 0.2s ease forwards; }
+.animate-slide-in-left { animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* =============================================
+   SPACING HELPERS (8px grid)
+   ============================================= */
+.card-padded    { padding: 1.5rem; }  /* 24px */
+.card-padded-lg { padding: 2rem; }   /* 32px */
+
+/* =============================================
+   PRINT
+   ============================================= */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+}

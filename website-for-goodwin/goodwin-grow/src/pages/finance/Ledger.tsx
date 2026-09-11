@@ -29,16 +29,43 @@ export const Ledger = () => {
   };
 
   const handleDelete = async (id: string) => {
-    await deleteTransaction(id);
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await deleteTransaction(id);
+      } catch (err: any) {
+        alert('Failed to delete transaction: ' + err.message);
+      }
+    }
   };
 
   const handleSave = async () => {
-    if (isEditing?.id) {
-      await updateTransaction(isEditing.id, isEditing);
-    } else {
-      await addTransaction(isEditing);
+    try {
+      if (isEditing?.id) {
+        await updateTransaction(isEditing.id, isEditing);
+      } else {
+        await addTransaction({
+          ...isEditing,
+          date: isEditing?.date || new Date().toISOString().split('T')[0]
+        });
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      alert('Failed to save transaction: ' + err.message);
     }
-    setIsModalOpen(false);
+  };
+
+  const handleExport = () => {
+    const csvHeader = "ID,Date,Description,Type,Amount\n";
+    const csvRows = transactions.map((t: any) => 
+      `${t.id},${t.date},"${t.description}",${t.type},${t.amount}`
+    );
+    const blob = new Blob([csvHeader + csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ledger_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -49,7 +76,7 @@ export const Ledger = () => {
           <p className="text-secondary-light text-sm mt-1">Master record of all financial transactions.</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>

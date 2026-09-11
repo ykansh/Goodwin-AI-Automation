@@ -29,20 +29,49 @@ export const Payables = () => {
   };
 
   const handleDelete = async (id: string) => {
-    await deletePayable(id);
+    if (window.confirm('Are you sure you want to delete this bill?')) {
+      try {
+        await deletePayable(id);
+      } catch (err: any) {
+        alert('Failed to delete bill: ' + err.message);
+      }
+    }
   };
 
   const handleSave = async () => {
-    if (isEditing?.id) {
-      await updatePayable(isEditing.id, isEditing);
-    } else {
-      await addPayable(isEditing);
+    try {
+      if (isEditing?.id) {
+        await updatePayable(isEditing.id, isEditing);
+      } else {
+        await addPayable(isEditing);
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      alert('Failed to save bill: ' + err.message);
     }
-    setIsModalOpen(false);
   };
 
-  const handleStatusChange = (id: string, newStatus: string) => {
-    setPayables((prev: any) => prev.map((p: any) => p.id === id ? { ...p, status: newStatus } : p));
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      // @ts-ignore
+      await useFinanceStore.getState().updatePayableStatus(id, newStatus);
+    } catch (err: any) {
+      alert('Failed to update status: ' + err.message);
+    }
+  };
+
+  const handleExport = () => {
+    const csvHeader = "Vendor,Invoice Number,Amount,Due Date,Status\n";
+    const csvRows = payables.map((p: any) => 
+      `"${p.vendor}","${p.invoiceNumber}",${p.amount},${p.dueDate},${p.status}`
+    );
+    const blob = new Blob([csvHeader + csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payables_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -53,7 +82,7 @@ export const Payables = () => {
           <p className="text-secondary-light text-sm mt-1">Manage vendor bills and outgoing payments.</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
