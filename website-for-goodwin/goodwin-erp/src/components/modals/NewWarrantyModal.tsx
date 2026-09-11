@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers, useProducts } from '../../hooks/queries';
+import { useRegisterWarranty } from '../../hooks/mutations';
 import { X, ShieldCheck, CheckCircle } from 'lucide-react';
 
 interface NewWarrantyModalProps {
@@ -7,7 +8,9 @@ interface NewWarrantyModalProps {
 }
 
 export function NewWarrantyModal({ onClose }: NewWarrantyModalProps) {
-  const { customers, products, registerWarranty } = useData();
+  const { data: customers = [] } = useCustomers();
+  const { data: products = [] } = useProducts();
+  const registerWarrantyMutation = useRegisterWarranty();
 
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [productId, setProductId] = useState(products[0]?.id || '');
@@ -27,7 +30,7 @@ export function NewWarrantyModal({ onClose }: NewWarrantyModalProps) {
     pDate.setMonth(pDate.getMonth() + (selectedProduct.warranty_months || 18));
     const expiryStr = pDate.toISOString().split('T')[0];
 
-    registerWarranty({
+    registerWarrantyMutation.mutate({
       battery_model: selectedProduct.battery_model,
       serial_number: serialNumber,
       product_name: selectedProduct.name,

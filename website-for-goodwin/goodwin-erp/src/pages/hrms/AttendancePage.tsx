@@ -1,15 +1,14 @@
 import { useState, useMemo } from 'react';
-import { Clock, Calendar as CalendarIcon, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, ArrowLeft, Trash2 } from 'lucide-react';
 import { useHrmsAttendance, useHrmsEmployees } from '../../hooks/queries';
 import { useAddHrmsAttendance, useDeleteHrmsAttendance } from '../../hooks/mutations';
 import toast from 'react-hot-toast';
 
 export function AttendancePage() {
-  const { data: hrmsAttendance = [], isLoading: isLoadingAttendance } = useHrmsAttendance();
-  const { data: hrmsEmployees = [], isLoading: isLoadingEmployees } = useHrmsEmployees();
+  const { data: hrmsAttendance = [] } = useHrmsAttendance();
+  const { data: hrmsEmployees = [] } = useHrmsEmployees();
   const markAttendanceMutation = useAddHrmsAttendance();
   const deleteAttendanceMutation = useDeleteHrmsAttendance();
-  const isLoading = isLoadingAttendance || isLoadingEmployees;
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);

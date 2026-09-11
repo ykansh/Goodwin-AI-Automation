@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useSettings } from '../../hooks/queries';
+import { useAddProduct } from '../../hooks/mutations';
 import { X, PackagePlus, CheckCircle } from 'lucide-react';
 
 interface NewProductModalProps {
@@ -7,7 +8,10 @@ interface NewProductModalProps {
 }
 
 export function NewProductModal({ onClose }: NewProductModalProps) {
-  const { addProduct, settings } = useData();
+  const { data: settings } = useSettings();
+  const addProductMutation = useAddProduct();
+
+  if (!settings) return null;
 
   const [name, setName] = useState('Endura N150');
   const [batteryModel, setBatteryModel] = useState('Endura N150');
@@ -28,7 +32,7 @@ export function NewProductModal({ onClose }: NewProductModalProps) {
     e.preventDefault();
     if (!name || !sku) return;
 
-    addProduct({
+    addProductMutation.mutate({
       name,
       battery_model: batteryModel,
       voltage,

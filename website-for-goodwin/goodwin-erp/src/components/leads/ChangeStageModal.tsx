@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useUpdateLead, useAddActivity } from '../../hooks/mutations';
 import type { Lead, LeadStage } from '../../types';
 import { X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -28,7 +28,8 @@ export function ChangeStageModal({
   onTriggerConvert,
   onTriggerLost,
 }: ChangeStageModalProps) {
-  const { updateLead, addActivity } = useData();
+  const updateLeadMutation = useUpdateLead();
+  const addActivityMutation = useAddActivity();
   const [selectedStage, setSelectedStage] = useState<LeadStage>(lead?.stage || 'New');
 
   if (!isOpen || !lead) return null;
@@ -39,7 +40,7 @@ export function ChangeStageModal({
       if (onTriggerConvert) {
         onTriggerConvert();
       } else {
-        updateLead(lead.id, { stage: 'Won' });
+        updateLeadMutation.mutate({ id: lead.id, data: { stage: 'Won' } });
       }
       return;
     }
@@ -49,13 +50,13 @@ export function ChangeStageModal({
       if (onTriggerLost) {
         onTriggerLost();
       } else {
-        updateLead(lead.id, { stage: 'Lost' });
+        updateLeadMutation.mutate({ id: lead.id, data: { stage: 'Lost' } });
       }
       return;
     }
 
-    updateLead(lead.id, { stage: selectedStage });
-    addActivity({
+    updateLeadMutation.mutate({ id: lead.id, data: { stage: selectedStage } });
+    addActivityMutation.mutate({
       lead_id: lead.id,
       type: 'Note',
       description: `Stage changed from ${lead.stage} to ${selectedStage}`,

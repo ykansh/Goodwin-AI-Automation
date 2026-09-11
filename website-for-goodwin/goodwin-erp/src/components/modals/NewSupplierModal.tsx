@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useAddSupplier } from '../../hooks/mutations';
 import { X, Truck, CheckCircle } from 'lucide-react';
 
 interface NewSupplierModalProps {
@@ -7,7 +7,7 @@ interface NewSupplierModalProps {
 }
 
 export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
-  const { addSupplier } = useData();
+  const addSupplierMutation = useAddSupplier();
 
   const [name, setName] = useState('');
   const [type, setType] = useState('Manufacturer');
@@ -21,7 +21,7 @@ export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
     e.preventDefault();
     if (!name) return;
 
-    addSupplier({
+    addSupplierMutation.mutate({
       name,
       type,
       contact,

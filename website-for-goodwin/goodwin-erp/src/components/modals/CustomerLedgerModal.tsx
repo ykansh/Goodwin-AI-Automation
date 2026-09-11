@@ -1,15 +1,16 @@
-import type { Customer, Supplier } from '../../types';
-import { useData } from '../../store/DataContext';
+import { useLedgerEntries } from '../../hooks/queries';
+import { useDeleteLedgerEntry } from '../../hooks/mutations';
 import { X, History, Trash2 } from 'lucide-react';
 
 interface CustomerLedgerModalProps {
-  party: Customer | Supplier | null;
+  party: any | null;
   partyType?: 'customer' | 'supplier';
   onClose: () => void;
 }
 
 export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: CustomerLedgerModalProps) {
-  const { ledgerEntries, deleteLedgerEntry } = useData();
+  const { data: ledgerEntries = [] } = useLedgerEntries();
+  const deleteLedgerEntryMutation = useDeleteLedgerEntry();
 
   if (!party) return null;
 
@@ -131,7 +132,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
                           <button
                             onClick={() => {
                               if (window.confirm("Are you sure you want to delete this ledger entry? This action cannot be undone.")) {
-                                deleteLedgerEntry(entry.id);
+                                deleteLedgerEntryMutation.mutate(entry.id);
                               }
                             }}
                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors inline-flex"

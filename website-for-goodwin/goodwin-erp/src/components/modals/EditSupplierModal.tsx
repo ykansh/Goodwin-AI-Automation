@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Supplier } from '../../types';
-import { useData } from '../../store/DataContext';
+import { useUpdateSupplier } from '../../hooks/mutations';
 import { X, Edit3, CheckCircle } from 'lucide-react';
 
 interface EditSupplierModalProps {
@@ -9,7 +9,7 @@ interface EditSupplierModalProps {
 }
 
 export function EditSupplierModal({ supplier, onClose }: EditSupplierModalProps) {
-  const { updateSupplier } = useData();
+  const updateSupplierMutation = useUpdateSupplier();
 
   if (!supplier) return null;
 
@@ -24,14 +24,17 @@ export function EditSupplierModal({ supplier, onClose }: EditSupplierModalProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    updateSupplier(supplier.id, {
-      name,
-      type,
-      contact,
-      email,
-      gstin,
-      outstanding: Number(outstanding),
-      address,
+    updateSupplierMutation.mutate({
+      id: supplier.id,
+      data: {
+        name,
+        type,
+        contact,
+        email,
+        gstin,
+        outstanding: Number(outstanding),
+        address,
+      }
     });
 
     onClose();

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useData } from '../../store/DataContext';
+import { useLeads, useCustomers, useSettings } from '../../hooks/queries';
+import { useAddLead, useUpdateLead } from '../../hooks/mutations';
 import type { Lead, LeadSource, LeadStage } from '../../types';
 import { X, AlertCircle, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -32,8 +33,21 @@ const STAGES: LeadStage[] = [
 // Assignees will be loaded from company settings dynamically
 
 export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalProps) {
-  const { addLead, updateLead, leads, customers, settings } = useData();
-  const assignees = settings?.battery_configs?.salespersons?.length > 0 ? settings.battery_configs.salespersons : ['Admin'];
+  const { data: leads = [] } = useLeads();
+  const { data: customers = [] } = useCustomers();
+  const { data: settings } = useSettings();
+  const addLeadMutation = useAddLead();
+  const updateLeadMutation = useUpdateLead();
+
+  useEffect(() => {
+    setAssignedTo(
+      settings?.battery_configs?.salespersons?.length
+        ? settings.battery_configs.salespersons[0]
+        : ''
+    );
+  }, [settings]);
+
+  const assignees = settings?.battery_configs?.salespersons?.length ? settings.battery_configs.salespersons : ['Admin'];
 
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -132,9 +146,9 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
     };
 
     if (initialLead) {
-      updateLead(initialLead.id, leadPayload);
+      updateLeadMutation.mutate({ id: initialLead.id, data: leadPayload });
     } else {
-      addLead(leadPayload);
+      addLeadMutation.mutate(leadPayload as any); // as any because id and created_at are handled by DB/mutation
     }
 
     onClose();

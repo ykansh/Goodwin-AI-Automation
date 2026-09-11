@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useData } from '../../store/DataContext';
+import { useLeads, useSettings } from '../../hooks/queries';
+import { useDeleteLead } from '../../hooks/mutations';
 import type { Lead, LeadStage } from '../../types';
 import {
   Plus, Search, MoreHorizontal,
@@ -22,8 +23,11 @@ const STAGE_BADGES: Record<LeadStage, { bg: string; text: string; border: string
 };
 
 export function LeadsPage() {
-  const { leads, settings, deleteLead } = useData();
-  const assignees = settings?.battery_configs?.salespersons?.length > 0 ? settings.battery_configs.salespersons : ['Admin'];
+  const { data: leads = [], isLoading } = useLeads();
+  const { data: settings } = useSettings();
+  const deleteLeadMutation = useDeleteLead();
+
+  const assignees = settings?.battery_configs?.salespersons?.length ? settings.battery_configs.salespersons : ['Admin'];
 
   // Search, Filters & Sort state
   const [searchTerm, setSearchTerm] = useState('');
@@ -334,7 +338,13 @@ export function LeadsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLeads.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-12 text-gray-500 font-bold">
+                    Loading leads...
+                  </td>
+                </tr>
+              ) : filteredLeads.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-16 text-gray-400 dark:text-gray-500">
                     <div className="max-w-xs mx-auto space-y-3">
@@ -513,7 +523,7 @@ export function LeadsPage() {
                                   onClick={() => {
                                     setActiveMenuId(null);
                                     if (window.confirm("Are you sure you want to delete this lead?")) {
-                                      deleteLead(lead.id);
+                                      deleteLeadMutation.mutate(lead.id);
                                     }
                                   }}
                                   className="w-full px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-left cursor-pointer flex items-center gap-2 mt-1"

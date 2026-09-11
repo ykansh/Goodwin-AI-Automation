@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useSuppliers, useProducts } from '../../hooks/queries';
+import { useCreatePurchaseOrder } from '../../hooks/mutations';
 import { X, Plus, Trash2, ShoppingCart, CheckCircle } from 'lucide-react';
 
 interface NewPurchaseModalProps {
@@ -7,7 +8,9 @@ interface NewPurchaseModalProps {
 }
 
 export function NewPurchaseModal({ onClose }: NewPurchaseModalProps) {
-  const { suppliers, products, createPurchaseOrder } = useData();
+  const { data: suppliers = [] } = useSuppliers();
+  const { data: products = [] } = useProducts();
+  const createPurchaseOrderMutation = useCreatePurchaseOrder();
 
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -81,7 +84,7 @@ export function NewPurchaseModal({ onClose }: NewPurchaseModalProps) {
     e.preventDefault();
     if (!selectedSupplier) return;
 
-    createPurchaseOrder({
+    createPurchaseOrderMutation.mutate({
       date,
       supplier_id: selectedSupplier.id,
       supplier_name: selectedSupplier.name,

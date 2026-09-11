@@ -481,3 +481,444 @@ export const useUpdateHrmsTimesheet = () => {
     }
   });
 };
+
+export const useAddLead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (leadData: any) => {
+      const { error } = await supabase.from('leads').insert(leadData);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success('Lead added successfully');
+    },
+    onError: (error) => {
+      toast.error(`Supabase Error: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateLead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('leads').update(data).eq('id', id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success('Lead updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Supabase Error: ${error.message}`);
+    }
+  });
+};
+
+export const useDeleteLead = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('leads').delete().eq('id', id);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success('Lead deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Supabase Error: ${error.message}`);
+    }
+  });
+};
+
+export const useAddActivity = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (activityData: any) => {
+      const { error } = await supabase.from('lead_activities').insert(activityData);
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead_activities'] });
+      toast.success('Activity logged successfully');
+    },
+    onError: (error) => {
+      toast.error(`Supabase Error: ${error.message}`);
+    }
+  });
+};
+
+export const useConvertLeadToParty = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      leadId,
+      partyData,
+      lead
+    }: {
+      leadId: string;
+      partyData: {
+        name: string;
+        contact: string;
+        email: string;
+        address: string;
+        type: string;
+        gstin?: string;
+        linkExistingId?: string;
+      };
+      lead: any;
+    }) => {
+      let linkedCustomerId = partyData.linkExistingId;
+      let customerName = partyData.name;
+
+      if (!linkedCustomerId) {
+        // Create new customer
+        // Let's get the max UOI
+        const { data: customers } = await supabase.from('customers').select('uoi');
+        const nums = (customers || [])
+          .map((c) => {
+            const m = c.uoi?.match(/GW-CUST-(\d+)/i);
+            return m ? parseInt(m[1], 10) : 0;
+          })
+          .filter((n) => !isNaN(n) && n > 0);
+        const max = nums.length > 0 ? Math.max(...nums) : 1000;
+        const nextUoi = `GW-CUST-${max + 1}`;
+
+        const newCustomer = {
+          uoi: nextUoi,
+          name: partyData.name,
+          contact: partyData.contact,
+          email: partyData.email,
+          address: partyData.address || 'Address not provided',
+          type: partyData.type,
+          gstin: partyData.gstin || '',
+          credit_limit: 500000,
+          outstanding: 0,
+          salesperson: lead.assigned_to || 'Deepak Singh'
+        };
+
+        const { data: insertedCust, error: insertError } = await supabase.from('customers').insert(newCustomer).select().single();
+        if (insertError) throw insertError;
+
+        linkedCustomerId = insertedCust.id;
+        customerName = `${insertedCust.name} (${insertedCust.uoi})`;
+      } else {
+        const { data: existingCust } = await supabase.from('customers').select('name, uoi').eq('id', linkedCustomerId).single();
+        if (existingCust) customerName = `${existingCust.name} (${existingCust.uoi})`;
+      }
+
+      // Update lead
+      const { error: updateError } = await supabase.from('leads').update({
+        stage: 'Won',
+        party_id: linkedCustomerId,
+        updated_at: new Date().toISOString()
+      }).eq('id', leadId);
+      if (updateError) throw updateError;
+
+      // Add activity
+      const { error: actError } = await supabase.from('lead_activities').insert({
+        lead_id: leadId,
+        type: 'Note',
+        description: `Converted to Party: ${customerName}`,
+        created_by: lead.assigned_to || 'Admin'
+      });
+      if (actError) throw actError;
+
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['lead_activities'] });
+    },
+    onError: (error) => {
+      toast.error(`Error converting lead: ${error.message}`);
+    }
+  });
+};
+
+export const useAddCustomer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (customer: any) => {
+      const { error } = await supabase.from('customers').insert(customer);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Customer added successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error adding customer: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateCustomer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('customers').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Customer updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error updating customer: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateSalesInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('sales_invoices').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Sales invoice updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error updating sales invoice: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('products').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Product updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error updating product: ${error.message}`);
+    }
+  });
+};
+
+export const useAddSupplier = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (supplier: any) => {
+      const { error } = await supabase.from('suppliers').insert(supplier);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success('Supplier added successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error adding supplier: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateSupplier = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('suppliers').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success('Supplier updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error updating supplier: ${error.message}`);
+    }
+  });
+};
+
+export const useCreateSalesInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (invoice: any) => {
+      // Step 1: Create invoice
+      const { data: insertedInvoice, error: invError } = await supabase
+        .from('sales_invoices')
+        .insert(invoice)
+        .select()
+        .single();
+        
+      if (invError) throw invError;
+
+      // Step 2: Handle initial payment if present
+      if (invoice.initial_payment && invoice.initial_payment > 0) {
+        const payment = {
+          date: invoice.date,
+          party_id: invoice.customer_id,
+          party_name: invoice.customer_name,
+          party_type: 'Customer',
+          type: 'Payment In',
+          amount: invoice.initial_payment,
+          payment_mode: 'Cash',
+          reference_no: `INV-${insertedInvoice.invoice_number}`,
+          notes: 'Initial payment for invoice',
+        };
+        const { error: payError } = await supabase.from('payments').insert(payment);
+        if (payError) throw payError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['ledgerEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Sales invoice created successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error creating sales invoice: ${error.message}`);
+    }
+  });
+};
+
+export const useAddProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (product: any) => {
+      const { error } = await supabase.from('products').insert(product);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Product added successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error adding product: ${error.message}`);
+    }
+  });
+};
+
+export const useCreatePaymentIn = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payment: any) => {
+      // payment represents a 'Payment In' type
+      const fullPayment = { ...payment, type: 'Payment In' };
+      const { error } = await supabase.from('payments').insert(fullPayment);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['ledgerEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Payment In recorded successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error recording payment: ${error.message}`);
+    }
+  });
+};
+
+export const useCreatePaymentOut = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payment: any) => {
+      // payment represents a 'Payment Out' type
+      const fullPayment = { ...payment, type: 'Payment Out' };
+      const { error } = await supabase.from('payments').insert(fullPayment);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['ledgerEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success('Payment Out recorded successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error recording payment: ${error.message}`);
+    }
+  });
+};
+
+export const useCreatePurchaseOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (purchase: any) => {
+      const { error } = await supabase.from('purchase_orders').insert(purchase);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['ledgerEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Purchase Order recorded successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error recording purchase order: ${error.message}`);
+    }
+  });
+};
+
+export const useCreateReturn = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (returnData: any) => {
+      const { error } = await supabase.from('returns').insert(returnData);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['returns'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['ledgerEntries'] });
+      toast.success('Return note issued successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error issuing return note: ${error.message}`);
+    }
+  });
+};
+
+export const useRegisterWarranty = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (warranty: any) => {
+      const { error } = await supabase.from('warranties').insert(warranty);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warranties'] });
+      toast.success('Warranty registered successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error registering warranty: ${error.message}`);
+    }
+  });
+};
+
+export const useDeleteLedgerEntry = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (entryId: string) => {
+      const { error } = await supabase.from('ledger_entries').delete().eq('id', entryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ledgerEntries'] });
+      toast.success('Ledger entry deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error deleting ledger entry: ${error.message}`);
+    }
+  });
+};

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers } from '../../hooks/queries';
+import { useCreatePaymentIn } from '../../hooks/mutations';
 import type { PaymentMode } from '../../types';
 import { X, ArrowDownLeft, CheckCircle } from 'lucide-react';
 
@@ -8,7 +9,8 @@ interface NewPaymentInModalProps {
 }
 
 export function NewPaymentInModal({ onClose }: NewPaymentInModalProps) {
-  const { customers, createPaymentIn } = useData();
+  const { data: customers = [] } = useCustomers();
+  const createPaymentInMutation = useCreatePaymentIn();
 
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -22,7 +24,7 @@ export function NewPaymentInModal({ onClose }: NewPaymentInModalProps) {
     e.preventDefault();
     if (!selectedCustomer || amount <= 0) return;
 
-    createPaymentIn({
+    createPaymentInMutation.mutate({
       date,
       party_name: selectedCustomer.name,
       party_id: selectedCustomer.id,

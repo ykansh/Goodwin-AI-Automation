@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useInvoices, useProducts, useCustomers, useWarranties } from '../../hooks/queries';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area
+  XAxis, YAxis, CartesianGrid, AreaChart, Area
 } from 'recharts';
 import {
-  TrendingUp, Package, Users, AlertCircle, ShoppingBag, ShieldCheck, ArrowUpRight, Activity
+  TrendingUp, Package, Users, AlertCircle, ShieldCheck, ArrowUpRight, Activity
 } from 'lucide-react';
 
 export function ErpDashboard({
@@ -19,8 +19,8 @@ export function ErpDashboard({
   const { data: warranties = [], isLoading: loadWarranties } = useWarranties();
 
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [orderCount, setOrderCount] = useState(5);
-  const [productCount, setProductCount] = useState(5);
+  const [orderCount] = useState(5);
+  const [productCount] = useState(5);
 
   const isLoading = loadInvoices || loadProducts || loadCustomers || loadWarranties;
 
@@ -76,7 +76,7 @@ export function ErpDashboard({
   const PIE_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
   // ── Area Chart (Trend) Data mock ──────────────────────────────────────
-  const trendData = invoices.slice(0, 10).map((inv, idx) => ({
+  const trendData = invoices.slice(0, 10).map((inv) => ({
     name: inv.date.slice(5, 10), // MM-DD
     sales: inv.grand_total,
   })).reverse();
@@ -301,7 +301,7 @@ export function ErpDashboard({
             ) : (
               <table className="w-full text-left border-collapse">
                 <tbody>
-                  {recentOrders.map((order, idx) => (
+                  {recentOrders.map((order) => (
                     <tr key={order.id} className="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                       <td className="p-4 pl-6">
                         <div className="text-xs font-black text-[#111814] dark:text-white">{order.invoice_number}</div>

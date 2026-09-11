@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useLeads } from '../../hooks/queries';
 import type { Lead } from '../../types';
 import {
   Phone, MessageSquare, ExternalLink, Calendar, Clock,
@@ -11,7 +11,7 @@ import { ConvertLeadModal } from '../../components/leads/ConvertLeadModal';
 import { MarkLostModal } from '../../components/leads/MarkLostModal';
 
 export function FollowupsPage() {
-  const { leads } = useData();
+  const { data: leads = [] } = useLeads();
 
   const [drawerLead, setDrawerLead] = useState<Lead | null>(null);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);

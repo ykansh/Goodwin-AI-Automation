@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Customer, CustomerType } from '../../types';
-import { useData } from '../../store/DataContext';
+import { useSettings } from '../../hooks/queries';
+import { useUpdateCustomer } from '../../hooks/mutations';
 import { X, Edit3, CheckCircle } from 'lucide-react';
 
 interface EditCustomerModalProps {
@@ -9,9 +10,10 @@ interface EditCustomerModalProps {
 }
 
 export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps) {
-  const { updateCustomer, settings } = useData();
+  const { data: settings } = useSettings();
+  const updateCustomerMutation = useUpdateCustomer();
 
-  if (!customer) return null;
+  if (!customer || !settings) return null;
 
   const [name, setName] = useState(customer.name);
   const [type, setType] = useState<CustomerType>(customer.type);
@@ -26,16 +28,19 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    updateCustomer(customer.id, {
-      name,
-      type,
-      contact,
-      email,
-      gstin,
-      credit_limit: Number(creditLimit),
-      outstanding: Number(outstanding),
-      address,
-      salesperson,
+    updateCustomerMutation.mutate({
+      id: customer.id,
+      data: {
+        name,
+        type,
+        contact,
+        email,
+        gstin,
+        credit_limit: Number(creditLimit),
+        outstanding: Number(outstanding),
+        address,
+        salesperson,
+      }
     });
 
     onClose();

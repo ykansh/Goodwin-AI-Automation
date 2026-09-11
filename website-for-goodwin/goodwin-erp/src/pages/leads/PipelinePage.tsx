@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useLeads } from '../../hooks/queries';
+import { useUpdateLead, useAddActivity } from '../../hooks/mutations';
 import type { Lead, LeadStage } from '../../types';
 import { Plus, User } from 'lucide-react';
 import { LeadFormModal } from '../../components/leads/LeadFormModal';
@@ -18,7 +19,9 @@ const STAGES: { stage: LeadStage; label: string; color: string; badge: string; b
 ];
 
 export function PipelinePage() {
-  const { leads, updateLead, addActivity } = useData();
+  const { data: leads = [], isLoading } = useLeads();
+  const updateLeadMutation = useUpdateLead();
+  const addActivityMutation = useAddActivity();
 
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -59,8 +62,8 @@ export function PipelinePage() {
       return;
     }
 
-    updateLead(lead.id, { stage: targetStage });
-    addActivity({
+    updateLeadMutation.mutate({ id: lead.id, data: { stage: targetStage } });
+    addActivityMutation.mutate({
       lead_id: lead.id,
       type: 'Note',
       description: `Moved stage from ${lead.stage} to ${targetStage} via Pipeline`,
@@ -158,6 +161,9 @@ export function PipelinePage() {
 
                 {/* Lead Cards List */}
                 <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[70vh] pr-0.5">
+                  {isLoading && (
+                    <div className="text-center py-4 text-gray-500 text-xs font-bold">Loading...</div>
+                  )}
                   {colLeads.map((lead) => (
                     <div
                       key={lead.id}

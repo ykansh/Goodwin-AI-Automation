@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useUpdateLead, useAddActivity } from '../../hooks/mutations';
 import type { Lead, LostReason } from '../../types';
 import { X, AlertOctagon } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -21,7 +21,8 @@ const LOST_REASONS: LostReason[] = [
 ];
 
 export function MarkLostModal({ isOpen, onClose, lead, onSuccess }: MarkLostModalProps) {
-  const { updateLead, addActivity } = useData();
+  const updateLeadMutation = useUpdateLead();
+  const addActivityMutation = useAddActivity();
 
   const [reason, setReason] = useState<LostReason>('Price too high');
   const [notes, setNotes] = useState('');
@@ -31,13 +32,16 @@ export function MarkLostModal({ isOpen, onClose, lead, onSuccess }: MarkLostModa
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
 
-    updateLead(lead.id, {
-      stage: 'Lost',
-      lost_reason: reason,
-      notes: notes.trim() ? `${lead.notes ? lead.notes + '\n\n' : ''}[Lost Reason: ${reason}] ${notes.trim()}` : lead.notes,
+    updateLeadMutation.mutate({
+      id: lead.id,
+      data: {
+        stage: 'Lost',
+        lost_reason: reason,
+        notes: notes.trim() ? `${lead.notes ? lead.notes + '\n\n' : ''}[Lost Reason: ${reason}] ${notes.trim()}` : lead.notes,
+      }
     });
 
-    addActivity({
+    addActivityMutation.mutate({
       lead_id: lead.id,
       type: 'Note',
       description: `Marked as Lost: ${reason}. ${notes.trim() ? 'Notes: ' + notes.trim() : ''}`,

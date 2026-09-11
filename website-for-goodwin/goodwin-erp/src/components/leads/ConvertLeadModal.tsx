@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers } from '../../hooks/queries';
+import { useConvertLeadToParty } from '../../hooks/mutations';
 import type { Lead, CustomerType } from '../../types';
 import { X, Building2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -12,7 +13,8 @@ interface ConvertLeadModalProps {
 }
 
 export function ConvertLeadModal({ isOpen, onClose, lead, onSuccess }: ConvertLeadModalProps) {
-  const { customers, convertLeadToParty } = useData();
+  const { data: customers = [] } = useCustomers();
+  const convertLeadToPartyMutation = useConvertLeadToParty();
 
   const [partyName, setPartyName] = useState('');
   const [phone, setPhone] = useState('');
@@ -32,23 +34,31 @@ export function ConvertLeadModal({ isOpen, onClose, lead, onSuccess }: ConvertLe
 
   const handleConvert = () => {
     if (existingParty && linkMode === 'link') {
-      convertLeadToParty(lead.id, {
-        name: existingParty.name,
-        contact: existingParty.contact,
-        email: existingParty.email,
-        address: existingParty.address,
-        type: existingParty.type,
-        gstin: existingParty.gstin,
-        linkExistingId: existingParty.id,
+      convertLeadToPartyMutation.mutate({
+        leadId: lead.id,
+        partyData: {
+          name: existingParty.name,
+          contact: existingParty.contact,
+          email: existingParty.email,
+          address: existingParty.address,
+          type: existingParty.type,
+          gstin: existingParty.gstin,
+          linkExistingId: existingParty.id,
+        },
+        lead,
       });
     } else {
-      convertLeadToParty(lead.id, {
-        name: partyName.trim() || lead.company_name || lead.name,
-        contact: phone.trim() || lead.phone,
-        email: email.trim() || lead.email,
-        address: address.trim() || 'Address not provided',
-        type: partyType,
-        gstin: gstin.trim(),
+      convertLeadToPartyMutation.mutate({
+        leadId: lead.id,
+        partyData: {
+          name: partyName.trim() || lead.company_name || lead.name,
+          contact: phone.trim() || lead.phone,
+          email: email.trim() || lead.email,
+          address: address.trim() || 'Address not provided',
+          type: partyType,
+          gstin: gstin.trim(),
+        },
+        lead,
       });
     }
 

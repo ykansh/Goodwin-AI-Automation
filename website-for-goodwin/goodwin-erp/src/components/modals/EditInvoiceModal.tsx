@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers, useProducts } from '../../hooks/queries';
+import { useUpdateSalesInvoice } from '../../hooks/mutations';
 import { X, Plus, Trash2, Calculator, CheckCircle } from 'lucide-react';
 import type { SalesInvoice } from '../../types';
 
@@ -9,7 +10,9 @@ interface EditInvoiceModalProps {
 }
 
 export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
-  const { customers, products, updateSalesInvoice } = useData();
+  const { data: customers = [] } = useCustomers();
+  const { data: products = [] } = useProducts();
+  const updateSalesInvoiceMutation = useUpdateSalesInvoice();
 
   const [customerId, setCustomerId] = useState(invoice.customer_id || customers[0]?.id || '');
   const [invoiceType, setInvoiceType] = useState(invoice.invoice_type || 'GST Tax Invoice');
@@ -102,25 +105,27 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
     e.preventDefault();
     if (!selectedCustomer) return;
 
-    updateSalesInvoice(invoice.id, {
-      date,
-      invoice_type: invoiceType,
-      customer_id: selectedCustomer.id,
-      customer_name: selectedCustomer.name,
-      items: calculatedItems,
-      taxable_amount: taxableTotal,
-      gst_amount: gstTotal,
-      grand_total: grandTotal,
-      billing_state_ut: billingStateUt,
-      shipping_state_ut: shippingStateUt,
-      transport_address: transportAddress,
-      transport_contact_number: transportContactNumber,
-      place_of_supply: placeOfSupply,
-      place_of_delivery: placeOfDelivery,
-      reference_name: referenceName,
-      pvt_marka: pvtMarka,
-      transport_gstin: transportGstin,
-      // Since initial payment was already processed when creating, we're just updating the invoice's details
+    updateSalesInvoiceMutation.mutate({
+      id: invoice.id,
+      data: {
+        date,
+        invoice_type: invoiceType,
+        customer_id: selectedCustomer.id,
+        customer_name: selectedCustomer.name,
+        items: calculatedItems,
+        taxable_amount: taxableTotal,
+        gst_amount: gstTotal,
+        grand_total: grandTotal,
+        billing_state_ut: billingStateUt,
+        shipping_state_ut: shippingStateUt,
+        transport_address: transportAddress,
+        transport_contact_number: transportContactNumber,
+        place_of_supply: placeOfSupply,
+        place_of_delivery: placeOfDelivery,
+        reference_name: referenceName,
+        pvt_marka: pvtMarka,
+        transport_gstin: transportGstin,
+      }
     });
 
     onClose();

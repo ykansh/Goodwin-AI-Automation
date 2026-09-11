@@ -38,6 +38,28 @@ export const useSettings = () => {
       return data as CompanySettings | null;
     }
   });
+}
+
+export function useSalesInvoices() {
+  return useQuery({
+    queryKey: ['invoices'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('sales_invoices').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+}
+
+export function usePurchaseOrders() {
+  return useQuery({
+    queryKey: ['purchases'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
 };
 
 export const useCustomers = createUseQuery<Customer>('customers', 'customers');

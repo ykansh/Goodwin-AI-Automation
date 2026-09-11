@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useSuppliers } from '../../hooks/queries';
+import { useCreatePaymentOut } from '../../hooks/mutations';
 import type { PaymentMode } from '../../types';
 import { X, ArrowUpRight, CheckCircle } from 'lucide-react';
 
@@ -8,7 +9,8 @@ interface NewPaymentOutModalProps {
 }
 
 export function NewPaymentOutModal({ onClose }: NewPaymentOutModalProps) {
-  const { suppliers, createPaymentOut } = useData();
+  const { data: suppliers = [] } = useSuppliers();
+  const createPaymentOutMutation = useCreatePaymentOut();
 
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -22,7 +24,7 @@ export function NewPaymentOutModal({ onClose }: NewPaymentOutModalProps) {
     e.preventDefault();
     if (!selectedSupplier || amount <= 0) return;
 
-    createPaymentOut({
+    createPaymentOutMutation.mutate({
       date,
       party_name: selectedSupplier.name,
       party_id: selectedSupplier.id,

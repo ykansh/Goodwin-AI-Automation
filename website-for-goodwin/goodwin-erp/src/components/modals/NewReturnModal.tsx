@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers, useSuppliers, useProducts, useSalesInvoices, usePurchaseOrders } from '../../hooks/queries';
+import { useCreateReturn } from '../../hooks/mutations';
 import type { ReturnType } from '../../types';
 import { X, RotateCcw, CheckCircle } from 'lucide-react';
 
@@ -8,7 +9,12 @@ interface NewReturnModalProps {
 }
 
 export function NewReturnModal({ onClose }: NewReturnModalProps) {
-  const { customers, suppliers, products, invoices, purchases, createReturn } = useData();
+  const { data: customers = [] } = useCustomers();
+  const { data: suppliers = [] } = useSuppliers();
+  const { data: products = [] } = useProducts();
+  const { data: invoices = [] } = useSalesInvoices();
+  const { data: purchases = [] } = usePurchaseOrders();
+  const createReturnMutation = useCreateReturn();
 
   const [returnType, setReturnType] = useState<ReturnType>('credit');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -32,7 +38,7 @@ export function NewReturnModal({ onClose }: NewReturnModalProps) {
     const gstVal = Math.round((taxable * selectedProd.gst_percent) / 100);
     const grandTotal = taxable + gstVal;
 
-    createReturn({
+    createReturnMutation.mutate({
       date,
       type: returnType,
       party_name: selectedParty.name,

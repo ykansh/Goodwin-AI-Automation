@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Product } from '../../types';
-import { useData } from '../../store/DataContext';
+import { useSettings } from '../../hooks/queries';
+import { useUpdateProduct } from '../../hooks/mutations';
 import { X, Edit3, CheckCircle } from 'lucide-react';
 
 interface EditProductModalProps {
@@ -9,9 +10,10 @@ interface EditProductModalProps {
 }
 
 export function EditProductModal({ product, onClose }: EditProductModalProps) {
-  const { updateProduct, settings } = useData();
+  const { data: settings } = useSettings();
+  const updateProductMutation = useUpdateProduct();
 
-  if (!product) return null;
+  if (!product || !settings) return null;
 
   const [name, setName] = useState(product.name);
   const [batteryModel, setBatteryModel] = useState(product.battery_model);
@@ -31,21 +33,24 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    updateProduct(product.id, {
-      name,
-      battery_model: batteryModel,
-      voltage,
-      ah,
-      sku,
-      hsn,
-      category,
-      technology,
-      purchase_price: Number(purchasePrice),
-      selling_price: Number(sellingPrice),
-      stock: Number(stock),
-      warehouse_rack: warehouseRack,
-      warranty_months: Number(warrantyMonths),
-      gst_percent: Number(gstPercent),
+    updateProductMutation.mutate({
+      id: product.id,
+      data: {
+        name,
+        battery_model: batteryModel,
+        voltage,
+        ah,
+        sku,
+        hsn,
+        category,
+        technology,
+        purchase_price: Number(purchasePrice),
+        selling_price: Number(sellingPrice),
+        stock: Number(stock),
+        warehouse_rack: warehouseRack,
+        warranty_months: Number(warrantyMonths),
+        gst_percent: Number(gstPercent),
+      }
     });
 
     onClose();

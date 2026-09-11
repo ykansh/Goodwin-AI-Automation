@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
 import type { CustomerType } from '../../types';
+import { useSettings } from '../../hooks/queries';
+import { useAddCustomer } from '../../hooks/mutations';
 import { X, UserPlus, CheckCircle } from 'lucide-react';
 
 interface NewCustomerModalProps {
@@ -8,7 +9,10 @@ interface NewCustomerModalProps {
 }
 
 export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
-  const { addCustomer, settings } = useData();
+  const { data: settings } = useSettings();
+  const addCustomerMutation = useAddCustomer();
+
+  if (!settings) return null;
 
   const [name, setName] = useState('');
   const [type, setType] = useState<CustomerType>('dealer');
@@ -24,7 +28,7 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
     e.preventDefault();
     if (!name) return;
 
-    addCustomer({
+    addCustomerMutation.mutate({
       name,
       type,
       contact,

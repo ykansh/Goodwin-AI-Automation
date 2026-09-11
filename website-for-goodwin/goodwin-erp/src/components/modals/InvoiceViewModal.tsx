@@ -1,5 +1,5 @@
 import type { SalesInvoice } from '../../types';
-import { useData } from '../../store/DataContext';
+import { useSettings, useCustomers } from '../../hooks/queries';
 import { Printer, X } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
@@ -26,10 +26,11 @@ interface InvoiceViewModalProps {
 }
 
 export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
-  const { settings, customers } = useData();
+  const { data: settings } = useSettings();
+  const { data: customers = [] } = useCustomers();
   const customer = customers.find(c => c.id === invoice?.customer_id);
 
-  if (!invoice) return null;
+  if (!invoice || !settings) return null;
 
   const handlePrint = () => {
     window.print();

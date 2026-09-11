@@ -344,6 +344,7 @@ export function LedgerDashboard() {
           </div>
         </div>
       </div>
+      </>
       )}
 
       {/* Modals */}

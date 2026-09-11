@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers, useProducts } from '../../hooks/queries';
+import { useCreateSalesInvoice } from '../../hooks/mutations';
 import { X, Plus, Trash2, Calculator, CheckCircle } from 'lucide-react';
 
 interface NewInvoiceModalProps {
@@ -7,7 +8,9 @@ interface NewInvoiceModalProps {
 }
 
 export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
-  const { customers, products, createSalesInvoice } = useData();
+  const { data: customers = [] } = useCustomers();
+  const { data: products = [] } = useProducts();
+  const createSalesInvoiceMutation = useCreateSalesInvoice();
 
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [invoiceType, setInvoiceType] = useState('GST Tax Invoice');
@@ -102,7 +105,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
     e.preventDefault();
     if (!selectedCustomer) return;
 
-    createSalesInvoice({
+    createSalesInvoiceMutation.mutate({
       date,
       invoice_type: invoiceType,
       customer_id: selectedCustomer.id,

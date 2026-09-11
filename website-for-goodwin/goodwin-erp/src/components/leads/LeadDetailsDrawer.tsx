@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useActivities } from '../../hooks/queries';
+import { useAddActivity } from '../../hooks/mutations';
 import type { Lead, ActivityType, LeadStage } from '../../types';
 import {
   X, Phone, Mail, MessageSquare, Building2, User, Calendar,
@@ -36,7 +37,8 @@ export function LeadDetailsDrawer({
   onConvert,
   onMarkLost,
 }: LeadDetailsDrawerProps) {
-  const { activities, addActivity } = useData();
+  const { data: activities = [] } = useActivities();
+  const addActivityMutation = useAddActivity();
 
   const [newActivityType, setNewActivityType] = useState<ActivityType>('Call');
   const [newActivityDesc, setNewActivityDesc] = useState('');
@@ -52,7 +54,7 @@ export function LeadDetailsDrawer({
       return;
     }
 
-    addActivity({
+    addActivityMutation.mutate({
       lead_id: lead.id,
       type: newActivityType,
       description: newActivityDesc.trim(),
