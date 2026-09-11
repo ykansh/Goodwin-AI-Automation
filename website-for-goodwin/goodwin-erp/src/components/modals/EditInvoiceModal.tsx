@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useData } from '../../store/DataContext';
 import { X, Plus, Trash2, Calculator, CheckCircle } from 'lucide-react';
 import type { SalesInvoice } from '../../types';
@@ -14,7 +14,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
   const [customerId, setCustomerId] = useState(invoice.customer_id || customers[0]?.id || '');
   const [invoiceType, setInvoiceType] = useState(invoice.invoice_type || 'GST Tax Invoice');
   const [date, setDate] = useState(invoice.date || new Date().toISOString().split('T')[0]);
-  const [initialPayment, setInitialPayment] = useState(0);
+  
 
   const [billingStateUt, setBillingStateUt] = useState(invoice.billing_state_ut || '');
   const [shippingStateUt, setShippingStateUt] = useState(invoice.shipping_state_ut || '');

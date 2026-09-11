@@ -1,5 +1,5 @@
-export type UserRole = 'admin' | 'manager' | 'accounts' | 'sales' | 'inventory' | 'hr' | 'employee';
-export type AppMode = 'erp' | 'ledger' | 'leads' | 'hrms';
+export type UserRole = 'super_admin' | 'admin' | 'hr' | 'sales_manager' | 'sales_executive' | 'accounts' | 'inventory_manager' | 'warehouse_staff' | 'employee';
+export type AppMode = 'unified'; // Deprecating modes, everything is unified in the new OS
 export type CustomerType = 'dealer' | 'distributor' | 'retailer' | 'oem';
 export type InvoiceStatus = 'paid' | 'pending' | 'overdue' | 'partial';
 export type POStatus = 'received' | 'pending' | 'partial';

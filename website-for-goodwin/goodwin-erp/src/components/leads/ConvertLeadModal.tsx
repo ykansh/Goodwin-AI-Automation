@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useData } from '../../store/DataContext';
-import { useAuth } from '../../store/AuthContext';
 import type { Lead, CustomerType } from '../../types';
 import { X, Building2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -14,7 +13,6 @@ interface ConvertLeadModalProps {
 
 export function ConvertLeadModal({ isOpen, onClose, lead, onSuccess }: ConvertLeadModalProps) {
   const { customers, convertLeadToParty } = useData();
-  const { setMode } = useAuth();
 
   const [partyName, setPartyName] = useState('');
   const [phone, setPhone] = useState('');
@@ -67,7 +65,6 @@ export function ConvertLeadModal({ isOpen, onClose, lead, onSuccess }: ConvertLe
             type="button"
             onClick={() => {
               toast.dismiss(t.id);
-              setMode('ledger');
             }}
             className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
           >

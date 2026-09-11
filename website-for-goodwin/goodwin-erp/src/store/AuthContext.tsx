@@ -1,18 +1,14 @@
 import {
   createContext, useContext, useState, useEffect, useCallback, type ReactNode
 } from 'react';
-import type { User, UserRole, AppMode } from '../types';
+import type { User, UserRole } from '../types';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  mode: AppMode;
-  isSupabaseMode: boolean; // Kept for backwards compatibility if referenced, hardcoded to true
-  setMode: (mode: AppMode) => void;
   signIn: (email: string, password?: string) => Promise<boolean>;
-  quickSignInAsRole: (role: UserRole) => void; // Deprecated, will show error
   signUp: (email: string, password: string, full_name: string, role: UserRole) => Promise<boolean>;
   signOut: () => void;
 }
@@ -57,13 +53,6 @@ async function mapSupabaseUser(sbUser: import('@supabase/supabase-js').User): Pr
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mode, setMode] = useState<AppMode>(() => {
-    const savedMode = localStorage.getItem('goodwin_mode');
-    if (savedMode === 'erp' || savedMode === 'ledger' || savedMode === 'leads') {
-      return savedMode as AppMode;
-    }
-    return 'erp';
-  });
 
   // ── Boot: Supabase ────────────────────────────────────────
   useEffect(() => {
@@ -93,11 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // Persist mode preference
-  useEffect(() => {
-    localStorage.setItem('goodwin_mode', mode);
-  }, [mode]);
 
   // ── Sign In ───────────────────────────────────────────────────────────────
   const signIn = useCallback(async (email: string, password?: string): Promise<boolean> => {
@@ -157,11 +141,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   }, []);
 
-  // ── Quick Role Switch (demo / RBAC testing) ───────────────────────────────
-  const quickSignInAsRole = useCallback((_role: UserRole) => {
-    toast.error('Demo mode disabled. Quick sign in is no longer supported in production.');
-  }, []);
-
   // ── Sign Out ──────────────────────────────────────────────────────────────
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -174,11 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isLoading,
-        mode,
-        isSupabaseMode: true, // Always true now
-        setMode,
         signIn,
-        quickSignInAsRole,
         signUp,
         signOut,
       }}

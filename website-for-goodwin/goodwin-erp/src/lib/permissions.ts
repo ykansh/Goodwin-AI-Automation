@@ -1,91 +1,110 @@
-import type { UserRole, AppMode } from '../types';
+import type { UserRole } from '../types';
 
 interface ModulePermissions {
   [module: string]: UserRole[];
 }
 
-const erpPermissions: ModulePermissions = {
-  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  customers: ['admin', 'manager', 'sales', 'employee'],
-  suppliers: ['admin', 'manager', 'inventory', 'employee'],
-  products: ['admin', 'manager', 'inventory', 'employee'],
-  sales: ['admin', 'manager', 'sales', 'employee'],
-  purchases: ['admin', 'manager', 'inventory', 'employee'],
-  returns: ['admin', 'manager', 'sales', 'employee'],
-  warranty: ['admin', 'manager', 'inventory', 'employee'],
-  reports: ['admin', 'manager', 'accounts', 'employee'],
-  settings: ['admin', 'manager', 'employee'],
-  'user-management': ['admin', 'employee'],
+const ALL_ROLES: UserRole[] = [
+  'super_admin', 'admin', 'hr', 'sales_manager', 'sales_executive', 
+  'accounts', 'inventory_manager', 'warehouse_staff', 'employee'
+];
+
+export const unifiedPermissions: ModulePermissions = {
+  // Common
+  'dashboard': ALL_ROLES,
+  'settings': ['super_admin', 'admin'],
+  'user-management': ['super_admin', 'admin'],
+  
+  // CRM / Leads
+  'leads': ['super_admin', 'admin', 'sales_manager', 'sales_executive'],
+  'pipeline': ['super_admin', 'admin', 'sales_manager', 'sales_executive'],
+  'follow-ups': ['super_admin', 'admin', 'sales_manager', 'sales_executive'],
+  
+  // Sales & Customers
+  'customers': ['super_admin', 'admin', 'sales_manager', 'sales_executive', 'accounts'],
+  'sales': ['super_admin', 'admin', 'sales_manager', 'accounts'],
+  'returns': ['super_admin', 'admin', 'sales_manager', 'accounts', 'inventory_manager'],
+  
+  // Inventory & Warehouse
+  'products': ['super_admin', 'admin', 'inventory_manager', 'warehouse_staff', 'sales_manager'],
+  'suppliers': ['super_admin', 'admin', 'inventory_manager', 'accounts'],
+  'purchases': ['super_admin', 'admin', 'inventory_manager', 'accounts'],
+  'warranty': ['super_admin', 'admin', 'inventory_manager', 'warehouse_staff', 'sales_manager'],
+  
+  // Accounts / Ledger
+  'parties': ['super_admin', 'admin', 'accounts', 'sales_manager'],
+  'ledger-sales': ['super_admin', 'admin', 'accounts'],
+  'payment-in': ['super_admin', 'admin', 'accounts', 'sales_manager'],
+  'payment-out': ['super_admin', 'admin', 'accounts'],
+  'reports': ['super_admin', 'admin', 'accounts', 'sales_manager', 'inventory_manager'],
+  
+  // HRMS
+  'employees': ['super_admin', 'admin', 'hr'],
+  'attendance': ALL_ROLES,
+  'leave': ALL_ROLES,
+  'payroll': ['super_admin', 'admin', 'hr', 'accounts'],
+  'projects': ALL_ROLES,
 };
 
-const ledgerPermissions: ModulePermissions = {
-  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  parties: ['admin', 'manager', 'accounts', 'sales', 'employee'],
-  sales: ['admin', 'manager', 'accounts', 'sales', 'employee'],
-  'payment-in': ['admin', 'manager', 'accounts', 'employee'],
-  'payment-out': ['admin', 'manager', 'accounts', 'employee'],
-};
-
-const leadsPermissions: ModulePermissions = {
-  leads: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  pipeline: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  'follow-ups': ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-};
-
-const hrmsPermissions: ModulePermissions = {
-  dashboard: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  employees: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  attendance: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-  leave: ['admin', 'manager', 'accounts', 'sales', 'inventory'],
-  payroll: ['admin', 'manager', 'accounts'],
-  projects: ['admin', 'manager', 'accounts', 'sales', 'inventory', 'employee'],
-};
-
-export function canAccess(role: UserRole, module: string, mode: AppMode): boolean {
-  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : mode === 'leads' ? leadsPermissions : hrmsPermissions;
-  const allowedRoles = permissions[module];
+export function canAccess(role: UserRole, module: string): boolean {
+  const allowedRoles = unifiedPermissions[module];
   if (!allowedRoles) return false;
   return allowedRoles.includes(role);
 }
 
-export function getAccessibleModules(role: UserRole, mode: AppMode): string[] {
-  const permissions = mode === 'erp' ? erpPermissions : mode === 'ledger' ? ledgerPermissions : mode === 'leads' ? leadsPermissions : hrmsPermissions;
-  return Object.keys(permissions).filter((module) => permissions[module].includes(role));
+export function getAccessibleModules(role: UserRole): string[] {
+  return Object.keys(unifiedPermissions).filter((module) => unifiedPermissions[module].includes(role));
 }
 
-export const erpSidebarItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/erp/dashboard', module: 'dashboard' },
-  { key: 'customers', label: 'Customers & Dealers', icon: 'Users', path: '/erp/customers', module: 'customers' },
-  { key: 'suppliers', label: 'Suppliers & Vendors', icon: 'Truck', path: '/erp/suppliers', module: 'suppliers' },
-  { key: 'products', label: 'Products & Inventory', icon: 'Package', path: '/erp/products', module: 'products' },
-  { key: 'sales', label: 'Sales / GST Invoices', icon: 'FileText', path: '/erp/sales', module: 'sales' },
-  { key: 'purchases', label: 'Purchases & POs', icon: 'ShoppingCart', path: '/erp/purchases', module: 'purchases' },
-  { key: 'returns', label: 'Returns (Credit/Debit)', icon: 'RotateCcw', path: '/erp/returns', module: 'returns' },
-  { key: 'warranty', label: 'Battery Warranty', icon: 'ShieldCheck', path: '/erp/warranty', module: 'warranty' },
-  { key: 'reports', label: 'Reports & Analytics', icon: 'BarChart3', path: '/erp/reports', module: 'reports' },
-  { key: 'settings', label: 'Settings & Cloud DB', icon: 'Settings', path: '/erp/settings', module: 'settings' },
-  { key: 'user-management', label: 'User Roles & Access', icon: 'Shield', path: '/erp/user-management', module: 'user-management' },
-];
-
-export const ledgerSidebarItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/ledger/dashboard', module: 'dashboard' },
-  { key: 'parties', label: 'Parties', icon: 'Users', path: '/ledger/parties', module: 'parties' },
-  { key: 'sales', label: 'Sales / Invoices', icon: 'FileText', path: '/ledger/sales', module: 'sales' },
-  { key: 'payment-in', label: 'Payment In', icon: 'ArrowDownLeft', path: '/ledger/payment-in', module: 'payment-in' },
-  { key: 'payment-out', label: 'Payment Out', icon: 'ArrowUpRight', path: '/ledger/payment-out', module: 'payment-out' },
-];
-
-export const leadsSidebarItems = [
-  { key: 'leads', label: 'Leads', icon: 'Users', path: '/leads/list', module: 'leads' },
-  { key: 'pipeline', label: 'Pipeline', icon: 'Kanban', path: '/leads/pipeline', module: 'pipeline' },
-  { key: 'follow-ups', label: 'Follow-ups', icon: 'CalendarClock', path: '/leads/follow-ups', module: 'follow-ups' },
-];
-
-export const hrmsSidebarItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/hrms/dashboard', module: 'dashboard' },
-  { key: 'projects', label: 'Projects & Tasks', icon: 'Briefcase', path: '/hrms/projects', module: 'projects' },
-  { key: 'employees', label: 'Employees', icon: 'Users', path: '/hrms/employees', module: 'employees' },
-  { key: 'attendance', label: 'Attendance', icon: 'Clock', path: '/hrms/attendance', module: 'attendance' },
-  { key: 'leave', label: 'Leave', icon: 'Calendar', path: '/hrms/leave', module: 'leave' },
-  { key: 'payroll', label: 'Payroll', icon: 'DollarSign', path: '/hrms/payroll', module: 'payroll' },
+// Grouped Sidebar Items for Unified Layout
+export const sidebarGroups = [
+  {
+    group: 'Home',
+    items: [
+      { key: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard', module: 'dashboard' },
+    ]
+  },
+  {
+    group: 'CRM & Sales',
+    items: [
+      { key: 'leads', label: 'Leads Pipeline', icon: 'Kanban', path: '/leads', module: 'leads' },
+      { key: 'customers', label: 'Customers & Dealers', icon: 'Users', path: '/customers', module: 'customers' },
+      { key: 'sales', label: 'Invoices & Orders', icon: 'FileText', path: '/sales', module: 'sales' },
+      { key: 'returns', label: 'Sales Returns', icon: 'RotateCcw', path: '/returns', module: 'returns' },
+    ]
+  },
+  {
+    group: 'Inventory & Operations',
+    items: [
+      { key: 'products', label: 'Products & Stock', icon: 'Package', path: '/products', module: 'products' },
+      { key: 'warranty', label: 'Battery Warranty', icon: 'ShieldCheck', path: '/warranty', module: 'warranty' },
+      { key: 'purchases', label: 'Purchase Orders', icon: 'ShoppingCart', path: '/purchases', module: 'purchases' },
+      { key: 'suppliers', label: 'Suppliers & Vendors', icon: 'Truck', path: '/suppliers', module: 'suppliers' },
+    ]
+  },
+  {
+    group: 'Finance & Ledger',
+    items: [
+      { key: 'parties', label: 'Ledger Accounts', icon: 'BookOpen', path: '/ledger/parties', module: 'parties' },
+      { key: 'payment-in', label: 'Payment In (Receipts)', icon: 'ArrowDownLeft', path: '/ledger/payment-in', module: 'payment-in' },
+      { key: 'payment-out', label: 'Payment Out', icon: 'ArrowUpRight', path: '/ledger/payment-out', module: 'payment-out' },
+      { key: 'reports', label: 'Financial Reports', icon: 'BarChart3', path: '/reports', module: 'reports' },
+    ]
+  },
+  {
+    group: 'HR & Team',
+    items: [
+      { key: 'employees', label: 'Employee Directory', icon: 'Users', path: '/hrms/employees', module: 'employees' },
+      { key: 'attendance', label: 'Attendance & Leave', icon: 'CalendarClock', path: '/hrms/attendance', module: 'attendance' },
+      { key: 'payroll', label: 'Payroll & Salary', icon: 'DollarSign', path: '/hrms/payroll', module: 'payroll' },
+      { key: 'projects', label: 'Tasks & Projects', icon: 'Briefcase', path: '/hrms/projects', module: 'projects' },
+    ]
+  },
+  {
+    group: 'System',
+    items: [
+      { key: 'settings', label: 'System Settings', icon: 'Settings', path: '/settings', module: 'settings' },
+      { key: 'user-management', label: 'User Roles & Access', icon: 'Shield', path: '/user-management', module: 'user-management' },
+    ]
+  }
 ];

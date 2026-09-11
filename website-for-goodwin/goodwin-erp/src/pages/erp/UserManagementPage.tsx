@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Shield, ShieldAlert, Key, Users, Plus, Save, AlertOctagon, Trash2 } from 'lucide-react';
 import { getAdminClient } from '../../lib/supabaseAdmin';
 import { useAuth } from '../../store/AuthContext';
-import { supabase } from '../../lib/supabaseClient';
 import toast from 'react-hot-toast';
 import type { UserRole } from '../../types';
 

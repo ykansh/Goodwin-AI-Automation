@@ -105,8 +105,8 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
                 <div className="font-bold">Order Date:</div><div>{invoice.date}</div>
                 <div className="font-bold">Invoice Date:</div><div>{invoice.date}</div>
                 <div className="font-bold">Invoice Number :</div><div>{invoice.invoice_number}</div>
-                <div className="font-bold">Customer Name:</div><div>{customer?.contact_person || invoice.customer_name}</div>
-                <div className="font-bold">Customer Phone Number:</div><div>{customer?.phone || ''}</div>
+                <div className="font-bold">Customer Name:</div><div>{customer?.name || invoice.customer_name}</div>
+                <div className="font-bold">Customer Phone Number:</div><div>{customer?.contact || ''}</div>
                 <div className="font-bold">Billing Name:</div><div>{invoice.customer_name}</div>
                 <div className="font-bold">Billing Address :</div><div>{customer?.address || ''}</div>
                 <div className="font-bold">State/UT:</div><div>{invoice.billing_state_ut}</div>
