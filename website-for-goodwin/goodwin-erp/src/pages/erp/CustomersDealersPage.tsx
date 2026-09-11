@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers } from '../../hooks/queries';
+import { useDeleteCustomer } from '../../hooks/mutations';
 import type { Customer } from '../../types';
 import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal';
 import { NewCustomerModal } from '../../components/modals/NewCustomerModal';
 import { EditCustomerModal } from '../../components/modals/EditCustomerModal';
-import { Search, UserPlus, Filter, Edit3, History, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Filter, Edit3, History, Trash2, Loader2 } from 'lucide-react';
 
 export function CustomersDealersPage() {
-  const { customers, deleteCustomer } = useData();
+  const { data: customers = [], isLoading } = useCustomers();
+  const deleteCustomerMutation = useDeleteCustomer();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -100,7 +102,14 @@ export function CustomersDealersPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredCustomers.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading customers...</p>
+                  </td>
+                </tr>
+              ) : filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-gray-400 dark:text-gray-500 font-bold">
                     No customers found matching search criteria.
@@ -159,7 +168,7 @@ export function CustomersDealersPage() {
                         type="button"
                         onClick={() => {
                           if (window.confirm("Are you sure you want to delete this customer?")) {
-                            deleteCustomer(c.id);
+                            deleteCustomerMutation.mutate(c.id);
                           }
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"

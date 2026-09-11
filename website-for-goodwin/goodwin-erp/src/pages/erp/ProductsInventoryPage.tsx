@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useProducts } from '../../hooks/queries';
+import { useDeleteProduct } from '../../hooks/mutations';
 import type { Product } from '../../types';
 import { NewProductModal } from '../../components/modals/NewProductModal';
 import { EditProductModal } from '../../components/modals/EditProductModal';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function ProductsInventoryPage() {
-  const { products, deleteProduct } = useData();
+  const { data: products = [], isLoading } = useProducts();
+  const deleteProductMutation = useDeleteProduct();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -71,7 +73,14 @@ export function ProductsInventoryPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading products...</p>
+                  </td>
+                </tr>
+              ) : filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-10 text-gray-400 font-bold">
                     No battery products found.
@@ -146,7 +155,7 @@ export function ProductsInventoryPage() {
                           type="button"
                           onClick={() => {
                             if (window.confirm("Are you sure you want to delete this product?")) {
-                              deleteProduct(p.id);
+                              deleteProductMutation.mutate(p.id);
                             }
                           }}
                           className="px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1"

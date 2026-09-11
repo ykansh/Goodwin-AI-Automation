@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { Plus, Calendar, X, Trash2 } from 'lucide-react';
-import { useData } from '../../store/DataContext';
+import { Plus, Calendar, X, Trash2, Loader2 } from 'lucide-react';
+import { useHrmsLeaves, useHrmsEmployees } from '../../hooks/queries';
+import { useAddHrmsLeave, useUpdateHrmsLeave, useDeleteHrmsLeave } from '../../hooks/mutations';
 import toast from 'react-hot-toast';
 
 export function LeavePage() {
-  const { hrmsLeaves, hrmsEmployees, applyLeave, updateLeaveStatus, deleteLeave } = useData();
+  const { data: hrmsLeaves = [], isLoading: isLoadingLeaves } = useHrmsLeaves();
+  const { data: hrmsEmployees = [], isLoading: isLoadingEmployees } = useHrmsEmployees();
+  const addHrmsLeaveMutation = useAddHrmsLeave();
+  const updateHrmsLeaveMutation = useUpdateHrmsLeave();
+  const deleteHrmsLeaveMutation = useDeleteHrmsLeave();
+  const isLoading = isLoadingLeaves || isLoadingEmployees;
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,8 +31,9 @@ export function LeavePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.employee_id) return toast.error('Select an employee');
-    applyLeave(formData);
-    setShowModal(false);
+    addHrmsLeaveMutation.mutate(formData, {
+      onSuccess: () => setShowModal(false)
+    });
   };
 
   return (
@@ -69,45 +76,56 @@ export function LeavePage() {
               </tr>
             </thead>
             <tbody>
-              {filteredLeaves.map((record) => (
-                <tr key={record.id} className="border-b border-gray-100/50 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="p-4 font-bold text-[#3a3b39] dark:text-white">{record.employee?.first_name} {record.employee?.last_name}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{record.leave_type}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{record.start_date} to {record.end_date} ({record.number_of_days} days)</td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      record.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                      record.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-orange-100 text-orange-700'
-                    }`}>
-                      {record.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    {record.status === 'Pending' && (
-                      <>
-                        <button onClick={() => updateLeaveStatus(record.id, 'Approved')} className="text-green-600 hover:text-green-800 font-bold text-sm">Approve</button>
-                        <button onClick={() => updateLeaveStatus(record.id, 'Rejected')} className="text-red-600 hover:text-red-800 font-bold text-sm">Reject</button>
-                      </>
-                    )}
-                    <button 
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to delete this leave request?")) {
-                          deleteLeave(record.id);
-                        }
-                      }} 
-                      className="text-gray-400 hover:text-red-600 transition-colors ml-2"
-                      title="Delete Leave Request"
-                    >
-                      <Trash2 className="w-4 h-4 inline-block" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredLeaves.length === 0 && (
+              {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">No leave requests found.</td>
+                  <td colSpan={5} className="p-12 text-center">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading leave requests...</p>
+                  </td>
                 </tr>
+              ) : (
+                <>
+                  {filteredLeaves.map((record) => (
+                    <tr key={record.id} className="border-b border-gray-100/50 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="p-4 font-bold text-[#3a3b39] dark:text-white">{record.employee?.first_name} {record.employee?.last_name}</td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">{record.leave_type}</td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">{record.start_date} to {record.end_date} ({record.number_of_days} days)</td>
+                      <td className="p-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          record.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                          record.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-orange-100 text-orange-700'
+                        }`}>
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right space-x-2">
+                        {record.status === 'Pending' && (
+                          <>
+                            <button onClick={() => updateHrmsLeaveMutation.mutate({ id: record.id, data: { status: 'Approved' } })} className="text-green-600 hover:text-green-800 font-bold text-sm">Approve</button>
+                            <button onClick={() => updateHrmsLeaveMutation.mutate({ id: record.id, data: { status: 'Rejected' } })} className="text-red-600 hover:text-red-800 font-bold text-sm">Reject</button>
+                          </>
+                        )}
+                        <button 
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this leave request?")) {
+                              deleteHrmsLeaveMutation.mutate(record.id);
+                            }
+                          }} 
+                          className="text-gray-400 hover:text-red-600 transition-colors ml-2"
+                          title="Delete Leave Request"
+                        >
+                          <Trash2 className="w-4 h-4 inline-block" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredLeaves.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">No leave requests found.</td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>

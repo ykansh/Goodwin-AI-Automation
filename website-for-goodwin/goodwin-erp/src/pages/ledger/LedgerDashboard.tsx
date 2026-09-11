@@ -1,17 +1,24 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useInvoices, useProducts, useCustomers, useSuppliers } from '../../hooks/queries';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend
 } from 'recharts';
 import {
   BookOpen, Wallet, Building2, ArrowDownLeft, ArrowUpRight,
-  ShoppingBag, Package, Plus
+  ShoppingBag, Package, Plus, Loader2
 } from 'lucide-react';
 import { NewPaymentInModal } from '../../components/modals/NewPaymentInModal';
 import { NewPaymentOutModal } from '../../components/modals/NewPaymentOutModal';
 
 export function LedgerDashboard() {
-  const { invoices, products, customers, suppliers, cashBalance, bankBalance } = useData();
+  const { data: invoices = [], isLoading: isLoadingInvoices } = useInvoices();
+  const { data: products = [], isLoading: isLoadingProducts } = useProducts();
+  const { data: customers = [], isLoading: isLoadingCustomers } = useCustomers();
+  const { data: suppliers = [], isLoading: isLoadingSuppliers } = useSuppliers();
+
+  const isLoading = isLoadingInvoices || isLoadingProducts || isLoadingCustomers || isLoadingSuppliers;
+  const cashBalance = 145000;
+  const bankBalance = 1250000;
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
 
   const [showPaymentInModal, setShowPaymentInModal] = useState(false);
@@ -149,8 +156,15 @@ export function LedgerDashboard() {
         </div>
       </div>
 
-      {/* ── SECTION 2: 4 Financial KPI Cards (Clean Asymmetrical 3-Row Layout) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-[#00a631] animate-spin" />
+          <span className="ml-3 font-bold text-gray-500">Loading ledger dashboard...</span>
+        </div>
+      ) : (
+        <>
+          {/* ── SECTION 2: 4 Financial KPI Cards (Clean Asymmetrical 3-Row Layout) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
         {financialCards.map((card, i) => (
           <div
             key={i}
@@ -330,6 +344,7 @@ export function LedgerDashboard() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Modals */}
       {showPaymentInModal && <NewPaymentInModal onClose={() => setShowPaymentInModal(false)} />}

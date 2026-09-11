@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { Plus, DollarSign, X } from 'lucide-react';
-import { useData } from '../../store/DataContext';
+import { Plus, DollarSign, X, Loader2 } from 'lucide-react';
+import { useHrmsPayroll, useHrmsEmployees } from '../../hooks/queries';
+import { useAddHrmsPayroll, useUpdateHrmsPayroll } from '../../hooks/mutations';
 import toast from 'react-hot-toast';
 
 export function PayrollPage() {
-  const { hrmsPayroll, hrmsEmployees, processPayroll, updateHrmsPayroll } = useData();
+  const { data: hrmsPayroll = [], isLoading: isLoadingPayroll } = useHrmsPayroll();
+  const { data: hrmsEmployees = [], isLoading: isLoadingEmployees } = useHrmsEmployees();
+  const addHrmsPayrollMutation = useAddHrmsPayroll();
+  const updateHrmsPayrollMutation = useUpdateHrmsPayroll();
+  const isLoading = isLoadingPayroll || isLoadingEmployees;
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,8 +54,9 @@ export function PayrollPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.employee_id) return toast.error('Select an employee');
-    processPayroll(formData);
-    setShowModal(false);
+    addHrmsPayrollMutation.mutate(formData, {
+      onSuccess: () => setShowModal(false)
+    });
   };
 
   return (
@@ -93,33 +99,44 @@ export function PayrollPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredPayroll.map((record) => (
-                <tr key={record.id} className="border-b border-gray-100/50 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="p-4 font-bold text-[#3a3b39] dark:text-white">{record.employee?.first_name} {record.employee?.last_name}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{record.month} {record.year}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">₹{record.basic_salary.toLocaleString()}</td>
-                  <td className="p-4 font-bold text-[#00a631]">₹{record.net_salary.toLocaleString()}</td>
-                  <td className="p-4">
-                    <select
-                      value={record.status}
-                      onChange={(e) => updateHrmsPayroll(record.id, { status: e.target.value })}
-                      className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer outline-none appearance-none ${
-                        record.status === 'Paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        record.status === 'Processed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                      }`}
-                    >
-                      <option value="Draft">Draft</option>
-                      <option value="Processed">Processed</option>
-                      <option value="Paid">Paid</option>
-                    </select>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading payroll records...</p>
                   </td>
                 </tr>
-              ))}
-              {filteredPayroll.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">No payroll records found.</td>
-                </tr>
+              ) : (
+                <>
+                  {filteredPayroll.map((record) => (
+                    <tr key={record.id} className="border-b border-gray-100/50 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="p-4 font-bold text-[#3a3b39] dark:text-white">{record.employee?.first_name} {record.employee?.last_name}</td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">{record.month} {record.year}</td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">₹{record.basic_salary.toLocaleString()}</td>
+                      <td className="p-4 font-bold text-[#00a631]">₹{record.net_salary.toLocaleString()}</td>
+                      <td className="p-4">
+                        <select
+                          value={record.status}
+                          onChange={(e) => updateHrmsPayrollMutation.mutate({ id: record.id, data: { status: e.target.value } })}
+                          className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer outline-none appearance-none ${
+                            record.status === 'Paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                            record.status === 'Processed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                            'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                          }`}
+                        >
+                          <option value="Draft">Draft</option>
+                          <option value="Processed">Processed</option>
+                          <option value="Paid">Paid</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPayroll.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">No payroll records found.</td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>

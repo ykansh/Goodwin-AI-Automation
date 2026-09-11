@@ -1,10 +1,15 @@
 import { useState, useMemo } from 'react';
-import { Clock, Calendar as CalendarIcon, ArrowLeft, Trash2 } from 'lucide-react';
-import { useData } from '../../store/DataContext';
+import { Clock, Calendar as CalendarIcon, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
+import { useHrmsAttendance, useHrmsEmployees } from '../../hooks/queries';
+import { useAddHrmsAttendance, useDeleteHrmsAttendance } from '../../hooks/mutations';
 import toast from 'react-hot-toast';
 
 export function AttendancePage() {
-  const { hrmsAttendance, hrmsEmployees, markAttendance, deleteAttendance } = useData();
+  const { data: hrmsAttendance = [], isLoading: isLoadingAttendance } = useHrmsAttendance();
+  const { data: hrmsEmployees = [], isLoading: isLoadingEmployees } = useHrmsEmployees();
+  const markAttendanceMutation = useAddHrmsAttendance();
+  const deleteAttendanceMutation = useDeleteHrmsAttendance();
+  const isLoading = isLoadingAttendance || isLoadingEmployees;
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
@@ -34,7 +39,7 @@ export function AttendancePage() {
         checkOut = '18:00';
       }
 
-      await markAttendance({
+      await markAttendanceMutation.mutateAsync({
         employee_id: employeeId,
         date: todayDate,
         status,
@@ -61,7 +66,7 @@ export function AttendancePage() {
       const now = new Date();
       const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
       const currentAtt = getTodayRecord(employeeId);
-      await markAttendance({
+      await markAttendanceMutation.mutateAsync({
         employee_id: employeeId,
         date: todayDate,
         status: currentAtt?.status || 'Present',
@@ -82,7 +87,7 @@ export function AttendancePage() {
       const now = new Date();
       const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
       const currentAtt = getTodayRecord(employeeId);
-      await markAttendance({
+      await markAttendanceMutation.mutateAsync({
         employee_id: employeeId,
         date: todayDate,
         status: currentAtt?.status || 'Present',
@@ -229,7 +234,7 @@ export function AttendancePage() {
                         if (window.confirm("Are you sure you want to delete today's attendance record for this employee?")) {
                           const att = hrmsAttendance.find(a => a.employee_id === emp.id && a.date === todayDate);
                           if (att) {
-                            deleteAttendance(att.id);
+                            deleteAttendanceMutation.mutate(att.id);
                           }
                         }
                       }}
@@ -259,7 +264,8 @@ export function AttendancePage() {
 
 // ── Calendar View Component ──────────────────────────────────────────────────
 function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string, onBack: () => void }) {
-  const { hrmsAttendance, hrmsEmployees } = useData();
+  const { data: hrmsAttendance = [] } = useHrmsAttendance();
+  const { data: hrmsEmployees = [] } = useHrmsEmployees();
   
   // Setup standard calendar logic
   const now = new Date();

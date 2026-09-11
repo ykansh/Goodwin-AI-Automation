@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { usePurchases } from '../../hooks/queries';
+import { useDeletePurchaseOrder } from '../../hooks/mutations';
 import { NewPurchaseModal } from '../../components/modals/NewPurchaseModal';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function PurchasesPOsPage() {
-  const { purchases, deletePurchaseOrder } = useData();
+  const { data: purchases = [], isLoading } = usePurchases();
+  const deletePurchaseOrderMutation = useDeletePurchaseOrder();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -65,7 +67,14 @@ export function PurchasesPOsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredPurchases.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading purchase orders...</p>
+                  </td>
+                </tr>
+              ) : filteredPurchases.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-10 text-gray-400 font-bold">
                     No purchase invoices logged.
@@ -119,7 +128,7 @@ export function PurchasesPOsPage() {
                           type="button"
                           onClick={() => {
                             if (window.confirm("Are you sure you want to delete this PO?")) {
-                              deletePurchaseOrder(po.id);
+                              deletePurchaseOrderMutation.mutate(po.id);
                             }
                           }}
                           className="px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1"

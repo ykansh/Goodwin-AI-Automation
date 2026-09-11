@@ -1,45 +1,61 @@
 import { useState, useEffect } from 'react';
-import { useData } from '../../store/DataContext';
+import { useSettings } from '../../hooks/queries';
+import { useUpdateSettings } from '../../hooks/mutations';
 import { createClient } from '@supabase/supabase-js';
 import { checkSupabaseConnection } from '../../lib/supabaseClient';
 import { GOODWIN_SUPABASE_SQL } from '../../lib/supabaseSql';
-import { Database, Battery, Building2, Copy, Check, RefreshCw, Wifi, WifiOff, ExternalLink, Code } from 'lucide-react';
+import { Database, Battery, Building2, Copy, Check, RefreshCw, Wifi, WifiOff, ExternalLink, Code, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function SettingsPage() {
-  const { settings, updateSettings } = useData();
+  const { data: settings, isLoading } = useSettings();
+  const updateSettingsMutation = useUpdateSettings();
 
   // ── Cloud DB state ─────────────────────────────────────────────────────────
-  const [supabaseUrl,  setSupabaseUrl]  = useState(
-    import.meta.env.VITE_SUPABASE_URL ?? settings.supabase_url ?? ''
-  );
-  const [supabaseKey,  setSupabaseKey]  = useState(
-    import.meta.env.VITE_SUPABASE_ANON_KEY ?? settings.supabase_anon_key ?? ''
-  );
+  const [supabaseUrl,  setSupabaseUrl]  = useState('');
+  const [supabaseKey,  setSupabaseKey]  = useState('');
   const [testingDb,    setTestingDb]    = useState(false);
-  const [dbStatus,     setDbStatus]     = useState<'idle' | 'checking' | 'connected' | 'error'>(
-    'checking'
-  );
+  const [dbStatus,     setDbStatus]     = useState<'idle' | 'checking' | 'connected' | 'error'>('checking');
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [showKey,      setShowKey]      = useState(false);
   const [showSqlCode,  setShowSqlCode]  = useState(false);
 
-  const [voltages,     setVoltages]     = useState(settings.battery_configs.voltages.join(', '));
-  const [ahRatings,    setAhRatings]    = useState(settings.battery_configs.ah_ratings.join(', '));
-  const [warehouses,   setWarehouses]   = useState(settings.battery_configs.warehouses.join('\n'));
-  const [salespersons, setSalespersons] = useState(settings.battery_configs.salespersons.join(', '));
+  const [voltages,     setVoltages]     = useState('');
+  const [ahRatings,    setAhRatings]    = useState('');
+  const [warehouses,   setWarehouses]   = useState('');
+  const [salespersons, setSalespersons] = useState('');
 
   // ── Company Profile state ──────────────────────────────────────────────────
   const [isEditingCompany, setIsEditingCompany] = useState(false);
-  const [companyName, setCompanyName] = useState(settings.name);
-  const [companyGstin, setCompanyGstin] = useState(settings.gstin);
-  const [companyAddress, setCompanyAddress] = useState(settings.address);
-  const [bankName, setBankName] = useState(settings.bank_details?.bank_name || '');
-  const [accountNumber, setAccountNumber] = useState(settings.bank_details?.account_number || '');
+  const [companyName, setCompanyName] = useState('');
+  const [companyGstin, setCompanyGstin] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+
+  // Update local state when settings data is loaded
+  useEffect(() => {
+    if (settings) {
+      setSupabaseUrl(import.meta.env.VITE_SUPABASE_URL ?? settings.supabase_url ?? '');
+      setSupabaseKey(import.meta.env.VITE_SUPABASE_ANON_KEY ?? settings.supabase_anon_key ?? '');
+      
+      const config = settings.battery_configs || { voltages: [], ah_ratings: [], warehouses: [], salespersons: [] };
+      setVoltages(config.voltages?.join(', ') || '');
+      setAhRatings(config.ah_ratings?.join(', ') || '');
+      setWarehouses(config.warehouses?.join('\n') || '');
+      setSalespersons(config.salespersons?.join(', ') || '');
+
+      setCompanyName(settings.name || '');
+      setCompanyGstin(settings.gstin || '');
+      setCompanyAddress(settings.address || '');
+      setBankName(settings.bank_details?.bank_name || '');
+      setAccountNumber(settings.bank_details?.account_number || '');
+    }
+  }, [settings]);
 
   // ── Auto-check connection on mount ─────────────────────────────────────────
   useEffect(() => {
-        setDbStatus('checking');
+    setDbStatus('checking');
     checkSupabaseConnection().then((ok) => setDbStatus(ok ? 'connected' : 'error'));
   }, []);
 
@@ -108,11 +124,12 @@ export function SettingsPage() {
   // ── Save battery config ────────────────────────────────────────────────────
   const handleSaveConfigs = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettings({
+    const batteryConfig = settings?.battery_configs || {};
+    updateSettingsMutation.mutate({
       supabase_url: supabaseUrl.trim(),
       supabase_anon_key: supabaseKey.trim(),
       battery_configs: {
-        ...settings.battery_configs,
+        ...batteryConfig,
         voltages:     voltages.split(',').map((s) => s.trim()).filter(Boolean),
         ah_ratings:   ahRatings.split(',').map((s) => s.trim()).filter(Boolean),
         warehouses:   warehouses.split('\n').map((s) => s.trim()).filter(Boolean),
@@ -122,18 +139,17 @@ export function SettingsPage() {
   };
 
   const handleSaveCompany = () => {
-    updateSettings({
+    updateSettingsMutation.mutate({
       name: companyName,
       gstin: companyGstin,
       address: companyAddress,
       bank_details: {
-        ...(settings.bank_details || {}),
+        ...(settings?.bank_details || {}),
         bank_name: bankName,
         account_number: accountNumber
       }
     });
     setIsEditingCompany(false);
-    toast.success('Company & Bank Profile updated!');
   };
 
   // ── Status badge helper ────────────────────────────────────────────────────
@@ -143,6 +159,15 @@ export function SettingsPage() {
     connected: { label: '✅ Connected',    classes: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400' },
     error:     { label: '❌ Disconnected', classes: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' },
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 text-[#00a631] animate-spin" />
+        <span className="ml-3 font-bold text-gray-500">Loading settings...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -384,13 +409,13 @@ export function SettingsPage() {
               </div>
             ) : (
               <div className="space-y-2 text-xs leading-relaxed">
-                <p className="font-extrabold text-[#3a3b39] dark:text-white text-sm">{settings.name}</p>
+                <p className="font-extrabold text-[#3a3b39] dark:text-white text-sm">{settings?.name}</p>
                 <p className="text-gray-500 dark:text-gray-400">
-                  GSTIN: <span className="font-mono font-bold text-[#3a3b39] dark:text-white">{settings.gstin}</span>
+                  GSTIN: <span className="font-mono font-bold text-[#3a3b39] dark:text-white">{settings?.gstin}</span>
                 </p>
-                <p className="text-gray-500 dark:text-gray-400">Address: {settings.address}</p>
+                <p className="text-gray-500 dark:text-gray-400">Address: {settings?.address}</p>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Bank: {settings.bank_details?.bank_name || 'N/A'} &nbsp;|&nbsp; A/C: {settings.bank_details?.account_number || 'N/A'}
+                  Bank: {settings?.bank_details?.bank_name || 'N/A'} &nbsp;|&nbsp; A/C: {settings?.bank_details?.account_number || 'N/A'}
                 </p>
               </div>
             )}

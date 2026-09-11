@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
-import { FileSpreadsheet, Layers } from 'lucide-react';
+import { useInvoices, useProducts } from '../../hooks/queries';
+import { FileSpreadsheet, Layers, Loader2 } from 'lucide-react';
 
 export function ReportsAnalyticsPage() {
-  const { invoices, products } = useData();
+  const { data: invoices = [], isLoading: invoicesLoading } = useInvoices();
+  const { data: products = [], isLoading: productsLoading } = useProducts();
+  const isLoading = invoicesLoading || productsLoading;
 
   const [timeframe, setTimeframe] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
   const [activeTab, setActiveTab] = useState<'sales' | 'stock'>('sales');
@@ -120,22 +122,37 @@ export function ReportsAnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {salesRegister.map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="font-semibold text-gray-600">{row.date}</td>
-                    <td className="font-mono font-extrabold text-[#00a631]">{row.invoice_number}</td>
-                    <td className="font-extrabold text-[#3a3b39]">{row.customer}</td>
-                    <td className="text-right font-bold text-gray-700">
-                      ₹{row.taxable.toLocaleString('en-IN')}
-                    </td>
-                    <td className="text-right font-bold text-gray-700">
-                      ₹{row.gst.toLocaleString('en-IN')}
-                    </td>
-                    <td className="text-right font-extrabold text-[#00a631]">
-                      ₹{row.total_amount.toLocaleString('en-IN')}
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12">
+                      <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                      <p className="mt-2 text-sm font-bold text-gray-500">Loading reports...</p>
                     </td>
                   </tr>
-                ))}
+                ) : salesRegister.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-10 text-gray-400 font-bold">
+                      No sales data available.
+                    </td>
+                  </tr>
+                ) : (
+                  salesRegister.map((row, idx) => (
+                    <tr key={idx}>
+                      <td className="font-semibold text-gray-600">{row.date}</td>
+                      <td className="font-mono font-extrabold text-[#00a631]">{row.invoice_number}</td>
+                      <td className="font-extrabold text-[#3a3b39]">{row.customer}</td>
+                      <td className="text-right font-bold text-gray-700">
+                        ₹{row.taxable.toLocaleString('en-IN')}
+                      </td>
+                      <td className="text-right font-bold text-gray-700">
+                        ₹{row.gst.toLocaleString('en-IN')}
+                      </td>
+                      <td className="text-right font-extrabold text-[#00a631]">
+                        ₹{row.total_amount.toLocaleString('en-IN')}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -164,19 +181,34 @@ export function ReportsAnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {stockLedger.map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="font-extrabold text-[#3a3b39]">{row.product_name}</td>
-                    <td className="font-mono text-xs font-bold text-gray-600">{row.sku}</td>
-                    <td className="text-center font-extrabold text-sm">{row.stock}</td>
-                    <td className="text-right font-semibold text-gray-700">
-                      ₹{row.purchase_price.toLocaleString('en-IN')}
-                    </td>
-                    <td className="text-right font-extrabold text-[#00a631]">
-                      ₹{row.valuation.toLocaleString('en-IN')}
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-12">
+                      <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                      <p className="mt-2 text-sm font-bold text-gray-500">Loading stock ledger...</p>
                     </td>
                   </tr>
-                ))}
+                ) : stockLedger.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-10 text-gray-400 font-bold">
+                      No stock data available.
+                    </td>
+                  </tr>
+                ) : (
+                  stockLedger.map((row, idx) => (
+                    <tr key={idx}>
+                      <td className="font-extrabold text-[#3a3b39]">{row.product_name}</td>
+                      <td className="font-mono text-xs font-bold text-gray-600">{row.sku}</td>
+                      <td className="text-center font-extrabold text-sm">{row.stock}</td>
+                      <td className="text-right font-semibold text-gray-700">
+                        ₹{row.purchase_price.toLocaleString('en-IN')}
+                      </td>
+                      <td className="text-right font-extrabold text-[#00a631]">
+                        ₹{row.valuation.toLocaleString('en-IN')}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

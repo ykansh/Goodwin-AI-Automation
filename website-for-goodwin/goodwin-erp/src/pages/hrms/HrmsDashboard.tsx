@@ -1,12 +1,17 @@
-import { Users, Clock, Calendar, DollarSign, ArrowUpRight } from 'lucide-react';
-import { useData } from '../../store/DataContext';
+import { Users, Clock, Calendar, DollarSign, ArrowUpRight, Loader2 } from 'lucide-react';
+import { useHrmsEmployees, useHrmsAttendance, useHrmsLeaves, useHrmsPayroll } from '../../hooks/queries';
 
 interface HrmsDashboardProps {
   onNavigate: (module: string) => void;
 }
 
 export function HrmsDashboard({ onNavigate }: HrmsDashboardProps) {
-  const { hrmsEmployees, hrmsAttendance, hrmsLeaves, hrmsPayroll } = useData();
+  const { data: hrmsEmployees = [], isLoading: isLoadingEmployees } = useHrmsEmployees();
+  const { data: hrmsAttendance = [], isLoading: isLoadingAttendance } = useHrmsAttendance();
+  const { data: hrmsLeaves = [], isLoading: isLoadingLeaves } = useHrmsLeaves();
+  const { data: hrmsPayroll = [], isLoading: isLoadingPayroll } = useHrmsPayroll();
+
+  const isLoading = isLoadingEmployees || isLoadingAttendance || isLoadingLeaves || isLoadingPayroll;
 
   const stats = [
     { 
@@ -57,8 +62,14 @@ export function HrmsDashboard({ onNavigate }: HrmsDashboardProps) {
         <h1 className="text-2xl font-extrabold text-[#3a3b39] dark:text-white">HRMS Dashboard</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-[#00a631] animate-spin" />
+          <span className="ml-3 font-bold text-gray-500">Loading HRMS data...</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat) => (
           <div
             key={stat.title}
             onClick={() => onNavigate(stat.module)}
@@ -85,6 +96,7 @@ export function HrmsDashboard({ onNavigate }: HrmsDashboardProps) {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

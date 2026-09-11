@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useCustomers, useSuppliers } from '../../hooks/queries';
+import { useDeleteCustomer, useDeleteSupplier } from '../../hooks/mutations';
 import type { Customer, Supplier } from '../../types';
 import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal';
 import { NewCustomerModal } from '../../components/modals/NewCustomerModal';
 import { EditCustomerModal } from '../../components/modals/EditCustomerModal';
 import { EditSupplierModal } from '../../components/modals/EditSupplierModal';
-import { Search, UserPlus, Filter, Edit3, History, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Filter, Edit3, History, Trash2, Loader2 } from 'lucide-react';
 
 export function PartiesPage() {
-  const { customers, suppliers, deleteCustomer, deleteSupplier } = useData();
+  const { data: customers = [], isLoading: loadingCustomers } = useCustomers();
+  const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
+  const deleteCustomerMutation = useDeleteCustomer();
+  const deleteSupplierMutation = useDeleteSupplier();
+  const isLoading = loadingCustomers || loadingSuppliers;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -116,7 +121,14 @@ export function PartiesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredParties.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading parties...</p>
+                  </td>
+                </tr>
+              ) : filteredParties.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-12 text-gray-400 dark:text-gray-500 font-bold">
                     No parties found matching criteria.
@@ -188,9 +200,9 @@ export function PartiesPage() {
                         onClick={() => {
                           if (window.confirm("Are you sure you want to delete this party?")) {
                             if (p.partyKind === 'customer') {
-                              deleteCustomer(p.id);
+                              deleteCustomerMutation.mutate(p.id);
                             } else {
-                              deleteSupplier(p.id);
+                              deleteSupplierMutation.mutate(p.id);
                             }
                           }
                         }}

@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useHrmsEmployees } from '../../hooks/queries';
+import { useAddHrmsEmployee, useUpdateHrmsEmployee } from '../../hooks/mutations';
 import { useAuth } from '../../store/AuthContext';
-import { Users, Plus, X, Trash2, Edit2 } from 'lucide-react';
+import { Users, Plus, X, Trash2, Edit2, Loader2 } from 'lucide-react';
 
 export function EmployeesPage() {
-  const { hrmsEmployees, addHrmsEmployee, updateHrmsEmployee } = useData();
+  const { data: hrmsEmployees = [], isLoading } = useHrmsEmployees();
+  const addHrmsEmployeeMutation = useAddHrmsEmployee();
+  const updateHrmsEmployeeMutation = useUpdateHrmsEmployee();
   const { user } = useAuth();
   
   const [showModal, setShowModal] = useState(false);
@@ -56,7 +59,7 @@ export function EmployeesPage() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this employee? Their past attendance records will be preserved.")) {
-      await updateHrmsEmployee(id, { status: 'Inactive' });
+      updateHrmsEmployeeMutation.mutate({ id, data: { status: 'Inactive' } });
     }
   };
 
@@ -64,11 +67,12 @@ export function EmployeesPage() {
     e.preventDefault();
     
     if (editingId) {
-      const result = await updateHrmsEmployee(editingId, formData);
-      if (result) {
-        setShowModal(false);
-        resetForm();
-      }
+      updateHrmsEmployeeMutation.mutate({ id: editingId, data: formData }, {
+        onSuccess: () => {
+          setShowModal(false);
+          resetForm();
+        }
+      });
     } else {
       // Generate a unique employee ID
       const employee_id = `EMP-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
@@ -78,11 +82,12 @@ export function EmployeesPage() {
         employee_id
       };
       
-      const result = await addHrmsEmployee(empData);
-      if (result) {
-        setShowModal(false);
-        resetForm();
-      }
+      addHrmsEmployeeMutation.mutate(empData, {
+        onSuccess: () => {
+          setShowModal(false);
+          resetForm();
+        }
+      });
     }
   };
 
@@ -123,52 +128,63 @@ export function EmployeesPage() {
               </tr>
             </thead>
             <tbody>
-              {hrmsEmployees.filter(emp => emp.status !== 'Inactive').map((record) => (
-                <tr key={record.id} className="border-b border-gray-100/50 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
-                  <td className="p-4">
-                    <p className="font-bold text-[#3a3b39] dark:text-white">{record.first_name} {record.last_name}</p>
-                    <p className="text-xs text-gray-500">{record.employee_id}</p>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-gray-600 dark:text-gray-300">{record.email}</p>
-                    <p className="text-xs text-gray-500">{record.phone}</p>
-                  </td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{record.department || '-'}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{record.designation || '-'}</td>
-                  <td className="p-4 text-gray-600 dark:text-gray-300">{record.joining_date ? new Date(record.joining_date).toLocaleDateString() : '-'}</td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      record.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {record.status}
-                    </span>
-                  </td>
-                  {canAddEmployee && (
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button 
-                          onClick={() => handleEdit(record)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                          title="Edit Employee"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(record.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Delete Employee"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-              {hrmsEmployees.filter(emp => emp.status !== 'Inactive').length === 0 && (
+              {isLoading ? (
                 <tr>
-                  <td colSpan={canAddEmployee ? 7 : 6} className="p-8 text-center text-gray-500 font-bold">No employees found.</td>
+                  <td colSpan={canAddEmployee ? 7 : 6} className="p-12 text-center">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading employees...</p>
+                  </td>
                 </tr>
+              ) : (
+                <>
+                  {hrmsEmployees.filter(emp => emp.status !== 'Inactive').map((record) => (
+                    <tr key={record.id} className="border-b border-gray-100/50 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="p-4">
+                        <p className="font-bold text-[#3a3b39] dark:text-white">{record.first_name} {record.last_name}</p>
+                        <p className="text-xs text-gray-500">{record.employee_id}</p>
+                      </td>
+                      <td className="p-4">
+                        <p className="text-gray-600 dark:text-gray-300">{record.email}</p>
+                        <p className="text-xs text-gray-500">{record.phone}</p>
+                      </td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">{record.department || '-'}</td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">{record.designation || '-'}</td>
+                      <td className="p-4 text-gray-600 dark:text-gray-300">{record.joining_date ? new Date(record.joining_date).toLocaleDateString() : '-'}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${
+                          record.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {record.status}
+                        </span>
+                      </td>
+                      {canAddEmployee && (
+                        <td className="p-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button 
+                              onClick={() => handleEdit(record)}
+                              className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              title="Edit Employee"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(record.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title="Delete Employee"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {hrmsEmployees.filter(emp => emp.status !== 'Inactive').length === 0 && (
+                    <tr>
+                      <td colSpan={canAddEmployee ? 7 : 6} className="p-8 text-center text-gray-500 font-bold">No employees found.</td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>

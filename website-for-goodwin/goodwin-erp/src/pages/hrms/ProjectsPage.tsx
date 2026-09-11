@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
-import { Briefcase, Plus, X, Calendar, Activity, List, Clock, AlertCircle } from 'lucide-react';
-import { useData } from '../../store/DataContext';
+import { Briefcase, Plus, X, Calendar, Activity, List, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { useHrmsProjects, useHrmsTasks, useHrmsTimesheets, useHrmsEmployees } from '../../hooks/queries';
+import { useAddHrmsProject, useUpdateHrmsProject, useAddHrmsTask, useUpdateHrmsTask, useAddHrmsTimesheet, useUpdateHrmsTimesheet } from '../../hooks/mutations';
 import toast from 'react-hot-toast';
 
 export function ProjectsPage() {
-  const { hrmsProjects, hrmsTasks, hrmsTimesheets, hrmsEmployees, addHrmsProject, addHrmsTask, addHrmsTimesheet, updateHrmsTask, updateHrmsProject, updateHrmsTimesheet } = useData();
+  const { data: hrmsProjects = [], isLoading: isLoadingProjects } = useHrmsProjects();
+  const { data: hrmsTasks = [], isLoading: isLoadingTasks } = useHrmsTasks();
+  const { data: hrmsTimesheets = [], isLoading: isLoadingTimesheets } = useHrmsTimesheets();
+  const { data: hrmsEmployees = [], isLoading: isLoadingEmployees } = useHrmsEmployees();
+  
+  const addProjectMutation = useAddHrmsProject();
+  const updateProjectMutation = useUpdateHrmsProject();
+  const addTaskMutation = useAddHrmsTask();
+  const updateTaskMutation = useUpdateHrmsTask();
+  const addTimesheetMutation = useAddHrmsTimesheet();
+  const updateTimesheetMutation = useUpdateHrmsTimesheet();
+
+  const isLoading = isLoadingProjects || isLoadingTasks || isLoadingTimesheets || isLoadingEmployees;
   const [activeTab, setActiveTab] = useState<'projects' | 'tasks' | 'timesheets'>('projects');
   
   // Modals
@@ -121,7 +134,8 @@ export function ProjectsPage() {
         <ProjectsTab 
           projects={hrmsProjects} 
           onAdd={() => setShowProjectModal(true)} 
-          updateProject={updateHrmsProject}
+          updateProject={(id: string, data: any) => updateProjectMutation.mutate({ id, data })}
+          isLoading={isLoading}
         />
       )}
 
@@ -129,7 +143,8 @@ export function ProjectsPage() {
         <TasksTab 
           tasks={hrmsTasks} 
           onAdd={() => setShowTaskModal(true)} 
-          updateTask={updateHrmsTask}
+          updateTask={(id: string, data: any) => updateTaskMutation.mutate({ id, data })}
+          isLoading={isLoading}
         />
       )}
 
@@ -137,14 +152,15 @@ export function ProjectsPage() {
         <TimesheetsTab 
           timesheets={hrmsTimesheets} 
           onAdd={() => setShowTimesheetModal(true)} 
-          updateTimesheet={updateHrmsTimesheet}
+          updateTimesheet={(id: string, data: any) => updateTimesheetMutation.mutate({ id, data })}
+          isLoading={isLoading}
         />
       )}
 
       {/* Modals */}
-      {showProjectModal && <AddProjectModal onClose={() => setShowProjectModal(false)} onSubmit={addHrmsProject} />}
-      {showTaskModal && <AddTaskModal onClose={() => setShowTaskModal(false)} onSubmit={addHrmsTask} projects={hrmsProjects} employees={activeEmployees} />}
-      {showTimesheetModal && <AddTimesheetModal onClose={() => setShowTimesheetModal(false)} onSubmit={addHrmsTimesheet} tasks={hrmsTasks} employees={activeEmployees} />}
+      {showProjectModal && <AddProjectModal onClose={() => setShowProjectModal(false)} onSubmit={(data: any) => addProjectMutation.mutate(data)} />}
+      {showTaskModal && <AddTaskModal onClose={() => setShowTaskModal(false)} onSubmit={(data: any) => addTaskMutation.mutate(data)} projects={hrmsProjects} employees={activeEmployees} />}
+      {showTimesheetModal && <AddTimesheetModal onClose={() => setShowTimesheetModal(false)} onSubmit={(data: any) => addTimesheetMutation.mutate(data)} tasks={hrmsTasks} employees={activeEmployees} />}
     </div>
   );
 }
@@ -153,7 +169,7 @@ export function ProjectsPage() {
 // TABS
 // ============================================================================
 
-function ProjectsTab({ projects, onAdd, updateProject }: { projects: any[], onAdd: () => void, updateProject: any }) {
+function ProjectsTab({ projects, onAdd, updateProject, isLoading }: { projects: any[], onAdd: () => void, updateProject: any, isLoading?: boolean }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -164,47 +180,56 @@ function ProjectsTab({ projects, onAdd, updateProject }: { projects: any[], onAd
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map(proj => (
-          <div key={proj.id} className="glass-card card-padded flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative group min-h-[180px]">
-            <div className="flex justify-between items-start gap-4 mb-4">
-              <div className="space-y-2">
-                <h3 className="font-extrabold text-xl text-[#3a3b39] dark:text-white leading-tight">{proj.name}</h3>
-                <select
-                  value={proj.status}
-                  onChange={(e) => updateProject(proj.id, { status: e.target.value })}
-                  className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider cursor-pointer outline-none appearance-none ${
-                    proj.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                    proj.status === 'Completed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                  }`}
-                >
-                  <option value="Planning">PLANNING</option>
-                  <option value="Active">ACTIVE</option>
-                  <option value="On Hold">ON HOLD</option>
-                  <option value="Completed">COMPLETED</option>
-                </select>
-              </div>
-            </div>
-            
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-6 line-clamp-2 flex-grow">
-              {proj.description || 'No description provided.'}
-            </p>
-            
-            <div className="flex justify-between items-center text-xs font-bold text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-800/50">
-              <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {new Date(proj.start_date).toLocaleDateString()}</div>
-              <div className="flex items-center gap-1.5 text-[#00a631]"><Briefcase className="w-4 h-4" /> {proj.budget ? `₹${proj.budget.toLocaleString()}` : 'No Budget'}</div>
-            </div>
+        {isLoading ? (
+          <div className="col-span-full py-12 flex flex-col items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#00a631] animate-spin" />
+            <p className="mt-2 text-sm font-bold text-gray-500">Loading projects...</p>
           </div>
-        ))}
-        {projects.length === 0 && (
-          <div className="col-span-full py-12 text-center text-gray-500 font-bold">No projects found. Create one to get started!</div>
+        ) : (
+          <>
+            {projects.map(proj => (
+              <div key={proj.id} className="glass-card card-padded flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative group min-h-[180px]">
+                <div className="flex justify-between items-start gap-4 mb-4">
+                  <div className="space-y-2">
+                    <h3 className="font-extrabold text-xl text-[#3a3b39] dark:text-white leading-tight">{proj.name}</h3>
+                    <select
+                      value={proj.status}
+                      onChange={(e) => updateProject(proj.id, { status: e.target.value })}
+                      className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider cursor-pointer outline-none appearance-none ${
+                        proj.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        proj.status === 'Completed' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                      }`}
+                    >
+                      <option value="Planning">PLANNING</option>
+                      <option value="Active">ACTIVE</option>
+                      <option value="On Hold">ON HOLD</option>
+                      <option value="Completed">COMPLETED</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-6 line-clamp-2 flex-grow">
+                  {proj.description || 'No description provided.'}
+                </p>
+                
+                <div className="flex justify-between items-center text-xs font-bold text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-800/50">
+                  <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {new Date(proj.start_date).toLocaleDateString()}</div>
+                  <div className="flex items-center gap-1.5 text-[#00a631]"><Briefcase className="w-4 h-4" /> {proj.budget ? `₹${proj.budget.toLocaleString()}` : 'No Budget'}</div>
+                </div>
+              </div>
+            ))}
+            {projects.length === 0 && (
+              <div className="col-span-full py-12 text-center text-gray-500 font-bold">No projects found. Create one to get started!</div>
+            )}
+          </>
         )}
       </div>
     </div>
   );
 }
 
-function TasksTab({ tasks, onAdd, updateTask }: { tasks: any[], onAdd: () => void, updateTask: any }) {
+function TasksTab({ tasks, onAdd, updateTask, isLoading }: { tasks: any[], onAdd: () => void, updateTask: any, isLoading?: boolean }) {
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'To Do': return 'border-transparent';
@@ -225,59 +250,68 @@ function TasksTab({ tasks, onAdd, updateTask }: { tasks: any[], onAdd: () => voi
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks.map(task => (
-          <div key={task.id} className={`glass-card card-padded flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl transition-all duration-300 min-h-[180px] ${getStatusColor(task.status)}`}>
-            <div className="flex justify-between items-start mb-4">
-              <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                task.priority === 'High' || task.priority === 'Urgent' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 
-                task.priority === 'Medium' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-              }`}>{task.priority}</span>
-              
-              <select 
-                value={task.status}
-                onChange={(e) => updateTask(task.id, { status: e.target.value })}
-                className="text-[10px] uppercase tracking-wider font-black bg-transparent outline-none cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
-              >
-                <option value="To Do">TO DO</option>
-                <option value="In Progress">IN PROGRESS</option>
-                <option value="In Review">IN REVIEW</option>
-                <option value="Done">DONE</option>
-              </select>
-            </div>
-            
-            <h3 className="font-extrabold text-lg text-[#3a3b39] dark:text-white mb-2 leading-tight flex-grow">{task.title}</h3>
-            
-            <div className="flex items-center gap-1.5 text-xs font-semibold leading-normal text-gray-500 dark:text-gray-400 mb-6">
-              <Briefcase className="w-3.5 h-3.5" />
-              <span className="truncate">{task.project?.name || 'No Project'}</span>
-            </div>
-
-            <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800/50">
-              <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300">
-                <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-black">
-                  {task.employee ? task.employee.first_name[0] : '?'}
-                </div>
-                <span>{task.employee ? task.employee.first_name : 'Unassigned'}</span>
-              </div>
-              
-              {task.due_date && (
-                <div className="text-xs font-bold text-gray-400 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(task.due_date).toLocaleDateString()}
-                </div>
-              )}
-            </div>
+        {isLoading ? (
+          <div className="col-span-full py-12 flex flex-col items-center justify-center">
+            <Loader2 className="w-8 h-8 text-[#00a631] animate-spin" />
+            <p className="mt-2 text-sm font-bold text-gray-500">Loading tasks...</p>
           </div>
-        ))}
-        {tasks.length === 0 && (
-          <div className="col-span-full py-12 text-center text-gray-500 font-bold">No tasks found. Create one to get started!</div>
+        ) : (
+          <>
+            {tasks.map(task => (
+              <div key={task.id} className={`glass-card card-padded flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl transition-all duration-300 min-h-[180px] ${getStatusColor(task.status)}`}>
+                <div className="flex justify-between items-start mb-4">
+                  <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    task.priority === 'High' || task.priority === 'Urgent' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 
+                    task.priority === 'Medium' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                  }`}>{task.priority}</span>
+                  
+                  <select 
+                    value={task.status}
+                    onChange={(e) => updateTask(task.id, { status: e.target.value })}
+                    className="text-[10px] uppercase tracking-wider font-black bg-transparent outline-none cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+                  >
+                    <option value="To Do">TO DO</option>
+                    <option value="In Progress">IN PROGRESS</option>
+                    <option value="In Review">IN REVIEW</option>
+                    <option value="Done">DONE</option>
+                  </select>
+                </div>
+                
+                <h3 className="font-extrabold text-lg text-[#3a3b39] dark:text-white mb-2 leading-tight flex-grow">{task.title}</h3>
+                
+                <div className="flex items-center gap-1.5 text-xs font-semibold leading-normal text-gray-500 dark:text-gray-400 mb-6">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span className="truncate">{task.project?.name || 'No Project'}</span>
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-800/50">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-300">
+                    <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-black">
+                      {task.employee ? task.employee.first_name[0] : '?'}
+                    </div>
+                    <span>{task.employee ? task.employee.first_name : 'Unassigned'}</span>
+                  </div>
+                  
+                  {task.due_date && (
+                    <div className="text-xs font-bold text-gray-400 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(task.due_date).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {tasks.length === 0 && (
+              <div className="col-span-full py-12 text-center text-gray-500 font-bold">No tasks found. Create one to get started!</div>
+            )}
+          </>
         )}
       </div>
     </div>
   );
 }
 
-function TimesheetsTab({ timesheets, onAdd, updateTimesheet }: { timesheets: any[], onAdd: () => void, updateTimesheet: any }) {
+function TimesheetsTab({ timesheets, onAdd, updateTimesheet, isLoading }: { timesheets: any[], onAdd: () => void, updateTimesheet: any, isLoading?: boolean }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -300,44 +334,55 @@ function TimesheetsTab({ timesheets, onAdd, updateTimesheet }: { timesheets: any
               </tr>
             </thead>
             <tbody>
-              {timesheets.map((entry) => (
-                <tr key={entry.id} className="border-b border-gray-100 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="p-4 text-sm font-bold text-gray-800 dark:text-gray-200">
-                    {new Date(entry.date).toLocaleDateString()}
-                  </td>
-                  <td className="p-4 text-sm font-bold text-gray-600 dark:text-gray-400">
-                    {entry.employee ? `${entry.employee.first_name} ${entry.employee.last_name}` : 'Unknown'}
-                  </td>
-                  <td className="p-4">
-                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">{entry.task?.title || 'Unknown Task'}</p>
-                    <p className="text-xs text-gray-500 truncate max-w-[200px]">{entry.notes}</p>
-                  </td>
-                  <td className="p-4 text-sm font-black text-[#00a631] text-right">
-                    {entry.hours_worked} hrs
-                  </td>
-                  <td className="p-4">
-                    <select
-                      value={entry.status}
-                      onChange={(e) => updateTimesheet(entry.id, { status: e.target.value })}
-                      className={`px-2 py-1 rounded-md text-xs font-bold cursor-pointer outline-none appearance-none ${
-                        entry.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                        entry.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-              {timesheets.length === 0 && (
+              {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">
-                    No timesheets logged yet.
+                  <td colSpan={5} className="p-12 text-center">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading timesheets...</p>
                   </td>
                 </tr>
+              ) : (
+                <>
+                  {timesheets.map((entry) => (
+                    <tr key={entry.id} className="border-b border-gray-100 dark:border-gray-800/50 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="p-4 text-sm font-bold text-gray-800 dark:text-gray-200">
+                        {new Date(entry.date).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-sm font-bold text-gray-600 dark:text-gray-400">
+                        {entry.employee ? `${entry.employee.first_name} ${entry.employee.last_name}` : 'Unknown'}
+                      </td>
+                      <td className="p-4">
+                        <p className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">{entry.task?.title || 'Unknown Task'}</p>
+                        <p className="text-xs text-gray-500 truncate max-w-[200px]">{entry.notes}</p>
+                      </td>
+                      <td className="p-4 text-sm font-black text-[#00a631] text-right">
+                        {entry.hours_worked} hrs
+                      </td>
+                      <td className="p-4">
+                        <select
+                          value={entry.status}
+                          onChange={(e) => updateTimesheet(entry.id, { status: e.target.value })}
+                          className={`px-2 py-1 rounded-md text-xs font-bold cursor-pointer outline-none appearance-none ${
+                            entry.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                            entry.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Approved">Approved</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                  {timesheets.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">
+                        No timesheets logged yet.
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>

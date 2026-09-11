@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { usePayments } from '../../hooks/queries';
+import { useDeletePayment } from '../../hooks/mutations';
 import { NewPaymentInModal } from '../../components/modals/NewPaymentInModal';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function PaymentInPage() {
-  const { payments, deletePayment } = useData();
+  const { data: payments = [], isLoading } = usePayments();
+  const deletePaymentMutation = useDeletePayment();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -71,7 +73,14 @@ export function PaymentInPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredPayments.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading payment receipts...</p>
+                  </td>
+                </tr>
+              ) : filteredPayments.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-10 text-gray-400 font-bold">
                     No payment in receipts logged yet.
@@ -116,7 +125,7 @@ export function PaymentInPage() {
                           type="button"
                           onClick={() => {
                             if (window.confirm("Are you sure you want to delete this payment receipt?")) {
-                              deletePayment(p.id);
+                              deletePaymentMutation.mutate(p.id);
                             }
                           }}
                           className="px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl cursor-pointer transition-colors"

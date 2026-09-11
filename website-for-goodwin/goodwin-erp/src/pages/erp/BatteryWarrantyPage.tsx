@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { useData } from '../../store/DataContext';
+import { useWarranties } from '../../hooks/queries';
+import { useDeleteWarranty, useUpdateWarrantyStatus } from '../../hooks/mutations';
 import { NewWarrantyModal } from '../../components/modals/NewWarrantyModal';
-import { Plus, Search, Trash2 } from 'lucide-react';
+import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function BatteryWarrantyPage() {
-  const { warranties, updateWarrantyStatus, deleteWarranty } = useData();
+  const { data: warranties = [], isLoading } = useWarranties();
+  const deleteWarrantyMutation = useDeleteWarranty();
+  const updateWarrantyStatusMutation = useUpdateWarrantyStatus();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -65,7 +68,14 @@ export function BatteryWarrantyPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredWarranties.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading warranties...</p>
+                  </td>
+                </tr>
+              ) : filteredWarranties.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-10 text-gray-400 font-bold">
                     No batteries registered for warranty yet.
@@ -114,7 +124,7 @@ export function BatteryWarrantyPage() {
                       {w.status === 'active' && (
                         <button
                           type="button"
-                          onClick={() => updateWarrantyStatus(w.id, 'claimed')}
+                          onClick={() => updateWarrantyStatusMutation.mutate({ id: w.id, status: 'claimed' })}
                           className="px-2.5 py-1 bg-amber-500 text-white text-[11px] font-extrabold rounded-lg hover:bg-amber-600 transition-colors cursor-pointer"
                         >
                           Process Claim
@@ -131,7 +141,7 @@ export function BatteryWarrantyPage() {
                         type="button"
                         onClick={() => {
                           if (window.confirm("Are you sure you want to delete this warranty registration?")) {
-                            deleteWarranty(w.id);
+                            deleteWarrantyMutation.mutate(w.id);
                           }
                         }}
                         className="px-2.5 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1 inline-flex"

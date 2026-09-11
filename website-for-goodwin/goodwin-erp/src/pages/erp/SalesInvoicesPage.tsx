@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useData } from '../../store/DataContext';
+import { useInvoices } from '../../hooks/queries';
+import { useDeleteSalesInvoice } from '../../hooks/mutations';
 import type { SalesInvoice } from '../../types';
 import { InvoiceViewModal } from '../../components/modals/InvoiceViewModal';
 import { NewInvoiceModal } from '../../components/modals/NewInvoiceModal';
 import { EditInvoiceModal } from '../../components/modals/EditInvoiceModal';
-import { Plus, Printer, Search, Trash2, Edit } from 'lucide-react';
+import { Plus, Printer, Search, Trash2, Edit, Loader2 } from 'lucide-react';
 
 export function SalesInvoicesPage({
   showCreateModalInitially = false,
@@ -13,7 +14,8 @@ export function SalesInvoicesPage({
   showCreateModalInitially?: boolean;
   onCloseCreateModal?: () => void;
 }) {
-  const { invoices, deleteSalesInvoice } = useData();
+  const { data: invoices = [], isLoading } = useInvoices();
+  const deleteInvoiceMutation = useDeleteSalesInvoice();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<SalesInvoice | null>(null);
@@ -84,7 +86,14 @@ export function SalesInvoicesPage({
               </tr>
             </thead>
             <tbody>
-              {filteredInvoices.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} className="text-center py-12">
+                    <Loader2 className="w-8 h-8 text-[#00a631] animate-spin mx-auto" />
+                    <p className="mt-2 text-sm font-bold text-gray-500">Loading invoices...</p>
+                  </td>
+                </tr>
+              ) : filteredInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-10 text-gray-400 font-bold">
                     No sales invoices logged yet.
@@ -152,7 +161,7 @@ export function SalesInvoicesPage({
                           type="button"
                           onClick={() => {
                             if (window.confirm("Are you sure you want to delete this invoice?")) {
-                              deleteSalesInvoice(inv.id);
+                              deleteInvoiceMutation.mutate(inv.id);
                             }
                           }}
                           className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer"
