@@ -45,6 +45,8 @@ export const Ledger = () => {
       } else {
         await addTransaction({
           ...isEditing,
+          type: isEditing?.type || 'Credit',
+          amount: isEditing?.amount || 0,
           date: isEditing?.date || new Date().toISOString().split('T')[0]
         });
       }

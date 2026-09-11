@@ -1,21 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../lib/authStore';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const checkSession = useAuthStore(state => state.checkSession);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/marketing/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate auth delay
-    setTimeout(() => {
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setIsLoading(false);
+      alert(error.message);
+      return;
+    }
+
+    if (data.user) {
+      await checkSession();
       setIsLoading(false);
       navigate('/marketing/dashboard');
-    }, 1500);
+    }
   };
 
   return (

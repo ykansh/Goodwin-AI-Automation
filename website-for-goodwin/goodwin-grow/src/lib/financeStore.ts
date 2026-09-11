@@ -192,12 +192,23 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   addTransaction: async (txn) => {
-    const { data, error } = await supabase.from('ledger').insert([txn]).select().single();
+    const { data, error } = await supabase.from('ledger').insert([{
+      date: txn.date,
+      description: txn.description,
+      type: txn.type,
+      amount: txn.amount
+    }]).select().single();
     if (error) throw error;
     set(state => ({ transactions: [...state.transactions, { ...txn, id: data.id }] }));
   },
   updateTransaction: async (id, txn) => {
-    const { error } = await supabase.from('ledger').update(txn).eq('id', id);
+    const dbUpdates: any = {};
+    if (txn.date !== undefined) dbUpdates.date = txn.date;
+    if (txn.description !== undefined) dbUpdates.description = txn.description;
+    if (txn.type !== undefined) dbUpdates.type = txn.type;
+    if (txn.amount !== undefined) dbUpdates.amount = txn.amount;
+
+    const { error } = await supabase.from('ledger').update(dbUpdates).eq('id', id);
     if (error) throw error;
     set(state => ({ transactions: state.transactions.map(t => t.id === id ? { ...t, ...txn } : t) }));
   },

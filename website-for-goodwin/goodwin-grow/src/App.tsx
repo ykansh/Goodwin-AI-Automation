@@ -33,6 +33,33 @@ import { Reports } from './pages/finance/Reports';
 import { AITools } from './pages/ai-slop/AITools';
 import { AdminPanel } from './pages/admin/AdminPanel';
 import { Login } from './pages/auth/Login';
+import { useAuthStore } from './lib/authStore';
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const role = useAuthStore(state => state.role);
+  if (role !== 'admin') {
+    return <Navigate to="/marketing/dashboard" replace />;
+  }
+  return <>{children}</>;
+};
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-canvas">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 // Placeholder Pages
 const PlaceholderPage = ({ title }: { title: string }) => (
@@ -42,11 +69,21 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 );
 
 function App() {
+  const checkSession = useAuthStore(state => state.checkSession);
+
+  React.useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<AppLayout />}>
+        <Route path="/" element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }>
           <Route index element={<Navigate to="/marketing" replace />} />
           
           {/* Marketing Module */}
@@ -78,7 +115,11 @@ function App() {
             <Route path="employees" element={<Employees />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="leave" element={<Leave />} />
-            <Route path="payroll" element={<Payroll />} />
+            <Route path="payroll" element={
+              <AdminRoute>
+                <Payroll />
+              </AdminRoute>
+            } />
             <Route path="recruit" element={<Recruitment />} />
             <Route path="onboarding" element={<Onboarding />} />
           </Route>
@@ -98,7 +139,11 @@ function App() {
           <Route path="ai-slop" element={<AITools />} />
 
           {/* Admin Module */}
-          <Route path="admin" element={<AdminPanel />} />
+          <Route path="admin" element={
+            <AdminRoute>
+              <AdminPanel />
+            </AdminRoute>
+          } />
           
         </Route>
       </Routes>

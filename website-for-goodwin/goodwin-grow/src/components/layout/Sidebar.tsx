@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   BarChart3, 
   Briefcase, 
@@ -10,6 +10,8 @@ import {
   LogOut
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../lib/authStore';
 
 const navItems = [
   { name: 'Marketing', path: '/marketing', icon: BarChart3 },
@@ -20,6 +22,14 @@ const navItems = [
 
 export const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const role = useAuthStore(state => state.role);
+  const signOut = useAuthStore(state => state.signOut);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <aside className="w-64 bg-secondary flex-shrink-0 hidden md:flex flex-col h-full border-r border-canvas-variant shadow-level-2 z-10 transition-all duration-300">
@@ -81,24 +91,26 @@ export const Sidebar = () => {
             <Bot className="mr-3 h-5 w-5 text-tertiary group-hover:text-white transition-colors" />
             AI Slop
           </NavLink>
-          <NavLink
-            to="/admin"
-            className={({ isActive }) => cn(
-              "flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 group relative mt-1",
-              isActive 
-                ? "bg-primary text-white shadow-level-1" 
-                : "text-canvas-variant hover:bg-secondary-light/30 hover:text-white"
-            )}
-          >
-            <Settings className="mr-3 h-5 w-5 text-canvas-variant group-hover:text-white transition-colors" />
-            Admin
-          </NavLink>
+          {role === 'admin' && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => cn(
+                "flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 group relative mt-1",
+                isActive 
+                  ? "bg-primary text-white shadow-level-1" 
+                  : "text-canvas-variant hover:bg-secondary-light/30 hover:text-white"
+              )}
+            >
+              <Settings className="mr-3 h-5 w-5 text-canvas-variant group-hover:text-white transition-colors" />
+              Admin
+            </NavLink>
+          )}
         </div>
       </nav>
 
       {/* Footer User Area */}
       <div className="p-4 border-t border-secondary-light/30">
-        <button className="flex items-center w-full px-3 py-2 rounded-md text-sm font-medium text-canvas-variant hover:bg-secondary-light/30 hover:text-white transition-colors">
+        <button onClick={handleSignOut} className="flex items-center w-full px-3 py-2 rounded-md text-sm font-medium text-canvas-variant hover:bg-secondary-light/30 hover:text-white transition-colors">
           <LogOut className="mr-3 h-4 w-4" />
           Sign Out
         </button>
