@@ -192,7 +192,7 @@ export function UserManagementPage() {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       {/* Header */}
-      <div className="glass-strong p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl">
+      <div className="glass-strong p-4 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-md">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight flex items-center gap-3">
             <Shield className="text-blue-600" />
@@ -207,14 +207,14 @@ export function UserManagementPage() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-lg shadow-blue-600/25 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-blue-600/25 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add User
             </button>
             <button
               onClick={handleClearKey}
-              className="px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer"
+              className="px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-bold rounded-md transition-all cursor-pointer"
             >
               Disconnect Admin
             </button>
@@ -223,8 +223,8 @@ export function UserManagementPage() {
       </div>
 
       {!isConfigured ? (
-        <div className="glass-strong p-8 rounded-2xl max-w-xl mx-auto border border-blue-100 dark:border-blue-900/30">
-          <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+        <div className="glass-strong p-5 rounded-md max-w-xl mx-auto border border-blue-100 dark:border-blue-900/30">
+          <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center mb-6 mx-auto">
             <Key className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-bold text-center text-[#3a3b39] dark:text-white mb-2">Admin API Setup Required</h2>
@@ -240,17 +240,17 @@ export function UserManagementPage() {
                 value={serviceKey}
                 onChange={(e) => setServiceKey(e.target.value)}
                 placeholder="eyJh..."
-                className="w-full px-4 py-3 bg-white dark:bg-[#252825] border border-gray-300 dark:border-[#374137] rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white dark:bg-[#252825] border border-gray-300 dark:border-[#374137] rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <button
               onClick={handleSaveKey}
               disabled={!serviceKey || isConnecting}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-md shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {isConnecting ? 'Connecting...' : <><Save className="w-4 h-4" /> Connect Admin Client</>}
             </button>
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl flex gap-3 mt-4">
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-md flex gap-3 mt-4">
               <AlertOctagon className="w-5 h-5 text-amber-600 shrink-0" />
               <p className="text-xs text-amber-800 dark:text-amber-400">
                 You can find this key in your Supabase Dashboard: Project Settings &rarr; API &rarr; <code>service_role</code> secret.
@@ -259,7 +259,7 @@ export function UserManagementPage() {
           </div>
         </div>
       ) : (
-        <div className="glass-strong overflow-hidden rounded-2xl border border-gray-200 dark:border-[#2d302d]">
+        <div className="glass-strong overflow-hidden rounded-md border border-gray-200 dark:border-[#2d302d]">
           {isLoadingUsers ? (
             <div className="p-12 text-center text-gray-500">Loading users...</div>
           ) : (
@@ -330,20 +330,20 @@ export function UserManagementPage() {
       {/* Add User Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1e211e] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+          <div className="bg-white dark:bg-[#1e211e] rounded-lg w-full max-w-md shadow-2xl overflow-hidden animate-scale-in">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New User</h3>
               <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
             </div>
             
-            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
+            <form onSubmit={handleCreateUser} className="p-4 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name (Optional)</label>
                 <input
                   type="text"
                   value={newFullName}
                   onChange={(e) => setNewFullName(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-xl text-sm outline-none"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-md text-sm outline-none"
                   placeholder="John Doe"
                 />
               </div>
@@ -354,7 +354,7 @@ export function UserManagementPage() {
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-xl text-sm outline-none"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-md text-sm outline-none"
                   placeholder="employee@goodwin.com"
                   required
                 />
@@ -366,7 +366,7 @@ export function UserManagementPage() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-xl text-sm outline-none"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-md text-sm outline-none"
                   placeholder="Min 6 characters"
                   required
                   minLength={6}
@@ -378,7 +378,7 @@ export function UserManagementPage() {
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as UserRole)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-xl text-sm outline-none font-bold"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-[#252825] border border-gray-200 dark:border-[#374137] rounded-md text-sm outline-none font-bold"
                 >
                   <option value="employee">Employee</option>
                   <option value="sales">Sales</option>
@@ -393,14 +393,14 @@ export function UserManagementPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-xl cursor-pointer"
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold rounded-md cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating || !newEmail || !newPassword}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg cursor-pointer"
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-md shadow-lg cursor-pointer"
                 >
                   {isCreating ? 'Creating...' : 'Create User'}
                 </button>

@@ -43,7 +43,7 @@ export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
+              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
             >
               <span>← Back</span>
             </button>
@@ -61,7 +61,7 @@ export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -73,7 +73,7 @@ export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
         <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="w-full max-w-[1200px] mx-auto space-y-6 pb-6">
             {/* Card 1: Supplier Identity & Financials */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                   1. Vendor Identity & Classification
@@ -128,7 +128,7 @@ export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
             </div>
 
             {/* Card 2: Contact & Tax Information */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                   2. Contact & GST Location
@@ -200,13 +200,13 @@ export function NewSupplierModal({ onClose }: NewSupplierModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="h-10 sm:h-11 px-5 rounded-xl border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              className="h-10 sm:h-11 px-5 rounded-md border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-10 sm:h-11 px-6 sm:px-8 rounded-xl bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
+              className="h-10 sm:h-11 px-6 sm:px-8 rounded-md bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />
               <span>Save Supplier Record</span>

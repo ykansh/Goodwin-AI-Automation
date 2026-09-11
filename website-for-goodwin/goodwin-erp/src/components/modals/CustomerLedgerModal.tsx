@@ -27,7 +27,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
+              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
             >
               <span>← Back</span>
             </button>
@@ -45,7 +45,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -57,13 +57,13 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
         <div className="w-full max-w-[1200px] mx-auto space-y-6 pb-6">
           {/* Summary Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] shadow-xs">
+            <div className="p-5 sm:p-6 rounded-md bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] shadow-xs">
               <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Party Contact & Address</span>
               <p className="text-sm font-bold text-[#3a3b39] dark:text-gray-200 mt-1.5">{party.contact}</p>
               <p className="text-xs text-gray-500 mt-1 line-clamp-2">{party.address}</p>
             </div>
 
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] shadow-xs">
+            <div className="p-5 sm:p-6 rounded-md bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] shadow-xs">
               <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">Classification</span>
               <p className="text-sm font-bold text-[#3a3b39] dark:text-gray-200 mt-1.5 capitalize">{party.type}</p>
               {'salesperson' in party && (
@@ -71,7 +71,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
               )}
             </div>
 
-            <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] shadow-xs">
+            <div className="p-5 sm:p-6 rounded-md bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] shadow-xs">
               <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">
                 {partyType === 'customer' ? 'Current Customer Receivables' : 'Current Supplier Payables'}
               </span>
@@ -85,7 +85,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
           </div>
 
           {/* Ledger Table Card */}
-          <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-4">
             <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
@@ -157,7 +157,7 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
           <button
             type="button"
             onClick={onClose}
-            className="h-10 sm:h-11 px-6 rounded-xl border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            className="h-10 sm:h-11 px-6 rounded-md border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             Close Statement
           </button>

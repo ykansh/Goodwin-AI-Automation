@@ -45,7 +45,7 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
+              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
             >
               <span>← Back</span>
             </button>
@@ -62,14 +62,14 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
             <button
               type="button"
               onClick={handlePrint}
-              className="h-10 px-5 bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold rounded-xl shadow-md shadow-[#00a631]/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
+              className="h-10 px-5 bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold rounded-md shadow-md shadow-[#00a631]/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
             >
               <Printer className="w-4 h-4" /> Print / Save PDF
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -79,7 +79,7 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
 
       {/* PRINTABLE INVOICE CONTENT */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 bg-gray-200">
-        <div className="max-w-[850px] mx-auto bg-white p-6 sm:p-10 shadow-sm text-black font-sans text-[13px]" id="printable-invoice">
+        <div className="max-w-[850px] mx-auto bg-white p-4 sm:p-10 shadow-sm text-black font-sans text-[13px]" id="printable-invoice">
           {/* Header Flex */}
           <div className="flex justify-between items-start mb-6">
             {/* Left Logo / Sold By */}

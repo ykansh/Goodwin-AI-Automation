@@ -109,7 +109,7 @@ export function PipelinePage() {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       {/* Page Header */}
-      <div className="glass-strong p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-strong p-4 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
             Pipeline
@@ -122,7 +122,7 @@ export function PipelinePage() {
         <button
           type="button"
           onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-blue-600/25 transition-all cursor-pointer self-start md:self-auto shrink-0 active:scale-95"
+          className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-blue-600/25 transition-all cursor-pointer self-start md:self-auto shrink-0 active:scale-95"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>+ Add Lead</span>
@@ -141,7 +141,7 @@ export function PipelinePage() {
                 key={col.stage}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(col.stage)}
-                className="flex-1 min-w-[200px] max-w-[260px] bg-gray-50/80 dark:bg-[#1a1d1a] border border-gray-200/80 dark:border-[#2d302d] rounded-2xl p-3 flex flex-col min-h-[500px]"
+                className="flex-1 min-w-[200px] max-w-[260px] bg-gray-50/80 dark:bg-[#1a1d1a] border border-gray-200/80 dark:border-[#2d302d] rounded-md p-3 flex flex-col min-h-[500px]"
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-200/70 dark:border-[#2d302d]">
@@ -170,7 +170,7 @@ export function PipelinePage() {
                       draggable
                       onDragStart={() => handleDragStart(lead.id)}
                       onClick={() => setDrawerLead(lead)}
-                      className={`p-3.5 bg-white dark:bg-[#202420] border border-gray-200/80 dark:border-[#2d302d] rounded-xl shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-700 transition-all cursor-grab active:cursor-grabbing group ${
+                      className={`p-3.5 bg-white dark:bg-[#202420] border border-gray-200/80 dark:border-[#2d302d] rounded-md shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-700 transition-all cursor-grab active:cursor-grabbing group ${
                         draggedLeadId === lead.id ? 'opacity-40 scale-95 border-dashed border-blue-500' : ''
                       }`}
                     >
@@ -210,7 +210,7 @@ export function PipelinePage() {
                   ))}
 
                   {colLeads.length === 0 && (
-                    <div className="h-28 border border-dashed border-gray-200 dark:border-[#2d302d] rounded-xl flex items-center justify-center text-[11px] font-semibold text-gray-400">
+                    <div className="h-28 border border-dashed border-gray-200 dark:border-[#2d302d] rounded-md flex items-center justify-center text-[11px] font-semibold text-gray-400">
                       Drop lead here
                     </div>
                   )}

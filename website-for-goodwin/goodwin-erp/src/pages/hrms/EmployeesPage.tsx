@@ -105,7 +105,7 @@ export function EmployeesPage() {
               resetForm();
               setShowModal(true);
             }}
-            className="flex items-center gap-2 bg-[#00a631] text-white px-4 py-2 rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
+            className="flex items-center gap-2 bg-[#00a631] text-white px-4 py-2 rounded-md font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" />
             <span>Add Employee</span>
@@ -113,7 +113,7 @@ export function EmployeesPage() {
         )}
       </div>
 
-      <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-white/40 dark:border-gray-700/40 rounded-3xl p-6 shadow-xl overflow-hidden">
+      <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-white/40 dark:border-gray-700/40 rounded-lg p-4 shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -181,7 +181,7 @@ export function EmployeesPage() {
                   ))}
                   {hrmsEmployees.filter(emp => emp.status !== 'Inactive').length === 0 && (
                     <tr>
-                      <td colSpan={canAddEmployee ? 7 : 6} className="p-8 text-center text-gray-500 font-bold">No employees found.</td>
+                      <td colSpan={canAddEmployee ? 7 : 6} className="p-5 text-center text-gray-500 font-bold">No employees found.</td>
                     </tr>
                   )}
                 </>
@@ -193,8 +193,8 @@ export function EmployeesPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
               <h2 className="text-xl font-extrabold text-[#3a3b39] dark:text-white">
                 {editingId ? 'Edit Employee' : 'Add New Employee'}
               </h2>
@@ -203,13 +203,13 @@ export function EmployeesPage() {
                   setShowModal(false);
                   resetForm();
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">First Name *</label>
@@ -218,7 +218,7 @@ export function EmployeesPage() {
                     required
                     value={formData.first_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
                 <div>
@@ -228,7 +228,7 @@ export function EmployeesPage() {
                     required
                     value={formData.last_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
               </div>
@@ -241,7 +241,7 @@ export function EmployeesPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
                 <div>
@@ -250,7 +250,7 @@ export function EmployeesPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
               </div>
@@ -262,7 +262,7 @@ export function EmployeesPage() {
                     type="text"
                     value={formData.department}
                     onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
                 <div>
@@ -271,7 +271,7 @@ export function EmployeesPage() {
                     type="text"
                     value={formData.designation}
                     onChange={(e) => setFormData(prev => ({ ...prev, designation: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
               </div>
@@ -284,7 +284,7 @@ export function EmployeesPage() {
                     required
                     value={formData.joining_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, joining_date: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
                 <div>
@@ -294,7 +294,7 @@ export function EmployeesPage() {
                     min="0"
                     value={formData.basic_salary}
                     onChange={(e) => setFormData(prev => ({ ...prev, basic_salary: parseFloat(e.target.value) || 0 }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
               </div>
@@ -306,13 +306,13 @@ export function EmployeesPage() {
                     setShowModal(false);
                     resetForm();
                   }}
-                  className="px-6 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="px-6 py-2.5 rounded-md font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#00a631] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
+                  className="px-6 py-2.5 bg-[#00a631] text-white rounded-md font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
                 >
                   {editingId ? 'Update Employee' : 'Save Employee'}
                 </button>

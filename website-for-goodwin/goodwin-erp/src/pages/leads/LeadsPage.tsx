@@ -138,7 +138,7 @@ export function LeadsPage() {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       {/* ── 1. Page Header ─────────────────────────────────────────────── */}
-      <div className="glass-strong p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-strong p-4 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
             Leads
@@ -151,7 +151,7 @@ export function LeadsPage() {
         <button
           type="button"
           onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-blue-600/25 transition-all cursor-pointer self-start md:self-auto shrink-0 active:scale-95"
+          className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-blue-600/25 transition-all cursor-pointer self-start md:self-auto shrink-0 active:scale-95"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
           <span>+ Add Lead</span>
@@ -160,8 +160,8 @@ export function LeadsPage() {
 
       {/* ── 2. Compact Summary Cards (Section 2) ────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="glass p-4 sm:p-5 rounded-2xl border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+        <div className="glass p-4 sm:p-5 rounded-md border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -174,8 +174,8 @@ export function LeadsPage() {
           </div>
         </div>
 
-        <div className="glass p-4 sm:p-5 rounded-2xl border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+        <div className="glass p-4 sm:p-5 rounded-md border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -188,8 +188,8 @@ export function LeadsPage() {
           </div>
         </div>
 
-        <div className="glass p-4 sm:p-5 rounded-2xl border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+        <div className="glass p-4 sm:p-5 rounded-md border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -202,8 +202,8 @@ export function LeadsPage() {
           </div>
         </div>
 
-        <div className="glass p-4 sm:p-5 rounded-2xl border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+        <div className="glass p-4 sm:p-5 rounded-md border border-gray-200/80 dark:border-[#2d302d] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -218,10 +218,10 @@ export function LeadsPage() {
       </div>
 
       {/* ── 3. Toolbar (Search, Filters & Sort) ─────────────────────────── */}
-      <div className="glass p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#2d302d] space-y-3">
+      <div className="glass p-4 sm:p-5 rounded-md border border-gray-200 dark:border-[#2d302d] space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Box — Flex Layout (Vector left, text right, zero overlap) */}
-          <div className="flex items-center gap-2.5 w-full lg:w-80 px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-blue-600/30 focus-within:border-blue-600 transition-all">
+          <div className="flex items-center gap-2.5 w-full lg:w-80 px-3.5 py-2.5 rounded-md border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-blue-600/30 focus-within:border-blue-600 transition-all">
             <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
             <input
               type="text"
@@ -244,7 +244,7 @@ export function LeadsPage() {
                 setFilterStage(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-xl shrink-0"
+              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-md shrink-0"
             >
               <option value="all">Stage: All</option>
               <option value="New">New</option>
@@ -262,7 +262,7 @@ export function LeadsPage() {
                 setFilterSource(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-xl shrink-0"
+              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-md shrink-0"
             >
               <option value="all">Source: All</option>
               <option value="WhatsApp">WhatsApp</option>
@@ -281,7 +281,7 @@ export function LeadsPage() {
                 setFilterFollowup(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-xl shrink-0"
+              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-md shrink-0"
             >
               <option value="all">Follow-up: All</option>
               <option value="today">Due Today</option>
@@ -297,7 +297,7 @@ export function LeadsPage() {
                 setFilterAssigned(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-xl shrink-0"
+              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-md shrink-0"
             >
               <option value="all">Assigned: All</option>
               {assignees.map((a) => (
@@ -309,7 +309,7 @@ export function LeadsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-xl shrink-0"
+              className="px-3 py-2 text-xs font-bold glass-input bg-white dark:bg-[#252825] text-gray-700 dark:text-gray-200 cursor-pointer rounded-md shrink-0"
             >
               <option value="recent">Sort: Recently Added</option>
               <option value="followup">Sort: Follow-up Date</option>
@@ -321,7 +321,7 @@ export function LeadsPage() {
       </div>
 
       {/* ── 4. Main Leads Table (Desktop/Tablet) ─────────────────────────── */}
-      <div className="glass-strong overflow-hidden rounded-2xl border border-gray-200 dark:border-[#2d302d]">
+      <div className="glass-strong overflow-hidden rounded-md border border-gray-200 dark:border-[#2d302d]">
         <div className="overflow-x-auto min-w-full">
           <table className="data-table">
             <thead>
@@ -348,7 +348,7 @@ export function LeadsPage() {
                 <tr>
                   <td colSpan={9} className="text-center py-16 text-gray-400 dark:text-gray-500">
                     <div className="max-w-xs mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#252825] flex items-center justify-center mx-auto text-gray-400">
+                      <div className="w-12 h-12 rounded-md bg-gray-100 dark:bg-[#252825] flex items-center justify-center mx-auto text-gray-400">
                         <Users className="w-6 h-6" />
                       </div>
                       <p className="text-base font-extrabold text-[#3a3b39] dark:text-white">No leads yet</p>
@@ -358,7 +358,7 @@ export function LeadsPage() {
                       <button
                         type="button"
                         onClick={() => setIsAddOpen(true)}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-md transition-all cursor-pointer"
                       >
                         + Add Lead
                       </button>
@@ -465,7 +465,7 @@ export function LeadsPage() {
                             </button>
 
                             {activeMenuId === lead.id && (
-                              <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-[#1e211e] rounded-xl shadow-xl border border-gray-200 dark:border-[#2d302d] p-1.5 z-30 animate-scale-in text-left">
+                              <div className="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-[#1e211e] rounded-md shadow-xl border border-gray-200 dark:border-[#2d302d] p-1.5 z-30 animate-scale-in text-left">
                                 <button
                                   type="button"
                                   onClick={() => {

@@ -140,7 +140,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
+              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
             >
               <span>← Back</span>
             </button>
@@ -158,7 +158,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,7 +170,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
         <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="w-full max-w-[1200px] mx-auto space-y-6 pb-6">
             {/* Card 1: Invoice Party & Date */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                   1. Invoice Recipient & Parameters
@@ -226,7 +226,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
               </div>
 
               {selectedCustomer && (
-                <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div className="p-4 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
                     <span className="text-gray-500 font-bold block text-[11px] uppercase">GSTIN</span>
                     <span className="font-mono font-bold text-gray-800 dark:text-gray-200 text-sm">{selectedCustomer.gstin || 'N/A'}</span>
@@ -248,7 +248,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
             </div>
 
             {/* Card 1.5: Transport & Supply Details */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                   2. Transport & Supply Details
@@ -299,7 +299,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
             </div>
 
             {/* Card 2: Invoice Line Items */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="flex items-center justify-between border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <div>
                   <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
@@ -310,7 +310,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-md border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
                 >
                   <Plus className="w-4 h-4" /> Add Item
                 </button>
@@ -320,14 +320,14 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                 {items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-4 rounded-xl bg-gray-50/80 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] grid grid-cols-1 md:grid-cols-12 gap-3 items-center text-xs"
+                    className="p-4 rounded-md bg-gray-50/80 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] grid grid-cols-1 md:grid-cols-12 gap-3 items-center text-xs"
                   >
                     <div className="md:col-span-5">
                       <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">Goodwin Product</label>
                       <select
                         value={item.product_id}
                         onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                        className="w-full h-10 px-3 text-sm font-bold rounded-xl border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a]"
+                        className="w-full h-10 px-3 text-sm font-bold rounded-md border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a]"
                       >
                         <option value="">Select Battery...</option>
                         {products.map((p) => (
@@ -345,7 +345,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                         min={1}
                         value={item.quantity}
                         onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
-                        className="w-full h-10 px-3 text-sm font-bold rounded-xl border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a] text-center"
+                        className="w-full h-10 px-3 text-sm font-bold rounded-md border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a] text-center"
                       />
                     </div>
 
@@ -355,7 +355,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                         type="number"
                         value={item.rate}
                         onChange={(e) => handleItemChange(idx, 'rate', Number(e.target.value))}
-                        className="w-full h-10 px-3 text-sm font-bold rounded-xl border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a]"
+                        className="w-full h-10 px-3 text-sm font-bold rounded-md border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a]"
                       />
                     </div>
 
@@ -371,7 +371,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                         type="button"
                         onClick={() => handleRemoveItem(idx)}
                         disabled={items.length === 1}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -382,7 +382,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
             </div>
 
             {/* Card 3: Payment Settlement & Tax Summary */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
@@ -390,7 +390,7 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] space-y-2 text-xs">
+                <div className="p-4 rounded-md bg-gray-50 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-gray-500 font-bold">Taxable Amount:</span>
                     <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">₹{taxableTotal.toLocaleString('en-IN')}</span>
@@ -415,13 +415,13 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="h-10 sm:h-11 px-5 rounded-xl border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              className="h-10 sm:h-11 px-5 rounded-md border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-10 sm:h-11 px-6 sm:px-8 rounded-xl bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
+              className="h-10 sm:h-11 px-6 sm:px-8 rounded-md bg-[#00a631] hover:bg-[#008a29] text-white text-sm font-extrabold shadow-md shadow-emerald-600/25 transition-all cursor-pointer active:scale-95 flex items-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />
               <span>Update Invoice</span>

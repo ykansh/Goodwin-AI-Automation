@@ -125,7 +125,7 @@ export function AttendancePage() {
               placeholder="Search employee..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-64 px-4 py-2 bg-white/40 dark:bg-[#1b1e1b] border border-gray-200 dark:border-[#2d302d] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00a631] text-[#3a3b39] dark:text-white font-bold"
+              className="w-full sm:w-64 px-4 py-2 bg-white/40 dark:bg-[#1b1e1b] border border-gray-200 dark:border-[#2d302d] rounded-md focus:outline-none focus:ring-2 focus:ring-[#00a631] text-[#3a3b39] dark:text-white font-bold"
             />
           </div>
         </div>
@@ -139,17 +139,17 @@ export function AttendancePage() {
           const isProcessing = loading === emp.id;
           
           return (
-            <div key={emp.id} className="bg-white dark:bg-[#222421] rounded-[2rem] p-8 shadow-sm border border-gray-100 dark:border-[#2d302d] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center min-h-[260px] relative group">
+            <div key={emp.id} className="bg-white dark:bg-[#222421] rounded-[2rem] p-5 shadow-sm border border-gray-100 dark:border-[#2d302d] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center min-h-[260px] relative group">
               
               <button 
                 onClick={() => setSelectedEmployeeId(emp.id)}
-                className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-500 hover:text-[#00a631] hover:bg-[#00a631]/10 transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-md text-gray-500 hover:text-[#00a631] hover:bg-[#00a631]/10 transition-colors opacity-0 group-hover:opacity-100"
                 title="View Calendar"
               >
                 <CalendarIcon className="w-5 h-5" />
               </button>
 
-              <div className="p-4 rounded-3xl transition-transform flex items-center justify-center shrink-0 mb-4 bg-[#00a631]/10 dark:bg-[#173b22]">
+              <div className="p-4 rounded-lg transition-transform flex items-center justify-center shrink-0 mb-4 bg-[#00a631]/10 dark:bg-[#173b22]">
                 <Clock className="w-7 h-7 text-[#00a631] dark:text-[#34c759]" />
               </div>
               
@@ -172,7 +172,7 @@ export function AttendancePage() {
                   <button
                     onClick={() => handleClockIn(emp.id)}
                     disabled={isProcessing || !!currentAtt?.check_in}
-                    className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
+                    className={`flex items-center justify-center gap-1 py-2 rounded-md text-xs font-black transition-all ${
                       currentAtt?.check_in ? 'bg-emerald-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-emerald-500 hover:text-white'
                     }`}
                   >
@@ -181,7 +181,7 @@ export function AttendancePage() {
                   <button
                     onClick={() => handleClockOut(emp.id)}
                     disabled={isProcessing || !currentAtt?.check_in || !!currentAtt?.check_out}
-                    className={`flex items-center justify-center gap-1 py-2 rounded-xl text-xs font-black transition-all ${
+                    className={`flex items-center justify-center gap-1 py-2 rounded-md text-xs font-black transition-all ${
                       currentAtt?.check_out ? 'bg-orange-500 text-white opacity-50 cursor-not-allowed' : (!currentAtt?.check_in ? 'bg-gray-100 dark:bg-gray-800 opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-orange-500 hover:text-white')
                     }`}
                   >
@@ -194,7 +194,7 @@ export function AttendancePage() {
                   <button
                     onClick={() => handleMarkAttendance(emp.id, 'Present')}
                     disabled={isProcessing || status === 'Present'}
-                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-black transition-all ${
                       status === 'Present' ? 'bg-[#00a631] text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#00a631] hover:text-white'
                     }`}
                   >
@@ -203,7 +203,7 @@ export function AttendancePage() {
                   <button
                     onClick={() => handleMarkAttendance(emp.id, 'Absent')}
                     disabled={isProcessing || status === 'Absent'}
-                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-black transition-all ${
                       status === 'Absent' ? 'bg-red-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-500 hover:text-white'
                     }`}
                   >
@@ -212,7 +212,7 @@ export function AttendancePage() {
                   <button
                     onClick={() => handleMarkAttendance(emp.id, 'Half-Day')}
                     disabled={isProcessing || status === 'Half-Day'}
-                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-black transition-all ${
                       status === 'Half-Day' ? 'bg-purple-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-purple-500 hover:text-white'
                     }`}
                   >
@@ -221,7 +221,7 @@ export function AttendancePage() {
                   <button
                     onClick={() => handleMarkAttendance(emp.id, 'Late')}
                     disabled={isProcessing || status === 'Late'}
-                    className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    className={`flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-black transition-all ${
                       status === 'Late' ? 'bg-yellow-500 text-white opacity-50 cursor-not-allowed' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-yellow-500 hover:text-white'
                     }`}
                   >
@@ -238,7 +238,7 @@ export function AttendancePage() {
                         }
                       }}
                       disabled={isProcessing}
-                      className="col-span-2 flex items-center justify-center gap-1 py-1.5 rounded-xl text-xs font-black transition-all bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 mt-1"
+                      className="col-span-2 flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-black transition-all bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 mt-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Clear Record
                     </button>
@@ -323,7 +323,7 @@ function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-4">
-        <button onClick={onBack} className="p-3 bg-white dark:bg-gray-800 rounded-xl hover:shadow-lg transition-all">
+        <button onClick={onBack} className="p-3 bg-white dark:bg-gray-800 rounded-md hover:shadow-lg transition-all">
           <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
         </button>
         <div>
@@ -334,13 +334,13 @@ function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string
         </div>
       </div>
       
-      <div className="bg-white dark:bg-[#222421] rounded-[2rem] p-6 sm:p-10 shadow-sm border border-gray-100 dark:border-[#2d302d]">
+      <div className="bg-white dark:bg-[#222421] rounded-[2rem] p-4 sm:p-10 shadow-sm border border-gray-100 dark:border-[#2d302d]">
         <div className="flex justify-between items-center mb-8">
-          <button onClick={handlePrevMonth} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold text-gray-600 dark:text-gray-300">&larr; Prev</button>
+          <button onClick={handlePrevMonth} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md font-bold text-gray-600 dark:text-gray-300">&larr; Prev</button>
           <h2 className="text-xl font-black text-[#3a3b39] dark:text-white uppercase">
             {new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
-          <button onClick={handleNextMonth} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold text-gray-600 dark:text-gray-300">Next &rarr;</button>
+          <button onClick={handleNextMonth} className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md font-bold text-gray-600 dark:text-gray-300">Next &rarr;</button>
         </div>
         
         <div className="grid grid-cols-7 gap-2 sm:gap-4 mb-4">
@@ -351,13 +351,13 @@ function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string
         
         <div className="grid grid-cols-7 gap-2 sm:gap-4">
           {days.map((day, idx) => {
-            if (!day) return <div key={`empty-${idx}`} className="h-20 sm:h-[110px] rounded-2xl" />;
+            if (!day) return <div key={`empty-${idx}`} className="h-20 sm:h-[110px] rounded-md" />;
             const record = getDayRecord(day);
             const status = record?.status || null;
             return (
               <div 
                 key={day} 
-                className={`h-20 sm:h-[110px] rounded-2xl flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800 transition-transform hover:scale-105 ${getStatusColor(status)}`}
+                className={`h-20 sm:h-[110px] rounded-md flex flex-col items-center justify-center border border-gray-100 dark:border-gray-800 transition-transform hover:scale-105 ${getStatusColor(status)}`}
               >
                 <span className="text-lg sm:text-xl font-black leading-tight">{day}</span>
                 {status && (
@@ -376,7 +376,7 @@ function EmployeeAttendanceCalendar({ employeeId, onBack }: { employeeId: string
           })}
         </div>
         
-        <div className="flex flex-wrap justify-center gap-6 mt-10 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+        <div className="flex flex-wrap justify-center gap-6 mt-10 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md">
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-green-500"></div><span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Present</span></div>
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-red-500"></div><span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Absent</span></div>
           <div className="flex items-center gap-2"><div className="w-4 h-4 rounded-full bg-yellow-500"></div><span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Late</span></div>

@@ -163,7 +163,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
+              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex items-center gap-1.5 text-sm font-bold"
             >
               <span>← Back</span>
             </button>
@@ -181,7 +181,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -194,7 +194,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
           <div className="w-full max-w-[1200px] mx-auto space-y-6 pb-6">
             {/* Duplicate Phone Warning */}
             {(existingLeadPhone || existingPartyPhone) && (
-              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
                 <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
                   <span className="font-bold">Duplicate Phone:</span>{' '}
@@ -206,7 +206,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
             )}
 
             {/* Section 1: Basic & Contact Information Card */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
                   1. Contact & Identity Information
@@ -300,7 +300,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
             </div>
 
             {/* Section 2: Business & Assignment Card */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
                   2. Pipeline & Requirement Details
@@ -383,7 +383,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
             </div>
 
             {/* Section 3: Follow-up Schedule & Notes Card */}
-            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
                   3. Follow-up Schedule & Context
@@ -440,13 +440,13 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
             <button
               type="button"
               onClick={onClose}
-              className="h-10 sm:h-11 px-5 rounded-xl border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              className="h-10 sm:h-11 px-5 rounded-md border border-gray-300 dark:border-[#2d302d] text-sm font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-10 sm:h-11 px-6 sm:px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-extrabold shadow-md shadow-blue-600/25 transition-all cursor-pointer active:scale-95"
+              className="h-10 sm:h-11 px-6 sm:px-8 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-extrabold shadow-md shadow-blue-600/25 transition-all cursor-pointer active:scale-95"
             >
               {initialLead ? 'Update Lead' : 'Save Lead'}
             </button>

@@ -100,10 +100,10 @@ export function LedgerDashboard() {
   return (
     <div className="space-y-8 animate-fade-in pb-16">
       {/* ── SECTION 1: Banner Header + Timeframe ──────────────────────── */}
-      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="glass-strong p-4 sm:p-8 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1.5 text-left">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#3a3b39] dark:bg-[#252825] text-[#cde06c] flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-md bg-[#3a3b39] dark:bg-[#252825] text-[#cde06c] flex items-center justify-center shrink-0 shadow-sm">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
@@ -119,13 +119,13 @@ export function LedgerDashboard() {
 
         {/* Timeframe selector + Quick Actions */}
         <div className="flex items-center gap-2.5 flex-wrap shrink-0">
-          <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] rounded-2xl">
+          <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] rounded-md">
             {(['daily', 'weekly', 'monthly'] as const).map((tf) => (
               <button
                 key={tf}
                 type="button"
                 onClick={() => setTimeframe(tf)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-md text-xs font-bold capitalize transition-all cursor-pointer ${
                   timeframe === tf
                     ? 'bg-white dark:bg-[#2c302c] text-[#3a3b39] dark:text-white shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -139,7 +139,7 @@ export function LedgerDashboard() {
           <button
             type="button"
             onClick={() => setShowPaymentInModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-bold rounded-md shadow-sm transition-all cursor-pointer active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Payment In</span>
@@ -148,7 +148,7 @@ export function LedgerDashboard() {
           <button
             type="button"
             onClick={() => setShowPaymentOutModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-[#252825] dark:hover:bg-[#2d302d] text-[#3a3b39] dark:text-gray-200 text-xs font-bold rounded-xl border border-gray-200 dark:border-[#2d302d] transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-[#252825] dark:hover:bg-[#2d302d] text-[#3a3b39] dark:text-gray-200 text-xs font-bold rounded-md border border-gray-200 dark:border-[#2d302d] transition-all cursor-pointer active:scale-95"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Payment Out</span>
@@ -168,14 +168,14 @@ export function LedgerDashboard() {
         {financialCards.map((card, i) => (
           <div
             key={i}
-            className="glass-card card-padded p-6 rounded-2xl sm:rounded-3xl border border-gray-200/90 dark:border-[#2d302d] flex flex-col justify-between min-h-[160px] overflow-hidden hover:shadow-md transition-all"
+            className="glass-card card-padded p-4 rounded-md sm:rounded-lg border border-gray-200/90 dark:border-[#2d302d] flex flex-col justify-between min-h-[160px] overflow-hidden hover:shadow-md transition-all"
           >
             {/* Row 1: Label + Icon */}
             <div className="flex items-start justify-between gap-4">
               <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-normal">
                 {card.label}
               </span>
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
+              <div className={`w-10 h-10 rounded-md flex items-center justify-center shrink-0 ${card.iconBg}`}>
                 {card.icon}
               </div>
             </div>
@@ -197,7 +197,7 @@ export function LedgerDashboard() {
       {/* ── SECTION 3: Pie Chart + Lists (Shifted Downwards for Spacing) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-start mt-6 sm:mt-8 pt-2">
         {/* LEFT: Pie Chart Card */}
-        <div className="glass-strong p-8 sm:p-10 pt-10 sm:pt-12 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm flex flex-col items-center text-center min-h-[480px]">
+        <div className="glass-strong p-5 sm:p-10 pt-10 sm:pt-12 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm flex flex-col items-center text-center min-h-[480px]">
           <div className="w-full pb-6 border-b border-gray-100 dark:border-[#2d302d] space-y-1">
             <h2 className="text-sm sm:text-base font-bold text-[#3a3b39] dark:text-white">
               Stock Distribution by Voltage Class
@@ -257,10 +257,10 @@ export function LedgerDashboard() {
         {/* RIGHT: Recent Orders + Top Selling */}
         <div className="space-y-8">
           {/* Recent Invoices Card */}
-          <div className="glass-strong p-8 sm:p-10 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
+          <div className="glass-strong p-5 sm:p-10 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-[#2d302d]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <h2 className="text-sm sm:text-base font-bold text-[#3a3b39] dark:text-white">
@@ -277,7 +277,7 @@ export function LedgerDashboard() {
                 recentOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 bg-gray-50/80 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl flex items-center justify-between gap-4 hover:shadow-xs transition-all"
+                    className="p-4 bg-gray-50/80 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md flex items-center justify-between gap-4 hover:shadow-xs transition-all"
                   >
                     <div className="min-w-0 space-y-0.5 text-left">
                       <span className="font-mono text-xs font-bold text-[#3a3b39] dark:text-white block">
@@ -300,10 +300,10 @@ export function LedgerDashboard() {
           </div>
 
           {/* Top Selling Products Card */}
-          <div className="glass-strong p-8 sm:p-10 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
+          <div className="glass-strong p-5 sm:p-10 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-[#2d302d]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                   <Package className="w-4 h-4" />
                 </div>
                 <h2 className="text-sm sm:text-base font-bold text-[#3a3b39] dark:text-white">
@@ -319,7 +319,7 @@ export function LedgerDashboard() {
                 topSelling.map((prod, idx) => (
                   <div
                     key={idx}
-                    className="p-4 bg-gray-50/80 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl flex items-center justify-between gap-4 hover:shadow-xs transition-all"
+                    className="p-4 bg-gray-50/80 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md flex items-center justify-between gap-4 hover:shadow-xs transition-all"
                   >
                     <div className="flex items-center gap-3 min-w-0 text-left">
                       <span className="w-7 h-7 rounded-lg bg-[#3a3b39] dark:bg-gray-700 text-[#cde06c] text-xs font-bold flex items-center justify-center shrink-0">

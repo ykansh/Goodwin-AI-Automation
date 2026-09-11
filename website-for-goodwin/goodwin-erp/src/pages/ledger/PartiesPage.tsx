@@ -49,7 +49,7 @@ export function PartiesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 sm:p-8 flex flex-col gap-4">
+      <div className="glass-strong p-4 sm:p-8 flex flex-col gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
             Parties Directory (Ledger-Pro)
@@ -62,7 +62,7 @@ export function PartiesPage() {
         <button
           type="button"
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-2xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
+          className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
         >
           <UserPlus className="w-4 h-4" />
           <span>+ Add New Party</span>
@@ -70,9 +70,9 @@ export function PartiesPage() {
       </div>
 
       {/* Filter Bar: Search Top Left & Category Dropdown */}
-      <div className="glass p-5 rounded-2xl border border-gray-200 dark:border-[#2d302d] flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="glass p-5 rounded-md border border-gray-200 dark:border-[#2d302d] flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Option Top Left */}
-        <div className="flex items-center gap-2.5 w-full sm:w-80 px-3.5 py-2.5 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-[#00a631]/30 focus-within:border-[#00a631] transition-all">
+        <div className="flex items-center gap-2.5 w-full sm:w-80 px-3.5 py-2.5 rounded-md border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-[#00a631]/30 focus-within:border-[#00a631] transition-all">
           <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
           <input
             type="text"
@@ -92,7 +92,7 @@ export function PartiesPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="glass-input px-4 py-2 text-xs sm:text-sm font-extrabold bg-white/80 dark:bg-gray-800 text-[#3a3b39] dark:text-white cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 w-full sm:w-60 capitalize"
+            className="glass-input px-4 py-2 text-xs sm:text-sm font-extrabold bg-white/80 dark:bg-gray-800 text-[#3a3b39] dark:text-white cursor-pointer rounded-md border border-gray-200 dark:border-gray-700 w-full sm:w-60 capitalize"
           >
             <option value="all">All Parties (Customers & Suppliers)</option>
             <option value="dealer">Dealer</option>
@@ -180,7 +180,7 @@ export function PartiesPage() {
                             setEditingSupplier(p as Supplier);
                           }
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-200/70 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-200/70 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-md transition-all cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         <span>Edit</span>
@@ -189,7 +189,7 @@ export function PartiesPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedLedgerParty(p)}
-                        className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-[#00a631]/10 hover:bg-[#00a631]/20 text-[#00a631] text-xs font-extrabold rounded-xl transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-[#00a631]/10 hover:bg-[#00a631]/20 text-[#00a631] text-xs font-extrabold rounded-md transition-all cursor-pointer"
                       >
                         <History className="w-3.5 h-3.5" />
                         <span>Ledger</span>
@@ -206,7 +206,7 @@ export function PartiesPage() {
                             }
                           }
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-md transition-all cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Delete</span>

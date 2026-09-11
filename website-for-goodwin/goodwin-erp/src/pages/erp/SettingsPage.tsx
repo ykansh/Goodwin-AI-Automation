@@ -172,7 +172,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d]
+      <div className="glass-strong p-4 sm:p-8 rounded-lg border border-gray-200 dark:border-[#2d302d]
                       flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight leading-tight">
@@ -190,7 +190,7 @@ export function SettingsPage() {
         <div className="lg:col-span-6 space-y-6">
 
           {/* Cloud DB Connection Card */}
-          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-6">
+          <div className="glass-strong p-4 sm:p-8 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-6">
             {/* Card Header */}
             <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
               <div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ export function SettingsPage() {
             </div>
 
             {/* Status indicator row */}
-            <div className="glass rounded-2xl p-4 border border-white/50 dark:border-[#2d302d] flex items-center gap-3">
+            <div className="glass rounded-md p-4 border border-white/50 dark:border-[#2d302d] flex items-center gap-3">
               {dbStatus === 'connected' ? (
                 <Wifi className="w-5 h-5 text-[#00a631] shrink-0" />
               ) : (
@@ -223,7 +223,7 @@ export function SettingsPage() {
                 type="button"
                 onClick={handleCheckGlobalConnection}
                 className="ml-auto px-3 py-1.5 bg-[#00a631]/10 hover:bg-[#00a631]/20 text-[#00a631]
-                           text-xs font-extrabold rounded-xl cursor-pointer transition-all shrink-0"
+                           text-xs font-extrabold rounded-md cursor-pointer transition-all shrink-0"
               >
                 Ping
               </button>
@@ -277,7 +277,7 @@ export function SettingsPage() {
                 disabled={testingDb}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#3a3b39] hover:bg-black
                            dark:bg-gray-700 dark:hover:bg-gray-600 text-[#cde06c]
-                           text-xs font-extrabold rounded-xl transition-all cursor-pointer disabled:opacity-60"
+                           text-xs font-extrabold rounded-md transition-all cursor-pointer disabled:opacity-60"
               >
                 {testingDb ? (
                   <><RefreshCw className="w-4 h-4 animate-spin" /> Testing...</>
@@ -290,7 +290,7 @@ export function SettingsPage() {
                 type="button"
                 onClick={handleCopySchema}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29]
-                           text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer"
+                           text-white text-xs font-extrabold rounded-md transition-all cursor-pointer"
               >
                 {copiedSchema ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 {copiedSchema ? 'Copied SQL!' : 'Copy SQL Schema'}
@@ -301,7 +301,7 @@ export function SettingsPage() {
                 onClick={() => setShowSqlCode(!showSqlCode)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-gray-200/80 hover:bg-gray-300
                            dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200
-                           text-xs font-extrabold rounded-xl transition-all cursor-pointer"
+                           text-xs font-extrabold rounded-md transition-all cursor-pointer"
               >
                 <Code className="w-4 h-4" />
                 {showSqlCode ? 'Hide Code' : 'View Code'}
@@ -312,7 +312,7 @@ export function SettingsPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2.5 bg-blue-600/10 hover:bg-blue-600/20
-                           text-blue-700 dark:text-blue-400 text-xs font-extrabold rounded-xl
+                           text-blue-700 dark:text-blue-400 text-xs font-extrabold rounded-md
                            transition-all cursor-pointer"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -322,7 +322,7 @@ export function SettingsPage() {
 
             {/* View SQL Code Panel (Accordion) */}
             {showSqlCode && (
-              <div className="glass rounded-2xl p-4 border border-gray-200 dark:border-[#2d302d] space-y-2 animate-fade-in">
+              <div className="glass rounded-md p-4 border border-gray-200 dark:border-[#2d302d] space-y-2 animate-fade-in">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-extrabold text-[#3a3b39] dark:text-white">
                     SQL Schema Code (Click text to select all)
@@ -339,13 +339,13 @@ export function SettingsPage() {
                   readOnly
                   value={GOODWIN_SUPABASE_SQL}
                   onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                  className="w-full h-64 glass-input p-3 font-mono text-[11px] leading-relaxed resize-y bg-black/5 dark:bg-black/40 text-gray-800 dark:text-gray-200 rounded-xl"
+                  className="w-full h-64 glass-input p-3 font-mono text-[11px] leading-relaxed resize-y bg-black/5 dark:bg-black/40 text-gray-800 dark:text-gray-200 rounded-md"
                 />
               </div>
             )}
 
             {/* Schema Instructions */}
-            <div className="glass rounded-2xl p-4 border border-[#00a631]/20 bg-[#00a631]/5 space-y-2">
+            <div className="glass rounded-md p-4 border border-[#00a631]/20 bg-[#00a631]/5 space-y-2">
               <p className="text-xs font-extrabold text-[#3a3b39] dark:text-white leading-normal">
                 📋 Setup Instructions:
               </p>
@@ -359,7 +359,7 @@ export function SettingsPage() {
           </div>
 
           {/* Company Profile Info */}
-          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
+          <div className="glass-strong p-4 sm:p-8 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
               <div className="flex items-center gap-3">
                 <Building2 className="w-5 h-5 text-[#3a3b39] dark:text-gray-300 shrink-0" />
@@ -424,7 +424,7 @@ export function SettingsPage() {
 
         {/* RIGHT: Battery Configurator */}
         <div className="lg:col-span-6">
-          <div className="glass-strong p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-[#2d302d] shadow-sm">
+          <div className="glass-strong p-4 sm:p-8 rounded-lg border border-gray-200 dark:border-[#2d302d] shadow-sm">
             <form onSubmit={handleSaveConfigs} className="space-y-6">
               <div className="flex items-center gap-3 pb-4 border-b border-gray-200/60 dark:border-[#2d302d]">
                 <Battery className="w-5 h-5 text-[#00a631] shrink-0" />
@@ -487,7 +487,7 @@ export function SettingsPage() {
               <button
                 type="submit"
                 className="w-full py-3 px-4 bg-[#00a631] hover:bg-[#008a29] text-white
-                           font-extrabold text-sm rounded-xl shadow-md shadow-[#00a631]/25
+                           font-extrabold text-sm rounded-md shadow-md shadow-[#00a631]/25
                            cursor-pointer transition-all"
               >
                 Save Configuration Settings

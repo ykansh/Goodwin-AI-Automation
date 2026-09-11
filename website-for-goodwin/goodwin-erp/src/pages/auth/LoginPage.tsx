@@ -50,10 +50,10 @@ export function LoginPage() {
       {/* Main Wrapper with natural vertical flow */}
       <div className="w-full max-w-[480px] flex flex-col items-center relative z-10 my-auto">
         {/* 2. Login Card (Natural height, no fixed vertical constraint, 32-40px padding, 20px radius) */}
-        <div className="w-full bg-[#0f1612]/95 border border-white/[0.12] rounded-[20px] p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(34,197,94,0.06)] flex flex-col">
+        <div className="w-full bg-[#0f1612]/95 border border-white/[0.12] rounded-[20px] p-5 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(34,197,94,0.06)] flex flex-col">
           {/* 1. Logo (64x64px, 14-18px bottom margin) */}
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#22c55e] to-[#15803d] text-white shadow-[0_0_24px_rgba(34,197,94,0.35)] border border-[#4ade80]/30 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-md bg-gradient-to-b from-[#22c55e] to-[#15803d] text-white shadow-[0_0_24px_rgba(34,197,94,0.35)] border border-[#4ade80]/30 flex items-center justify-center">
               <svg
                 className="w-8 h-8 text-white"
                 viewBox="0 0 24 24"
@@ -94,7 +94,7 @@ export function LoginPage() {
 
           {/* Error Alert Box (if present) */}
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold flex items-center gap-2.5 animate-shake">
+            <div className="mb-5 p-3.5 rounded-md bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold flex items-center gap-2.5 animate-shake">
               <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-ping" />
               <span>{errorMessage}</span>
             </div>
@@ -107,7 +107,7 @@ export function LoginPage() {
               <label className="block text-xs sm:text-[13px] font-bold tracking-wider text-[#9aa99e] uppercase mb-2">
                 EMAIL ADDRESS
               </label>
-              <div className="relative w-full h-[54px] rounded-xl bg-[#17201a] border border-[#27352b] hover:border-[#384b3d] focus-within:border-[#22c55e] focus-within:ring-1 focus-within:ring-[#22c55e]/30 px-4 flex items-center transition-all group">
+              <div className="relative w-full h-[54px] rounded-md bg-[#17201a] border border-[#27352b] hover:border-[#384b3d] focus-within:border-[#22c55e] focus-within:ring-1 focus-within:ring-[#22c55e]/30 px-4 flex items-center transition-all group">
                 <Mail className="w-[18px] h-[18px] text-[#22c55e] shrink-0 mr-3" />
                 <input
                   type="email"
@@ -133,7 +133,7 @@ export function LoginPage() {
               <label className="block text-xs sm:text-[13px] font-bold tracking-wider text-[#9aa99e] uppercase mb-2">
                 PASSWORD
               </label>
-              <div className="relative w-full h-[54px] rounded-xl bg-[#17201a] border border-[#27352b] hover:border-[#384b3d] focus-within:border-[#22c55e] focus-within:ring-1 focus-within:ring-[#22c55e]/30 px-4 flex items-center transition-all">
+              <div className="relative w-full h-[54px] rounded-md bg-[#17201a] border border-[#27352b] hover:border-[#384b3d] focus-within:border-[#22c55e] focus-within:ring-1 focus-within:ring-[#22c55e]/30 px-4 flex items-center transition-all">
                 <Lock className="w-[18px] h-[18px] text-[#22c55e] shrink-0 mr-3" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -186,7 +186,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-[54px] bg-[#22c55e] hover:bg-[#16a34a] active:scale-[0.99] text-white font-bold rounded-xl shadow-[0_8px_20px_-4px_rgba(34,197,94,0.35)] transition-all flex items-center justify-center gap-2.5 text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mb-5"
+              className="w-full h-[54px] bg-[#22c55e] hover:bg-[#16a34a] active:scale-[0.99] text-white font-bold rounded-md shadow-[0_8px_20px_-4px_rgba(34,197,94,0.35)] transition-all flex items-center justify-center gap-2.5 text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mb-5"
             >
               {loading ? (
                 <div className="flex items-center gap-2.5">

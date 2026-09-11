@@ -114,7 +114,7 @@ export function LeadDetailsDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -125,7 +125,7 @@ export function LeadDetailsDrawer({
             <button
               type="button"
               onClick={() => onEdit(lead)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#374137] bg-white dark:bg-[#252825] text-xs font-extrabold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2d302d] transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 dark:border-[#374137] bg-white dark:bg-[#252825] text-xs font-extrabold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2d302d] transition-all cursor-pointer shadow-xs"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit</span>
@@ -134,7 +134,7 @@ export function LeadDetailsDrawer({
             <button
               type="button"
               onClick={() => onChangeStage(lead)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#374137] bg-white dark:bg-[#252825] text-xs font-extrabold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2d302d] transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 dark:border-[#374137] bg-white dark:bg-[#252825] text-xs font-extrabold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2d302d] transition-all cursor-pointer shadow-xs"
             >
               <Sparkles className="w-3.5 h-3.5 text-blue-500" />
               <span>Change Stage</span>
@@ -144,7 +144,7 @@ export function LeadDetailsDrawer({
               <button
                 type="button"
                 onClick={() => onConvert(lead)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer"
               >
                 <span>Convert to Party</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -155,7 +155,7 @@ export function LeadDetailsDrawer({
               <button
                 type="button"
                 onClick={() => onMarkLost(lead)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-xs font-extrabold text-red-600 dark:text-red-400 hover:bg-red-100/60 dark:hover:bg-red-950/40 transition-all cursor-pointer ml-auto"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-xs font-extrabold text-red-600 dark:text-red-400 hover:bg-red-100/60 dark:hover:bg-red-950/40 transition-all cursor-pointer ml-auto"
               >
                 <AlertOctagon className="w-3.5 h-3.5" />
                 <span>Mark Lost</span>
@@ -168,7 +168,7 @@ export function LeadDetailsDrawer({
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
           {/* Lost Banner if Lost */}
           {lead.stage === 'Lost' && (
-            <div className="p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3">
+            <div className="p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md flex items-start gap-3">
               <AlertOctagon className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div className="text-xs">
                 <p className="font-black text-red-900 dark:text-red-300">Lead Marked as Lost</p>
@@ -185,21 +185,21 @@ export function LeadDetailsDrawer({
               Contact Information
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl flex items-center justify-between">
+              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md flex items-center justify-between">
                 <div className="min-w-0">
                   <span className="text-[10px] font-bold text-gray-400 block uppercase">Phone</span>
                   <span className="text-xs font-extrabold text-[#3a3b39] dark:text-white font-mono">{lead.phone}</span>
                 </div>
                 <a
                   href={`tel:${lead.phone}`}
-                  className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-100 transition-colors"
+                  className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 transition-colors"
                   title="Call"
                 >
                   <Phone className="w-4 h-4" />
                 </a>
               </div>
 
-              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl flex items-center justify-between">
+              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md flex items-center justify-between">
                 <div className="min-w-0">
                   <span className="text-[10px] font-bold text-gray-400 block uppercase">WhatsApp</span>
                   <span className="text-xs font-extrabold text-[#3a3b39] dark:text-white font-mono">{lead.whatsapp || lead.phone}</span>
@@ -208,7 +208,7 @@ export function LeadDetailsDrawer({
                   href={`https://wa.me/91${(lead.whatsapp || lead.phone).replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 transition-colors"
+                  className="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md hover:bg-emerald-100 transition-colors"
                   title="Chat on WhatsApp"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -216,14 +216,14 @@ export function LeadDetailsDrawer({
               </div>
 
               {lead.email && (
-                <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl flex items-center justify-between sm:col-span-2">
+                <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md flex items-center justify-between sm:col-span-2">
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold text-gray-400 block uppercase">Email</span>
                     <span className="text-xs font-extrabold text-[#3a3b39] dark:text-white truncate block">{lead.email}</span>
                   </div>
                   <a
                     href={`mailto:${lead.email}`}
-                    className="p-2 bg-gray-200/60 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 transition-colors"
+                    className="p-2 bg-gray-200/60 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 transition-colors"
                     title="Send Email"
                   >
                     <Mail className="w-4 h-4" />
@@ -239,26 +239,26 @@ export function LeadDetailsDrawer({
               Lead Information
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl">
+              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md">
                 <span className="text-[10px] font-bold text-gray-400 block uppercase">Lead Source</span>
                 <span className="text-xs font-black text-[#3a3b39] dark:text-white mt-0.5 block">{lead.source}</span>
               </div>
 
-              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl">
+              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md">
                 <span className="text-[10px] font-bold text-gray-400 block uppercase">Expected Value</span>
                 <span className="text-xs font-black text-blue-600 dark:text-blue-400 mt-0.5 block">
                   ₹{lead.expected_value ? lead.expected_value.toLocaleString('en-IN') : '0'}
                 </span>
               </div>
 
-              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl col-span-2">
+              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md col-span-2">
                 <span className="text-[10px] font-bold text-gray-400 block uppercase">Product / Requirement</span>
                 <p className="text-xs font-bold text-[#3a3b39] dark:text-gray-200 mt-1 leading-relaxed">
                   {lead.requirement || 'No specific requirement recorded'}
                 </p>
               </div>
 
-              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl col-span-2 flex items-center justify-between">
+              <div className="p-3 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md col-span-2 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold text-gray-400 block uppercase">Assigned To</span>
                   <span className="text-xs font-black text-[#3a3b39] dark:text-white flex items-center gap-1.5 mt-0.5">
@@ -276,9 +276,9 @@ export function LeadDetailsDrawer({
             <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Next Follow-up
             </h3>
-            <div className="p-3.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl flex items-center justify-between">
+            <div className="p-3.5 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 rounded-md flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+                <div className="w-9 h-9 rounded-md bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
@@ -309,7 +309,7 @@ export function LeadDetailsDrawer({
               <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
                 Notes
               </h3>
-              <div className="p-3.5 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+              <div className="p-3.5 bg-gray-50 dark:bg-[#202420] border border-gray-200/70 dark:border-[#2d302d] rounded-md text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                 {lead.notes}
               </div>
             </div>
@@ -325,7 +325,7 @@ export function LeadDetailsDrawer({
             </div>
 
             {/* Quick Log Box */}
-            <form onSubmit={handleAddActivity} className="p-3.5 bg-gray-50 dark:bg-[#202420] border border-gray-200/80 dark:border-[#2d302d] rounded-2xl space-y-2.5">
+            <form onSubmit={handleAddActivity} className="p-3.5 bg-gray-50 dark:bg-[#202420] border border-gray-200/80 dark:border-[#2d302d] rounded-md space-y-2.5">
               <div className="flex items-center gap-1.5">
                 {(['Call', 'WhatsApp', 'Meeting', 'Note'] as ActivityType[]).map((type) => (
                   <button
@@ -354,7 +354,7 @@ export function LeadDetailsDrawer({
                 />
                 <button
                   type="submit"
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-md transition-all cursor-pointer flex items-center gap-1 shrink-0"
                 >
                   <Send className="w-3 h-3" />
                   <span>Log</span>
@@ -383,7 +383,7 @@ export function LeadDetailsDrawer({
                   return (
                     <div key={act.id} className="relative pl-7 group">
                       <div className="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-white dark:bg-[#181a18] border-2 border-blue-600 flex items-center justify-center" />
-                      <div className="p-3 bg-white dark:bg-[#1f221f] border border-gray-200/70 dark:border-[#2d302d] rounded-2xl hover:shadow-xs transition-shadow">
+                      <div className="p-3 bg-white dark:bg-[#1f221f] border border-gray-200/70 dark:border-[#2d302d] rounded-md hover:shadow-xs transition-shadow">
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <span className="flex items-center gap-1 text-[11px] font-black text-gray-800 dark:text-gray-200">
                             {getActivityIcon(act.type)}

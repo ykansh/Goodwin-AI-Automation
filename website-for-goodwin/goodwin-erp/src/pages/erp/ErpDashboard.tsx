@@ -27,15 +27,15 @@ export function ErpDashboard({
   if (isLoading) {
     return (
       <div className="space-y-8 animate-pulse p-4">
-        <div className="h-24 bg-black/5 dark:bg-white/5 rounded-3xl w-full"></div>
+        <div className="h-24 bg-black/5 dark:bg-white/5 rounded-lg w-full"></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-40 bg-black/5 dark:bg-white/5 rounded-3xl"></div>
+            <div key={i} className="h-40 bg-black/5 dark:bg-white/5 rounded-lg"></div>
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)] gap-8">
-          <div className="h-96 bg-black/5 dark:bg-white/5 rounded-3xl"></div>
-          <div className="h-96 bg-black/5 dark:bg-white/5 rounded-3xl"></div>
+          <div className="h-96 bg-black/5 dark:bg-white/5 rounded-lg"></div>
+          <div className="h-96 bg-black/5 dark:bg-white/5 rounded-lg"></div>
         </div>
       </div>
     );
@@ -127,7 +127,7 @@ export function ErpDashboard({
     <div className="space-y-8 animate-fade-in pb-12">
 
       {/* ── SECTION 1: Banner + Timeframe ─────────────────────────── */}
-      <div className="glass-strong flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 sm:p-8 relative overflow-hidden">
+      <div className="glass-strong flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-4 sm:p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#22c55e]/10 blur-[100px] rounded-full pointer-events-none" />
         
         <div className="space-y-2 relative z-10">
@@ -159,7 +159,7 @@ export function ErpDashboard({
           <div
             key={i}
             onClick={() => { if (card.onClickKey && onNavigate) onNavigate(card.onClickKey); }}
-            className="glass flex flex-col justify-between p-6 overflow-hidden cursor-pointer hover:border-[#22c55e]/40 hover:shadow-lg hover:shadow-[#22c55e]/5 transition-all group relative"
+            className="glass flex flex-col justify-between p-4 overflow-hidden cursor-pointer hover:border-[#22c55e]/40 hover:shadow-lg hover:shadow-[#22c55e]/5 transition-all group relative"
           >
             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-black/5 dark:bg-white/5 rounded-full blur-2xl group-hover:bg-[#22c55e]/10 transition-colors" />
             
@@ -167,7 +167,7 @@ export function ErpDashboard({
               <span className="text-xs font-extrabold text-[#5f7365] dark:text-[#8fa093] uppercase tracking-widest leading-normal group-hover:text-[#111814] dark:group-hover:text-white transition-colors">
                 {card.label}
               </span>
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${card.iconBg} shadow-inner`}>
+              <div className={`w-10 h-10 rounded-md flex items-center justify-center shrink-0 ${card.iconBg} shadow-inner`}>
                 {card.icon}
               </div>
             </div>
@@ -196,10 +196,10 @@ export function ErpDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Sales Trend Chart */}
-        <div className="glass-strong flex flex-col p-6 sm:p-8">
+        <div className="glass-strong flex flex-col p-4 sm:p-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#22c55e]/10 text-[#22c55e] rounded-xl">
+              <div className="p-2 bg-[#22c55e]/10 text-[#22c55e] rounded-md">
                 <Activity className="w-5 h-5" />
               </div>
               <h2 className="text-base font-black text-[#111814] dark:text-white">Revenue Trend</h2>
@@ -232,10 +232,10 @@ export function ErpDashboard({
         </div>
 
         {/* Stock Distribution */}
-        <div className="glass-strong flex flex-col p-6 sm:p-8">
+        <div className="glass-strong flex flex-col p-4 sm:p-8">
           <div className="flex items-center justify-between mb-8">
              <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl">
+              <div className="p-2 bg-blue-500/10 text-blue-500 rounded-md">
                 <Package className="w-5 h-5" />
               </div>
               <h2 className="text-base font-black text-[#111814] dark:text-white">Inventory by Voltage</h2>
@@ -291,13 +291,13 @@ export function ErpDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Orders */}
         <div className="glass flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 border-b border-black/5 dark:border-white/5">
             <h2 className="text-base font-black text-[#111814] dark:text-white">Recent Orders</h2>
             <button onClick={() => onNavigate?.('sales')} className="text-xs font-bold text-[#22c55e] hover:underline">View All</button>
           </div>
           <div className="p-0">
             {recentOrders.length === 0 ? (
-              <div className="p-8 text-center text-sm font-bold text-[#5f7365] dark:text-[#8fa093]">No recent orders</div>
+              <div className="p-5 text-center text-sm font-bold text-[#5f7365] dark:text-[#8fa093]">No recent orders</div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <tbody>
@@ -324,13 +324,13 @@ export function ErpDashboard({
 
         {/* Top Selling Products */}
         <div className="glass flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 border-b border-black/5 dark:border-white/5">
             <h2 className="text-base font-black text-[#111814] dark:text-white">Top Products</h2>
             <button onClick={() => onNavigate?.('products')} className="text-xs font-bold text-[#22c55e] hover:underline">View Inventory</button>
           </div>
           <div className="p-0">
             {topSelling.length === 0 ? (
-              <div className="p-8 text-center text-sm font-bold text-[#5f7365] dark:text-[#8fa093]">No sales data available</div>
+              <div className="p-5 text-center text-sm font-bold text-[#5f7365] dark:text-[#8fa093]">No sales data available</div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <tbody>

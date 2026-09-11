@@ -50,7 +50,7 @@ function MainAppContent() {
   const renderModuleContent = () => {
     if (!hasAccess) {
       return (
-        <div className="glass-strong p-8 sm:p-12 rounded-3xl text-center border border-black/10 dark:border-white/10 space-y-4 my-8">
+        <div className="glass-strong p-5 sm:p-12 rounded-lg text-center border border-black/10 dark:border-white/10 space-y-4 my-8">
           <ShieldAlert className="w-16 h-16 text-amber-500 mx-auto" />
           <h2 className="text-2xl font-extrabold text-[#111814] dark:text-white">Access Restricted</h2>
           <p className="text-xs sm:text-sm text-[#5f7365] dark:text-[#8fa093] max-w-md mx-auto">
@@ -60,7 +60,7 @@ function MainAppContent() {
           <button
             type="button"
             onClick={() => setCurrentModule('dashboard')}
-            className="px-5 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs sm:text-sm font-extrabold rounded-xl shadow cursor-pointer transition-colors"
+            className="px-5 py-2.5 bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs sm:text-sm font-extrabold rounded-md shadow cursor-pointer transition-colors"
           >
             Return to Dashboard
           </button>

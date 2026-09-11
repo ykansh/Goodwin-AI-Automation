@@ -40,7 +40,7 @@ export function FollowupsPage() {
     return (
       <div
         key={lead.id}
-        className={`p-4 sm:p-5 bg-white dark:bg-[#1a1d1a] border rounded-2xl transition-all hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+        className={`p-4 sm:p-5 bg-white dark:bg-[#1a1d1a] border rounded-md transition-all hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
           status === 'overdue'
             ? 'border-red-200 dark:border-red-900/60 bg-red-50/20 dark:bg-red-950/10'
             : status === 'today'
@@ -99,7 +99,7 @@ export function FollowupsPage() {
         <div className="flex items-center gap-2 shrink-0">
           <a
             href={`tel:${lead.phone}`}
-            className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 rounded-xl text-xs font-extrabold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 rounded-md text-xs font-extrabold transition-colors"
             title="Call"
           >
             <Phone className="w-3.5 h-3.5" />
@@ -110,7 +110,7 @@ export function FollowupsPage() {
             href={`https://wa.me/91${(lead.whatsapp || lead.phone).replace(/\D/g, '')}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-xl text-xs font-extrabold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-md text-xs font-extrabold transition-colors"
             title="WhatsApp"
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -120,7 +120,7 @@ export function FollowupsPage() {
           <button
             type="button"
             onClick={() => setDrawerLead(lead)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 dark:bg-[#252825] hover:bg-gray-200 dark:hover:bg-[#2d302d] text-gray-700 dark:text-gray-200 rounded-xl text-xs font-extrabold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 dark:bg-[#252825] hover:bg-gray-200 dark:hover:bg-[#2d302d] text-gray-700 dark:text-gray-200 rounded-md text-xs font-extrabold transition-colors cursor-pointer"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             <span>Open Lead</span>
@@ -133,7 +133,7 @@ export function FollowupsPage() {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       {/* Header */}
-      <div className="glass-strong p-6 sm:p-8">
+      <div className="glass-strong p-4 sm:p-8">
         <h1 className="text-2xl sm:text-3xl font-black text-[#3a3b39] dark:text-white tracking-tight">
           Follow-ups
         </h1>
@@ -152,7 +152,7 @@ export function FollowupsPage() {
         </div>
 
         {overdueLeads.length === 0 ? (
-          <div className="p-6 bg-white dark:bg-[#1a1d1a] border border-gray-200/60 dark:border-[#2d302d] rounded-2xl text-center text-xs text-gray-400 font-semibold">
+          <div className="p-4 bg-white dark:bg-[#1a1d1a] border border-gray-200/60 dark:border-[#2d302d] rounded-md text-center text-xs text-gray-400 font-semibold">
             No overdue follow-ups. Great job!
           </div>
         ) : (
@@ -172,7 +172,7 @@ export function FollowupsPage() {
         </div>
 
         {todayLeads.length === 0 ? (
-          <div className="p-6 bg-white dark:bg-[#1a1d1a] border border-gray-200/60 dark:border-[#2d302d] rounded-2xl text-center text-xs text-gray-400 font-semibold">
+          <div className="p-4 bg-white dark:bg-[#1a1d1a] border border-gray-200/60 dark:border-[#2d302d] rounded-md text-center text-xs text-gray-400 font-semibold">
             No follow-ups due today.
           </div>
         ) : (
@@ -192,7 +192,7 @@ export function FollowupsPage() {
         </div>
 
         {upcomingLeads.length === 0 ? (
-          <div className="p-6 bg-white dark:bg-[#1a1d1a] border border-gray-200/60 dark:border-[#2d302d] rounded-2xl text-center text-xs text-gray-400 font-semibold">
+          <div className="p-4 bg-white dark:bg-[#1a1d1a] border border-gray-200/60 dark:border-[#2d302d] rounded-md text-center text-xs text-gray-400 font-semibold">
             No upcoming follow-ups scheduled.
           </div>
         ) : (

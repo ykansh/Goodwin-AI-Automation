@@ -38,7 +38,7 @@ export function ReportsAnalyticsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Banner with timeframe dropdown */}
-      <div className="glass-strong p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="glass-strong p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-[#3a3b39] dark:text-white tracking-tight">
             Reports &amp; Financial Analytics
@@ -63,7 +63,7 @@ export function ReportsAnalyticsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('sales')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-extrabold transition-all cursor-pointer ${
             activeTab === 'sales'
               ? 'bg-[#00a631] text-white shadow-md shadow-[#00a631]/30'
               : 'bg-gray-100 dark:bg-[#252825] text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-[#2d302d]'
@@ -75,7 +75,7 @@ export function ReportsAnalyticsPage() {
         <button
           type="button"
           onClick={() => setActiveTab('stock')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-extrabold transition-all cursor-pointer ${
             activeTab === 'stock'
               ? 'bg-[#3a3b39] text-[#cde06c] shadow-md shadow-black/20'
               : 'bg-gray-100 dark:bg-[#252825] text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-[#2d302d]'

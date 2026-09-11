@@ -23,7 +23,7 @@ export function LedgerSalesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Banner */}
-      <div className="glass-strong p-6 rounded-3xl border border-gray-200 dark:border-[#2d302d] flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-strong p-4 rounded-lg border border-gray-200 dark:border-[#2d302d] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-[#3a3b39] dark:text-white tracking-tight">
             Sales & Invoices (Ledger-Pro)
@@ -37,15 +37,15 @@ export function LedgerSalesPage() {
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-xl shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto"
         >
           <Plus className="w-4 h-4" /> + Create Invoice
         </button>
       </div>
 
       {/* Search Top Left */}
-      <div className="bg-white dark:bg-[#1e211e] p-4 rounded-2xl border border-gray-200 dark:border-[#2d302d]">
-        <div className="flex items-center gap-2.5 w-full md:w-80 px-3.5 py-2 rounded-xl border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-[#00a631]/30 focus-within:border-[#00a631] transition-all">
+      <div className="bg-white dark:bg-[#1e211e] p-4 rounded-md border border-gray-200 dark:border-[#2d302d]">
+        <div className="flex items-center gap-2.5 w-full md:w-80 px-3.5 py-2 rounded-md border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825] focus-within:ring-2 focus-within:ring-[#00a631]/30 focus-within:border-[#00a631] transition-all">
           <Search className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
           <input
             type="text"
@@ -120,7 +120,7 @@ export function LedgerSalesPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedInvoice(inv)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-[#2d302d] hover:bg-gray-200 dark:hover:bg-[#373a37] text-[#3a3b39] dark:text-gray-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-[#2d302d] hover:bg-gray-200 dark:hover:bg-[#373a37] text-[#3a3b39] dark:text-gray-200 text-xs font-bold rounded-md transition-colors cursor-pointer"
                         >
                           <Printer className="w-3.5 h-3.5" /> Print Invoice
                         </button>
@@ -131,7 +131,7 @@ export function LedgerSalesPage() {
                               deleteSalesInvoiceMutation.mutate(inv.id);
                             }
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100/50 hover:bg-red-200 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-md transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>

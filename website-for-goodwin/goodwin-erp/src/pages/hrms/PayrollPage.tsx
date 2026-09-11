@@ -73,12 +73,12 @@ export function PayrollPage() {
               placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-64 px-4 py-2 bg-white/40 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00a631] text-[#3a3b39] dark:text-white"
+              className="w-full sm:w-64 px-4 py-2 bg-white/40 dark:bg-gray-800/40 border border-white/40 dark:border-gray-700/40 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00a631] text-[#3a3b39] dark:text-white"
             />
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-[#00a631] text-white px-4 py-2 rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
+            className="flex items-center gap-2 bg-[#00a631] text-white px-4 py-2 rounded-md font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">Process Payroll</span>
@@ -86,7 +86,7 @@ export function PayrollPage() {
         </div>
       </div>
 
-      <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-white/40 dark:border-gray-700/40 rounded-3xl p-6 shadow-xl overflow-hidden">
+      <div className="bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-white/40 dark:border-gray-700/40 rounded-lg p-4 shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -133,7 +133,7 @@ export function PayrollPage() {
                   ))}
                   {filteredPayroll.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">No payroll records found.</td>
+                      <td colSpan={5} className="p-5 text-center text-gray-500 font-bold">No payroll records found.</td>
                     </tr>
                   )}
                 </>
@@ -145,21 +145,21 @@ export function PayrollPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
               <h2 className="text-xl font-extrabold text-[#3a3b39] dark:text-white">Process Payroll</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-6 h-6" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Employee</label>
                 <select
                   value={formData.employee_id}
                   onChange={(e) => handleEmployeeChange(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   required
                 >
                   <option value="">Select an employee</option>
@@ -175,7 +175,7 @@ export function PayrollPage() {
                   <select
                     value={formData.month}
                     onChange={(e) => setFormData(prev => ({ ...prev, month: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   >
                     {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
                       <option key={m} value={m}>{m}</option>
@@ -188,7 +188,7 @@ export function PayrollPage() {
                     type="number"
                     value={formData.year}
                     onChange={(e) => setFormData(prev => ({ ...prev, year: parseInt(e.target.value) }))}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                     required
                   />
                 </div>
@@ -201,7 +201,7 @@ export function PayrollPage() {
                     type="number"
                     value={formData.basic_salary}
                     onChange={(e) => calculateNet(parseFloat(e.target.value) || 0, formData.allowances, formData.deductions)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                     required
                   />
                 </div>
@@ -211,7 +211,7 @@ export function PayrollPage() {
                     type="number"
                     value={formData.allowances}
                     onChange={(e) => calculateNet(formData.basic_salary, parseFloat(e.target.value) || 0, formData.deductions)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
                 <div>
@@ -220,7 +220,7 @@ export function PayrollPage() {
                     type="number"
                     value={formData.deductions}
                     onChange={(e) => calculateNet(formData.basic_salary, formData.allowances, parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none"
                   />
                 </div>
                 <div className="flex flex-col justify-end">
@@ -230,8 +230,8 @@ export function PayrollPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-                <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
-                <button type="submit" className="px-5 py-2.5 text-sm font-bold bg-[#00a631] text-white rounded-xl hover:shadow-lg hover:shadow-[#00a631]/30 transition-all">Process</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-md transition-colors">Cancel</button>
+                <button type="submit" className="px-5 py-2.5 text-sm font-bold bg-[#00a631] text-white rounded-md hover:shadow-lg hover:shadow-[#00a631]/30 transition-all">Process</button>
               </div>
             </form>
           </div>

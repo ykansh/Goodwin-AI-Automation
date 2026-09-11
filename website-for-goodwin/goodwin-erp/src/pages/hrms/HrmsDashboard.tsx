@@ -73,9 +73,9 @@ export function HrmsDashboard({ onNavigate }: HrmsDashboardProps) {
           <div
             key={stat.title}
             onClick={() => onNavigate(stat.module)}
-            className="bg-white dark:bg-[#222421] p-8 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col items-center justify-center text-center min-h-[220px]"
+            className="bg-white dark:bg-[#222421] p-5 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col items-center justify-center text-center min-h-[220px]"
           >
-            <div className={`p-4 rounded-3xl transition-transform group-hover:scale-110 flex items-center justify-center shrink-0 mb-4 ${stat.iconBg}`}>
+            <div className={`p-4 rounded-lg transition-transform group-hover:scale-110 flex items-center justify-center shrink-0 mb-4 ${stat.iconBg}`}>
               <stat.icon className={`w-7 h-7 ${stat.iconColor}`} />
             </div>
             

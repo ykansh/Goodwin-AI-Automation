@@ -39,11 +39,11 @@ export function ProjectsPage() {
           <p className="text-sm font-bold text-gray-500 mt-1">Manage initiatives, track tasks, and log timesheets.</p>
         </div>
         
-        <div className="flex bg-white/40 dark:bg-gray-800/40 p-1 rounded-2xl border border-gray-100 dark:border-gray-700 backdrop-blur-md relative">
+        <div className="flex bg-white/40 dark:bg-gray-800/40 p-1 rounded-md border border-gray-100 dark:border-gray-700 backdrop-blur-md relative">
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value as any)}
-            className="px-6 py-2 rounded-xl text-sm font-bold bg-transparent text-[#3a3b39] dark:text-white outline-none cursor-pointer appearance-none pr-10 focus:ring-2 focus:ring-[#00a631] transition-all"
+            className="px-6 py-2 rounded-md text-sm font-bold bg-transparent text-[#3a3b39] dark:text-white outline-none cursor-pointer appearance-none pr-10 focus:ring-2 focus:ring-[#00a631] transition-all"
           >
             <option value="projects">Projects</option>
             <option value="tasks">Tasks</option>
@@ -62,7 +62,7 @@ export function ProjectsPage() {
             <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-normal">
               Active Projects
             </span>
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
               <Briefcase className="w-5 h-5" />
             </div>
           </div>
@@ -79,7 +79,7 @@ export function ProjectsPage() {
             <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-normal">
               Total Tasks
             </span>
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-[#00a631]/10 text-[#00a631] dark:bg-[#00a631]/20">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 bg-[#00a631]/10 text-[#00a631] dark:bg-[#00a631]/20">
               <List className="w-5 h-5" />
             </div>
           </div>
@@ -96,7 +96,7 @@ export function ProjectsPage() {
             <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-normal">
               Pending Tasks
             </span>
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
               <Activity className="w-5 h-5" />
             </div>
           </div>
@@ -114,7 +114,7 @@ export function ProjectsPage() {
             <span className="text-xs font-extrabold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-normal">
               Hours Logged
             </span>
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
               <Clock className="w-5 h-5" />
             </div>
           </div>
@@ -174,7 +174,7 @@ function ProjectsTab({ projects, onAdd, updateProject, isLoading }: { projects: 
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Active Projects</h2>
-        <button onClick={onAdd} className="bg-[#00a631] text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95">
+        <button onClick={onAdd} className="bg-[#00a631] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95">
           <Plus className="w-5 h-5" /> Add Project
         </button>
       </div>
@@ -244,7 +244,7 @@ function TasksTab({ tasks, onAdd, updateTask, isLoading }: { tasks: any[], onAdd
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Tasks</h2>
-        <button onClick={onAdd} className="bg-[#00a631] text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95">
+        <button onClick={onAdd} className="bg-[#00a631] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95">
           <Plus className="w-5 h-5" /> Create Task
         </button>
       </div>
@@ -316,12 +316,12 @@ function TimesheetsTab({ timesheets, onAdd, updateTimesheet, isLoading }: { time
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Timesheets</h2>
-        <button onClick={onAdd} className="bg-[#00a631] text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95">
+        <button onClick={onAdd} className="bg-[#00a631] text-white px-4 py-2 rounded-md font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95">
           <Plus className="w-5 h-5" /> Log Time
         </button>
       </div>
 
-      <div className="bg-white/40 dark:bg-[#1b1e1b]/40 backdrop-blur-xl border border-white/40 dark:border-gray-800 rounded-3xl p-6 shadow-sm overflow-hidden">
+      <div className="bg-white/40 dark:bg-[#1b1e1b]/40 backdrop-blur-xl border border-white/40 dark:border-gray-800 rounded-lg p-4 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -377,7 +377,7 @@ function TimesheetsTab({ timesheets, onAdd, updateTimesheet, isLoading }: { time
                   ))}
                   {timesheets.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-gray-500 font-bold">
+                      <td colSpan={5} className="p-5 text-center text-gray-500 font-bold">
                         No timesheets logged yet.
                       </td>
                     </tr>
@@ -419,35 +419,35 @@ function AddProjectModal({ onClose, onSubmit }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#1b1e1b] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-[#1b1e1b] rounded-lg w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-xl font-extrabold text-gray-800 dark:text-white">New Project</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><X className="w-5 h-5 text-gray-500" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
-            <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+            <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Description</label>
-            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold resize-none h-24" />
+            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold resize-none h-24" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
-              <input type="date" required value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+              <input type="date" required value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">End Date</label>
-              <input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+              <input type="date" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Budget (₹)</label>
-            <input type="number" value={formData.budget} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+            <input type="number" value={formData.budget} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
           </div>
-          <button type="submit" className="w-full py-3 bg-[#00a631] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95 mt-4">Create Project</button>
+          <button type="submit" className="w-full py-3 bg-[#00a631] text-white rounded-md font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95 mt-4">Create Project</button>
         </form>
       </div>
     </div>
@@ -479,26 +479,26 @@ function AddTaskModal({ onClose, onSubmit, projects, employees }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#1b1e1b] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-[#1b1e1b] rounded-lg w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-xl font-extrabold text-gray-800 dark:text-white">New Task</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><X className="w-5 h-5 text-gray-500" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Task Title</label>
-            <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+            <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Project</label>
-            <select required value={formData.project_id} onChange={e => setFormData({...formData, project_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
+            <select required value={formData.project_id} onChange={e => setFormData({...formData, project_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
               <option value="">Select Project</option>
               {projects.map((p:any) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Assign To</label>
-            <select value={formData.assigned_to} onChange={e => setFormData({...formData, assigned_to: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
+            <select value={formData.assigned_to} onChange={e => setFormData({...formData, assigned_to: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
               <option value="">Unassigned</option>
               {employees.map((e:any) => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
             </select>
@@ -506,7 +506,7 @@ function AddTaskModal({ onClose, onSubmit, projects, employees }: any) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Priority</label>
-              <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
+              <select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
                 <option value="High">High</option>
@@ -515,10 +515,10 @@ function AddTaskModal({ onClose, onSubmit, projects, employees }: any) {
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
-              <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+              <input type="date" value={formData.due_date} onChange={e => setFormData({...formData, due_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
             </div>
           </div>
-          <button type="submit" className="w-full py-3 bg-[#00a631] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95 mt-4">Create Task</button>
+          <button type="submit" className="w-full py-3 bg-[#00a631] text-white rounded-md font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95 mt-4">Create Task</button>
         </form>
       </div>
     </div>
@@ -544,22 +544,22 @@ function AddTimesheetModal({ onClose, onSubmit, tasks, employees }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#1b1e1b] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-[#1b1e1b] rounded-lg w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-xl font-extrabold text-gray-800 dark:text-white">Log Time</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"><X className="w-5 h-5 text-gray-500" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Employee</label>
-            <select required value={formData.employee_id} onChange={e => setFormData({...formData, employee_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
+            <select required value={formData.employee_id} onChange={e => setFormData({...formData, employee_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
               <option value="">Select Employee</option>
               {employees.map((e:any) => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Task</label>
-            <select required value={formData.task_id} onChange={e => setFormData({...formData, task_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
+            <select required value={formData.task_id} onChange={e => setFormData({...formData, task_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold">
               <option value="">Select Task</option>
               {tasks.map((t:any) => <option key={t.id} value={t.id}>{t.title} ({t.project?.name})</option>)}
             </select>
@@ -567,18 +567,18 @@ function AddTimesheetModal({ onClose, onSubmit, tasks, employees }: any) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Date</label>
-              <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+              <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Hours</label>
-              <input type="number" step="0.5" required min="0.5" max="24" value={formData.hours_worked} onChange={e => setFormData({...formData, hours_worked: Number(e.target.value)})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
+              <input type="number" step="0.5" required min="0.5" max="24" value={formData.hours_worked} onChange={e => setFormData({...formData, hours_worked: Number(e.target.value)})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Notes</label>
-            <input type="text" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#00a631] outline-none font-bold" placeholder="What did you work on?" />
+            <input type="text" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-[#00a631] outline-none font-bold" placeholder="What did you work on?" />
           </div>
-          <button type="submit" className="w-full py-3 bg-[#00a631] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95 mt-4">Log Hours</button>
+          <button type="submit" className="w-full py-3 bg-[#00a631] text-white rounded-md font-bold hover:shadow-lg hover:shadow-[#00a631]/30 transition-all active:scale-95 mt-4">Log Hours</button>
         </form>
       </div>
     </div>
