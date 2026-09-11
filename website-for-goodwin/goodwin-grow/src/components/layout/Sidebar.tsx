@@ -35,8 +35,8 @@ export const Sidebar = () => {
     <aside className="w-64 bg-secondary flex-shrink-0 hidden md:flex flex-col h-full border-r border-canvas-variant shadow-level-2 z-10 transition-all duration-300">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 bg-secondary-dark text-white border-b border-secondary">
-        <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center mr-3 shadow-sm border border-primary/20">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+        <div className="w-8 flex items-center justify-center mr-3">
+          <img src="/logo.png" alt="Logo" className="w-full h-auto object-contain" />
         </div>
         <span className="font-display font-bold text-lg tracking-wide text-canvas-surface">
           GOODWIN <span className="text-tertiary">GROW</span>

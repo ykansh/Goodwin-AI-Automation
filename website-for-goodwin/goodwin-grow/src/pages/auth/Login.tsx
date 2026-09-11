@@ -52,11 +52,11 @@ export const Login = () => {
           
           {/* Logo & Header */}
           <div className="flex flex-col items-center mb-10 text-center">
-            <div className="w-24 h-24 mb-6 shadow-lg rounded-full overflow-hidden border-2 border-primary/20 hover:scale-105 transition-transform duration-300 bg-black flex items-center justify-center">
+            <div className="w-32 mb-6 hover:scale-105 transition-transform duration-300 flex items-center justify-center">
               <img 
                 src="/logo.png" 
                 alt="Goodwin Grow AI Logo" 
-                className="w-full h-full object-cover"
+                className="w-full h-auto object-contain"
               />
             </div>
             <h1 className="text-3xl font-display text-secondary mb-2">Welcome Back</h1>
