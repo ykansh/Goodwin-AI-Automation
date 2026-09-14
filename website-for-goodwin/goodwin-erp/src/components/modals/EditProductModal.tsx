@@ -191,6 +191,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     <option value="Solar / VRLA">Solar / VRLA</option>
                     <option value="E-Rickshaw">E-Rickshaw</option>
                     <option value="Motorcycle / 2W">Motorcycle / 2W</option>
+                    <option value="Marketing Material">Marketing Material</option>
                   </select>
                 </div>
 

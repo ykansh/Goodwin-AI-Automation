@@ -75,6 +75,7 @@ export interface InvoiceItem {
   rate: number;
   gst_percent: number;
   amount: number;
+  warranty_months?: number;
 }
 
 export interface SalesInvoice {
@@ -101,6 +102,8 @@ export interface SalesInvoice {
   reference_name?: string;
   pvt_marka?: string;
   transport_gstin?: string;
+  dispatch_status?: string;
+  order_type?: string;
   created_at: string;
 }
 

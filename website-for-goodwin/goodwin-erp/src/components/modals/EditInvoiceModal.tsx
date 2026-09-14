@@ -28,6 +28,8 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
   const [referenceName, setReferenceName] = useState(invoice.reference_name || '');
   const [pvtMarka, setPvtMarka] = useState(invoice.pvt_marka || '');
   const [transportGstin, setTransportGstin] = useState(invoice.transport_gstin || '');
+  const [dispatchStatus, setDispatchStatus] = useState(invoice.dispatch_status || 'Not Delivered');
+  const [orderType, setOrderType] = useState(invoice.order_type || 'New Order');
 
 
   const [items, setItems] = useState<
@@ -125,6 +127,8 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
         reference_name: referenceName,
         pvt_marka: pvtMarka,
         transport_gstin: transportGstin,
+        dispatch_status: dispatchStatus,
+        order_type: orderType,
       }
     });
 
@@ -221,6 +225,36 @@ export function EditInvoiceModal({ invoice, onClose }: EditInvoiceModalProps) {
                   >
                     <option value="GST Tax Invoice">GST Tax Invoice (B2B)</option>
                     <option value="Retail Invoice">Retail Invoice (B2C)</option>
+                    <option value="Quotation">Quotation</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Order Type
+                  </label>
+                  <select
+                    value={orderType}
+                    onChange={(e) => setOrderType(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold bg-white dark:bg-[#1a1d1a]"
+                  >
+                    <option value="New Order">New Order</option>
+                    <option value="Repeat Order">Repeat Order</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Dispatch Status
+                  </label>
+                  <select
+                    value={dispatchStatus}
+                    onChange={(e) => setDispatchStatus(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold bg-white dark:bg-[#1a1d1a]"
+                  >
+                    <option value="Not Delivered">Not Delivered</option>
+                    <option value="In Transit">In Transit</option>
+                    <option value="Delivered">Delivered</option>
                   </select>
                 </div>
               </div>

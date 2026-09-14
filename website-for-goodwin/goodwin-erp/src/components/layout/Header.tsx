@@ -48,7 +48,7 @@ export function Header({
         </button>
 
         <div className="flex items-center gap-3 shrink-0">
-          <img src={logoImg} alt="Goodwin" className="h-10 sm:h-12 object-contain" />
+          <img src={logoImg} alt="Goodwin" className="h-16 sm:h-20 w-auto object-contain" />
           <div className="hidden xs:block border-l-2 border-black/10 dark:border-white/10 pl-3">
             <div className="text-[10px] text-[#22c55e] font-extrabold tracking-widest uppercase">
               Operating System

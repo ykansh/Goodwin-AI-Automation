@@ -126,8 +126,6 @@ export function SettingsPage() {
     e.preventDefault();
     const batteryConfig = settings?.battery_configs || {};
     updateSettingsMutation.mutate({
-      supabase_url: supabaseUrl.trim(),
-      supabase_anon_key: supabaseKey.trim(),
       battery_configs: {
         ...batteryConfig,
         voltages:     voltages.split(',').map((s) => s.trim()).filter(Boolean),

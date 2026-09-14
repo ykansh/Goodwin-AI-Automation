@@ -893,7 +893,7 @@ export const useRegisterWarranty = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (warranty: any) => {
-      const { error } = await supabase.from('warranties').insert(warranty);
+      const { error } = await supabase.from('battery_warranties').insert(warranty);
       if (error) throw error;
     },
     onSuccess: () => {

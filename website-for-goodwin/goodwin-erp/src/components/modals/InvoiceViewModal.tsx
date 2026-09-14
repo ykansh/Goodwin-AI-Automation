@@ -85,7 +85,7 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
             {/* Left Logo / Sold By */}
             <div className="w-1/2 pr-4">
               <div className="flex items-center gap-2 mb-2">
-                <img src={logo} alt="Goodwin Logo" className="h-12 object-contain" />
+                <img src={logo} alt="Goodwin Logo" className="h-24 w-auto object-contain" />
               </div>
               <div className="mt-4 leading-snug">
                 <p className="font-bold text-[14px]">Sold By :</p>
@@ -140,17 +140,25 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
               {invoice.items.map((item) => (
                 <tr key={item.id}>
                   <td className="py-2 px-2 border border-black">{item.sku || item.product_name}</td>
-                  <td className="py-2 px-2 border border-black">12</td>
+                  <td className="py-2 px-2 border border-black">{item.warranty_months || 18}</td>
                   <td className="py-2 px-2 border border-black">{item.quantity}</td>
                   <td className="py-2 px-2 border border-black">{item.rate}</td>
                   <td className="py-2 px-2 border border-black">{item.amount}</td>
                 </tr>
               ))}
               <tr>
-                <td className="py-2 px-2 border border-black font-bold text-center" colSpan={2}>Total</td>
+                <td className="py-2 px-2 border border-black font-bold text-center" colSpan={2}>Total Quantity</td>
                 <td className="py-2 px-2 border border-black font-bold text-center">{invoice.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
-                <td className="py-2 px-2 border border-black"></td>
-                <td className="py-2 px-2 border border-black font-bold text-center">{invoice.items.reduce((acc, curr) => acc + curr.amount, 0)}</td>
+                <td className="py-2 px-2 border border-black font-bold text-right">Taxable Amount:</td>
+                <td className="py-2 px-2 border border-black font-bold text-center">₹{invoice.taxable_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-2 border border-black font-bold text-right" colSpan={4}>Total GST:</td>
+                <td className="py-2 px-2 border border-black font-bold text-center">₹{invoice.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-2 border border-black font-bold text-right" colSpan={4}>Grand Total:</td>
+                <td className="py-2 px-2 border border-black font-bold text-center">₹{invoice.grand_total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
               </tr>
             </tbody>
           </table>
@@ -159,7 +167,7 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
           <div className="border border-black p-2 min-h-[130px] relative flex flex-col">
             <div>
               <p className="font-bold mb-1 text-[14px]">Amount in Words:</p>
-              <p className="font-bold text-[14px]">{numberToWords(invoice.items.reduce((acc, curr) => acc + curr.amount, 0))} Only.</p>
+              <p className="font-bold text-[14px]">{numberToWords(Math.round(invoice.grand_total))} Only.</p>
             </div>
 
             <div className="absolute right-2 top-8 text-right">

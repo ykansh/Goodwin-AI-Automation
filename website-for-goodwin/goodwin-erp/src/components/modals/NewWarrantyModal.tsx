@@ -31,6 +31,7 @@ export function NewWarrantyModal({ onClose }: NewWarrantyModalProps) {
     const expiryStr = pDate.toISOString().split('T')[0];
 
     registerWarrantyMutation.mutate({
+      warranty_id: `WTY-${Date.now().toString().slice(-6)}`,
       battery_model: selectedProduct.battery_model,
       serial_number: serialNumber,
       product_name: selectedProduct.name,

@@ -256,5 +256,17 @@ html.dark .data-table tbody td {
    ============================================= */
 @media print {
   .no-print { display: none !important; }
+  body * {
+    visibility: hidden;
+  }
+  #printable-invoice, #printable-invoice * {
+    visibility: visible;
+  }
+  #printable-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
   body { background: white !important; color: black !important; }
 }
