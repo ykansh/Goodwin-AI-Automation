@@ -19,7 +19,7 @@ export const MarketingDashboard = () => {
   // Compute metrics
   const revenue = receivables?.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0) || 0;
   const pipelineLeads = marketingLeads?.length || 0;
-  const hotLeads = marketingLeads?.filter(l => l.status === 'Hot' || l.status === 'hot')?.length || 0;
+  const hotLeads = marketingLeads?.filter(l => l.status === 'Hot' || l.status === 'hot' || l.priority === 'Hot')?.length || 0;
   
   const today = new Date().toISOString().split('T')[0];
   const tasksDueToday = tasks?.filter(t => t.date === today)?.length || 0;

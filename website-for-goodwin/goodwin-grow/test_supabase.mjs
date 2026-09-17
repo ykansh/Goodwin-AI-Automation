@@ -10,33 +10,9 @@ const supabaseKey = env.VITE_SUPABASE_ANON_KEY?.replace(/['"]/g, '') || 'placeho
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
-  console.log('Fetching a project...');
-  const { data: projData, error: projError } = await supabase.from('projects').select('id').limit(1).single();
-  
-  if (projError || !projData) {
-    console.error('Error fetching project:', projError);
-    return;
-  }
-  
-  const projectId = projData.id;
-  
-  console.log('Inserting workflow...');
-  const { data, error } = await supabase.from('workflows').insert({
-    project_id: projectId,
-    nodes: [{
-      id: 'test-node',
-      type: 'workflowNode',
-      position: { x: 100, y: 100 },
-      data: { label: 'Backend Injected Node', colorIdx: 2 }
-    }],
-    edges: []
-  }).select().single();
-  
-  if (error) {
-    console.error('Error:', error);
-  } else {
-    console.log('Inserted workflow:', data.id);
-  }
+  console.log('Testing Supabase marketing_leads query...');
+  const { data, error } = await supabase.from('marketing_leads').select('*');
+  console.log('Current rows in Supabase:', { count: data?.length, error, data });
 }
 
 test();
