@@ -25,6 +25,7 @@ import { PaymentInPage } from './pages/ledger/PaymentInPage';
 import { PaymentOutPage } from './pages/ledger/PaymentOutPage';
 import { LeadsPage } from './pages/leads/LeadsPage';
 import { PipelinePage } from './pages/leads/PipelinePage';
+import { StockMainPage } from './pages/erp/StockMainPage';
 import { FollowupsPage } from './pages/leads/FollowupsPage';
 import { AttendancePage } from './pages/hrms/AttendancePage';
 import { LeavePage } from './pages/hrms/LeavePage';
@@ -72,6 +73,7 @@ function MainAppContent() {
       case 'dashboard': return <ErpDashboard onNavigate={(mod) => setCurrentModule(mod)} />;
       case 'customers': return <CustomersDealersPage />;
       case 'suppliers': return <SuppliersVendorsPage />;
+      case 'stock-main': return <StockMainPage />;
       case 'products': return <ProductsInventoryPage />;
       case 'sales': 
         return <SalesInvoicesPage 

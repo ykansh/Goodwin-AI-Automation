@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePurchases } from '../../hooks/queries';
 import { useDeletePurchaseOrder } from '../../hooks/mutations';
 import { NewPurchaseModal } from '../../components/modals/NewPurchaseModal';
+import { ExcelActions } from '../../components/common/ExcelActions';
 import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function PurchasesPOsPage() {
@@ -29,13 +30,28 @@ export function PurchasesPOsPage() {
               Log procurement from battery manufacturers &amp; raw material vendors
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-          >
-            <Plus className="w-4 h-4" /> + Create Purchases &amp; POs
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+            <ExcelActions
+              data={filteredPurchases.map((po) => ({
+                'PO Number': po.po_number,
+                'Date': po.date,
+                'Supplier': po.supplier_name,
+                'Status': po.status,
+                'Taxable Amount': po.taxable_amount,
+                'GST Amount': po.gst_amount,
+                'Total Amount': po.grand_total,
+              }))}
+              fileName="Goodwin_Purchase_Orders"
+              hideImport={true}
+            />
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> + Create Purchases &amp; POs
+            </button>
+          </div>
         </div>
         {/* Search bar — flex layout */}
         <div className="flex items-center gap-2 w-full sm:w-56 px-3 py-2.5 rounded-md border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825]">

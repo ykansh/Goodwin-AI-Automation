@@ -11,7 +11,6 @@ export function NewProductModal({ onClose }: NewProductModalProps) {
   const { data: settings } = useSettings();
   const addProductMutation = useAddProduct();
 
-  if (!settings) return null;
 
   const [name, setName] = useState('Endura N150');
   const [batteryModel, setBatteryModel] = useState('Endura N150');
@@ -24,7 +23,7 @@ export function NewProductModal({ onClose }: NewProductModalProps) {
   const [purchasePrice, setPurchasePrice] = useState(9500);
   const [sellingPrice, setSellingPrice] = useState(12500);
   const [stock, setStock] = useState(25);
-  const [warehouseRack, setWarehouseRack] = useState(settings.battery_configs.warehouses[0] || 'Warehouse A / Rack-04');
+  const [warehouseRack, setWarehouseRack] = useState(settings?.battery_configs?.warehouses?.[0] || 'Warehouse A / Rack-04');
   const [warrantyMonths, setWarrantyMonths] = useState(18);
   const [gstPercent, setGstPercent] = useState(18);
 
@@ -52,6 +51,7 @@ export function NewProductModal({ onClose }: NewProductModalProps) {
     onClose();
   };
 
+  if (!settings) return null;
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
       {/* 4. Page Header (Height 56-70px, max-w-1200px aligned) */}
@@ -151,7 +151,7 @@ export function NewProductModal({ onClose }: NewProductModalProps) {
                     onChange={(e) => setVoltage(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold bg-white dark:bg-[#1a1d1a]"
                   >
-                    {settings.battery_configs.voltages.map((v) => (
+                    {(settings.battery_configs?.voltages || []).map((v) => (
                       <option key={v} value={v}>
                         {v}
                       </option>
@@ -168,7 +168,7 @@ export function NewProductModal({ onClose }: NewProductModalProps) {
                     onChange={(e) => setAh(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold bg-white dark:bg-[#1a1d1a]"
                   >
-                    {settings.battery_configs.ah_ratings.map((a) => (
+                    {(settings.battery_configs?.ah_ratings || []).map((a) => (
                       <option key={a} value={a}>
                         {a}
                       </option>

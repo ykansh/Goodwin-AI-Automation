@@ -8,6 +8,8 @@ export type PartyType = 'customer' | 'supplier';
 export type PaymentMode = 'cash' | 'bank' | 'upi' | 'cheque';
 export type PaymentDirection = 'in' | 'out';
 export type WarrantyStatus = 'active' | 'expired' | 'claimed';
+export type LifecycleStatus = 'Quotation' | 'Confirmed' | 'Dispatched' | 'Delivered' | 'Cancelled';
+export type PaymentStatus = 'Unpaid' | 'Partially Paid' | 'Paid';
 
 export interface User {
   id: string;
@@ -59,6 +61,7 @@ export interface Product {
   purchase_price: number;
   selling_price: number;
   stock: number;
+  stable_stock?: number;
   warehouse_rack: string; // e.g. Warehouse A / Rack-04
   warranty_months: number;
   gst_percent: number;
@@ -91,7 +94,9 @@ export interface SalesInvoice {
   taxable_amount: number;
   gst_amount: number;
   grand_total: number;
-  status: InvoiceStatus;
+  status: InvoiceStatus; // Legacy, map to payment_status
+  payment_status?: PaymentStatus;
+  lifecycle_status?: LifecycleStatus;
   outstanding: number;
   billing_state_ut?: string;
   shipping_state_ut?: string;

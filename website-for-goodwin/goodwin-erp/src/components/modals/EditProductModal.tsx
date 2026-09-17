@@ -13,25 +13,25 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
   const { data: settings } = useSettings();
   const updateProductMutation = useUpdateProduct();
 
-  if (!product || !settings) return null;
 
-  const [name, setName] = useState(product.name);
-  const [batteryModel, setBatteryModel] = useState(product.battery_model);
-  const [voltage, setVoltage] = useState(product.voltage);
-  const [ah, setAh] = useState(product.ah);
-  const [sku, setSku] = useState(product.sku);
-  const [hsn, setHsn] = useState(product.hsn);
-  const [category, setCategory] = useState(product.category);
-  const [technology, setTechnology] = useState(product.technology);
-  const [purchasePrice, setPurchasePrice] = useState(product.purchase_price);
-  const [sellingPrice, setSellingPrice] = useState(product.selling_price);
-  const [stock, setStock] = useState(product.stock);
-  const [warehouseRack, setWarehouseRack] = useState(product.warehouse_rack);
-  const [warrantyMonths, setWarrantyMonths] = useState(product.warranty_months);
-  const [gstPercent, setGstPercent] = useState(product.gst_percent);
+  const [name, setName] = useState(product?.name);
+  const [batteryModel, setBatteryModel] = useState(product?.battery_model);
+  const [voltage, setVoltage] = useState(product?.voltage);
+  const [ah, setAh] = useState(product?.ah);
+  const [sku, setSku] = useState(product?.sku);
+  const [hsn, setHsn] = useState(product?.hsn);
+  const [category, setCategory] = useState(product?.category);
+  const [technology, setTechnology] = useState(product?.technology);
+  const [purchasePrice, setPurchasePrice] = useState(product?.purchase_price);
+  const [sellingPrice, setSellingPrice] = useState(product?.selling_price);
+  const [stock, setStock] = useState(product?.stock);
+  const [warehouseRack, setWarehouseRack] = useState(product?.warehouse_rack);
+  const [warrantyMonths, setWarrantyMonths] = useState(product?.warranty_months);
+  const [gstPercent, setGstPercent] = useState(product?.gst_percent);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
 
     updateProductMutation.mutate({
       id: product.id,
@@ -56,6 +56,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
     onClose();
   };
 
+  if (!product || !settings) return null;
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
       {/* 4. Page Header (Height 56-70px, max-w-1200px aligned) */}
@@ -152,7 +153,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     onChange={(e) => setVoltage(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold bg-white dark:bg-[#1a1d1a]"
                   >
-                    {settings.battery_configs.voltages.map((v) => (
+                    {(settings.battery_configs?.voltages || []).map((v) => (
                       <option key={v} value={v}>
                         {v}
                       </option>
@@ -169,7 +170,7 @@ export function EditProductModal({ product, onClose }: EditProductModalProps) {
                     onChange={(e) => setAh(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold bg-white dark:bg-[#1a1d1a]"
                   >
-                    {settings.battery_configs.ah_ratings.map((a) => (
+                    {(settings.battery_configs?.ah_ratings || []).map((a) => (
                       <option key={a} value={a}>
                         {a}
                       </option>

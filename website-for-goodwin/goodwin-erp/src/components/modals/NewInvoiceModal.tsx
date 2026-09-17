@@ -109,6 +109,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
     if (!selectedCustomer) return;
 
     createSalesInvoiceMutation.mutate({
+      invoice_number: `GW-INV-${Date.now().toString().slice(-6)}`,
       date,
       invoice_type: invoiceType,
       customer_id: selectedCustomer.id,
@@ -118,6 +119,8 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
       gst_amount: gstTotal,
       grand_total: grandTotal,
       status: initialPayment >= grandTotal ? 'paid' : initialPayment > 0 ? 'partial' : 'pending',
+      payment_status: initialPayment >= grandTotal ? 'Paid' : initialPayment > 0 ? 'Partially Paid' : 'Unpaid',
+      lifecycle_status: invoiceType === 'Quotation' ? 'Quotation' : 'Confirmed',
       initial_payment: Number(initialPayment),
       billing_state_ut: billingStateUt,
       shipping_state_ut: shippingStateUt,
@@ -356,7 +359,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
                     key={idx}
                     className="p-4 rounded-md bg-gray-50/80 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] grid grid-cols-1 md:grid-cols-12 gap-3 items-center text-xs"
                   >
-                    <div className="md:col-span-5">
+                    <div className="md:col-span-4">
                       <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">Goodwin Product</label>
                       <select
                         value={item.product_id}
@@ -372,7 +375,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
                       </select>
                     </div>
 
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1">
                       <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">Qty (Pcs)</label>
                       <input
                         type="number"
@@ -389,6 +392,18 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
                         type="number"
                         value={item.rate}
                         onChange={(e) => handleItemChange(idx, 'rate', Number(e.target.value))}
+                        className="w-full h-10 px-3 text-sm font-bold rounded-md border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a]"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">GST (%)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={item.gst_percent}
+                        onChange={(e) => handleItemChange(idx, 'gst_percent', Number(e.target.value))}
                         className="w-full h-10 px-3 text-sm font-bold rounded-md border border-gray-200 dark:border-[#2d302d] bg-white dark:bg-[#1a1d1a]"
                       />
                     </div>
@@ -418,6 +433,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
             {/* Card 3: Payment Settlement & Tax Summary */}
             <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              {invoiceType !== 'Quotation' && (
                 <div>
                   <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
                     Upfront Payment / Cash Received (₹)
@@ -433,6 +449,7 @@ export function NewInvoiceModal({ onClose }: NewInvoiceModalProps) {
                     Remaining balance of ₹{Math.max(0, grandTotal - initialPayment).toLocaleString('en-IN')} will post as customer ledger debit.
                   </p>
                 </div>
+              )}
 
                 <div className="p-4 rounded-md bg-gray-50 dark:bg-[#202420] border border-gray-200 dark:border-[#2d302d] space-y-2 text-xs">
                   <div className="flex justify-between">

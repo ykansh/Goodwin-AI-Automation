@@ -12,12 +12,12 @@ export function CustomerLedgerModal({ party, partyType = 'customer', onClose }: 
   const { data: ledgerEntries = [] } = useLedgerEntries();
   const deleteLedgerEntryMutation = useDeleteLedgerEntry();
 
-  if (!party) return null;
 
   const partyEntries = ledgerEntries.filter(
-    (entry) => entry.party_id === party.id || entry.party_name.toLowerCase() === party.name.toLowerCase()
+    (entry) => entry.party_id === party?.id || entry.party_name.toLowerCase() === party?.name.toLowerCase()
   );
 
+  if (!party) return null;
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
       {/* 4. Page Header (Height 56-70px, max-w-1200px aligned) */}

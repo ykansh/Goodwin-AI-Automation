@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS products (
   purchase_price NUMERIC(12, 2) NOT NULL DEFAULT 0,
   selling_price  NUMERIC(12, 2) NOT NULL DEFAULT 0,
   stock          INT DEFAULT 0,
+  stable_stock   INT DEFAULT 20,
   warehouse_rack VARCHAR(100) DEFAULT '',
   warranty_months INT DEFAULT 18,
   gst_percent    NUMERIC(5, 2) DEFAULT 28,
@@ -71,6 +72,8 @@ CREATE TABLE IF NOT EXISTS sales_invoices (
   gst_amount      NUMERIC(12, 2) NOT NULL DEFAULT 0,
   grand_total     NUMERIC(12, 2) NOT NULL DEFAULT 0,
   status          VARCHAR(50) DEFAULT 'pending',
+  lifecycle_status VARCHAR(50) DEFAULT 'Quotation',
+  payment_status   VARCHAR(50) DEFAULT 'Unpaid',
   outstanding     NUMERIC(12, 2) DEFAULT 0,
   billing_state_ut TEXT,
   shipping_state_ut TEXT,
@@ -342,4 +345,9 @@ ADD COLUMN IF NOT EXISTS place_of_supply TEXT,
 ADD COLUMN IF NOT EXISTS place_of_delivery TEXT,
 ADD COLUMN IF NOT EXISTS reference_name TEXT,
 ADD COLUMN IF NOT EXISTS pvt_marka TEXT,
-ADD COLUMN IF NOT EXISTS transport_gstin TEXT;
+ADD COLUMN IF NOT EXISTS transport_gstin TEXT,
+ADD COLUMN IF NOT EXISTS lifecycle_status VARCHAR(50) DEFAULT 'Quotation',
+ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'Unpaid';
+
+ALTER TABLE products
+ADD COLUMN IF NOT EXISTS stable_stock INT DEFAULT 20;

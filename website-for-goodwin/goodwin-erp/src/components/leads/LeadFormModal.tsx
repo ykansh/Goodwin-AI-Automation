@@ -42,7 +42,7 @@ export function LeadFormModal({ isOpen, onClose, initialLead }: LeadFormModalPro
   useEffect(() => {
     setAssignedTo(
       settings?.battery_configs?.salespersons?.length
-        ? settings.battery_configs.salespersons[0]
+        ? settings.battery_configs?.salespersons?.[0] || 'Admin'
         : ''
     );
   }, [settings]);

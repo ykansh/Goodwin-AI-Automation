@@ -26,6 +26,7 @@ export const unifiedPermissions: ModulePermissions = {
   'returns': ['super_admin', 'admin', 'sales_manager', 'accounts', 'inventory_manager'],
   
   // Inventory & Warehouse
+  'stock-main': ALL_ROLES,
   'products': ['super_admin', 'admin', 'inventory_manager', 'warehouse_staff', 'sales_manager'],
   'suppliers': ['super_admin', 'admin', 'inventory_manager', 'accounts'],
   'purchases': ['super_admin', 'admin', 'inventory_manager', 'accounts'],
@@ -76,6 +77,7 @@ export const sidebarGroups = [
   {
     group: 'Inventory & Operations',
     items: [
+      { key: 'stock-main', label: 'Stock main', icon: 'BarChart2', path: '/stock-main', module: 'stock-main' },
       { key: 'products', label: 'Products & Stock', icon: 'Package', path: '/products', module: 'products' },
       { key: 'warranty', label: 'Battery Warranty', icon: 'ShieldCheck', path: '/warranty', module: 'warranty' },
       { key: 'purchases', label: 'Purchase Orders', icon: 'ShoppingCart', path: '/purchases', module: 'purchases' },

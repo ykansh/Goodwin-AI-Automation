@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { useWarranties } from '../../hooks/queries';
-import { useDeleteWarranty, useUpdateWarrantyStatus } from '../../hooks/mutations';
+import { useDeleteWarranty, useUpdateWarrantyStatus, useBulkAddWarranties } from '../../hooks/mutations';
 import { NewWarrantyModal } from '../../components/modals/NewWarrantyModal';
+import { ExcelActions } from '../../components/common/ExcelActions';
+import { ExcelImportModal } from '../../components/common/ExcelImportModal';
+import { ENTITY_SCHEMAS } from '../../utils/excel';
 import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function BatteryWarrantyPage() {
   const { data: warranties = [], isLoading } = useWarranties();
   const deleteWarrantyMutation = useDeleteWarranty();
   const updateWarrantyStatusMutation = useUpdateWarrantyStatus();
+  const bulkAddWarrantiesMutation = useBulkAddWarranties();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const filteredWarranties = warranties.filter(
     (w) =>
@@ -31,13 +36,30 @@ export function BatteryWarrantyPage() {
               Register battery serial numbers, track replacement validity &amp; process warranty claims
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-          >
-            <Plus className="w-4 h-4" /> + Register Battery Warranty
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+            <ExcelActions
+              data={warranties.map((w) => ({
+                'Warranty ID': w.warranty_id,
+                'Serial Number': w.serial_number,
+                'Battery Model': w.battery_model,
+                'Product Name': w.product_name,
+                'Customer Name': w.customer_name,
+                'Purchase Date': w.purchase_date,
+                'Warranty Expiry': w.warranty_expiry,
+                'Status': w.status,
+                'Notes': w.notes || '',
+              }))}
+              fileName="Goodwin_Battery_Warranties"
+              onOpenImport={() => setShowImportModal(true)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> + Register Battery Warranty
+            </button>
+          </div>
         </div>
         {/* Search bar — flex layout */}
         <div className="flex items-center gap-2 w-full sm:w-56 px-3 py-2.5 rounded-md border border-gray-300 dark:border-[#374137] bg-white dark:bg-[#252825]">
@@ -158,6 +180,15 @@ export function BatteryWarrantyPage() {
       </div>
 
       {showAddModal && <NewWarrantyModal onClose={() => setShowAddModal(false)} />}
+
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        schema={ENTITY_SCHEMAS.warranties}
+        onConfirmImport={async (rows) => {
+          await bulkAddWarrantiesMutation.mutateAsync(rows);
+        }}
+      />
     </div>
   );
 }

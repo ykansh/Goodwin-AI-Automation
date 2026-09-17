@@ -3,7 +3,7 @@ import { canAccess, sidebarGroups } from '../../lib/permissions';
 import {
   LayoutDashboard, Users, Truck, Package, FileText, ShoppingCart,
   RotateCcw, ShieldCheck, BarChart3, Settings, ArrowDownLeft, ArrowUpRight, Lock, X,
-  Kanban, CalendarClock, Clock, Calendar, DollarSign, BookOpen, Briefcase, Shield
+  Kanban, CalendarClock, Clock, Calendar, DollarSign, BookOpen, Briefcase, Shield, BarChart2
 } from 'lucide-react';
 import React from 'react';
 
@@ -45,6 +45,7 @@ export function Sidebar({
     BookOpen: <BookOpen className="w-5 h-5 shrink-0" />,
     Briefcase: <Briefcase className="w-5 h-5 shrink-0" />,
     Shield: <Shield className="w-5 h-5 shrink-0" />,
+    BarChart2: <BarChart2 className="w-5 h-5 shrink-0" />,
   };
 
   const renderContent = () => (

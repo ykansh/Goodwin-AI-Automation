@@ -647,6 +647,17 @@ export const useAddCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (customer: any) => {
+      // Create UOI for customer
+      const { data: customers } = await supabase.from('customers').select('uoi');
+      const nums = (customers || [])
+        .map((c) => {
+          const m = c.uoi?.match(/GW-CUST-(\d+)/i);
+          return m ? parseInt(m[1], 10) : 0;
+        })
+        .filter((n) => !isNaN(n) && n > 0);
+      const max = nums.length > 0 ? Math.max(...nums) : 1000;
+      customer.uoi = `GW-CUST-${max + 1}`;
+
       const { error } = await supabase.from('customers').insert(customer);
       if (error) throw error;
     },
@@ -715,6 +726,17 @@ export const useAddSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (supplier: any) => {
+      // Create UOI for supplier
+      const { data: suppliers } = await supabase.from('suppliers').select('uoi');
+      const nums = (suppliers || [])
+        .map((s) => {
+          const m = s.uoi?.match(/GW-SUPP-(\d+)/i);
+          return m ? parseInt(m[1], 10) : 0;
+        })
+        .filter((n) => !isNaN(n) && n > 0);
+      const max = nums.length > 0 ? Math.max(...nums) : 1000;
+      supplier.uoi = `GW-SUPP-${max + 1}`;
+
       const { error } = await supabase.from('suppliers').insert(supplier);
       if (error) throw error;
     },
@@ -765,7 +787,7 @@ export const useCreateSalesInvoice = () => {
           party_id: invoice.customer_id,
           party_name: invoice.customer_name,
           party_type: 'Customer',
-          type: 'Payment In',
+          direction: 'in',
           amount: invoice.initial_payment,
           payment_mode: 'Cash',
           reference_no: `INV-${insertedInvoice.invoice_number}`,
@@ -920,5 +942,176 @@ export const useDeleteLedgerEntry = () => {
     onError: (error) => {
       toast.error(`Error deleting ledger entry: ${error.message}`);
     }
+  });
+};
+
+export const useDeleteHrmsProject = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('hrms_projects').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hrms_projects'] });
+      toast.success('Project deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error deleting project: ${error.message}`);
+    }
+  });
+};
+
+// ── BULK EXCEL IMPORT MUTATIONS ──────────────────────────────────────
+export const useBulkAddCustomers = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Record<string, any>[]) => {
+      const { data: existingCustomers } = await supabase.from('customers').select('uoi');
+      const nums = (existingCustomers || [])
+        .map((c) => {
+          const m = c.uoi?.match(/GW-CUST-(\d+)/i);
+          return m ? parseInt(m[1], 10) : 0;
+        })
+        .filter((n) => !isNaN(n) && n > 0);
+      let nextNum = nums.length > 0 ? Math.max(...nums) + 1 : 1001;
+
+      const customersToInsert = rows.map((r) => {
+        const uoi = r.uoi || `GW-CUST-${nextNum++}`;
+        return {
+          name: r.name,
+          contact: r.contact,
+          email: r.email || '',
+          gstin: r.gstin || '',
+          type: (r.type || 'dealer').toLowerCase(),
+          credit_limit: Number(r.credit_limit || 0),
+          outstanding: Number(r.outstanding || 0),
+          address: r.address || '',
+          salesperson: r.salesperson || '',
+          uoi,
+        };
+      });
+
+      const { error } = await supabase.from('customers').insert(customersToInsert);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Customers imported successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Error importing customers: ${error.message}`);
+    },
+  });
+};
+
+export const useBulkAddSuppliers = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Record<string, any>[]) => {
+      const { data: existingSuppliers } = await supabase.from('suppliers').select('uoi');
+      const nums = (existingSuppliers || [])
+        .map((s) => {
+          const m = s.uoi?.match(/GW-SUPP-(\d+)/i);
+          return m ? parseInt(m[1], 10) : 0;
+        })
+        .filter((n) => !isNaN(n) && n > 0);
+      let nextNum = nums.length > 0 ? Math.max(...nums) + 1 : 1001;
+
+      const suppliersToInsert = rows.map((r) => {
+        const uoi = r.uoi || `GW-SUPP-${nextNum++}`;
+        return {
+          name: r.name,
+          contact: r.contact,
+          email: r.email || '',
+          gstin: r.gstin || '',
+          type: r.type || 'Manufacturer',
+          outstanding: Number(r.outstanding || 0),
+          address: r.address || '',
+          uoi,
+        };
+      });
+
+      const { error } = await supabase.from('suppliers').insert(suppliersToInsert);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast.success('Suppliers imported successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Error importing suppliers: ${error.message}`);
+    },
+  });
+};
+
+export const useBulkAddProducts = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Record<string, any>[]) => {
+      const productsToInsert = rows.map((r) => ({
+        name: r.name,
+        battery_model: r.battery_model || r.name,
+        voltage: r.voltage || '12V',
+        ah: r.ah || '100Ah',
+        sku: r.sku || `GW-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        hsn: r.hsn || '8507',
+        category: r.category || 'Automotive',
+        technology: r.technology || 'Flooded (Lead-Acid)',
+        purchase_price: Number(r.purchase_price || 0),
+        selling_price: Number(r.selling_price || 0),
+        stock: Number(r.stock || 0),
+        stable_stock: Number(r.stable_stock || 20),
+      }));
+
+      const { error } = await supabase.from('products').insert(productsToInsert);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Products imported successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Error importing products: ${error.message}`);
+    },
+  });
+};
+
+export const useBulkAddWarranties = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Record<string, any>[]) => {
+      const warrantiesToInsert = rows.map((r, i) => {
+        const purchaseDate = r.purchase_date || new Date().toISOString().split('T')[0];
+        const expiryDate = r.warranty_expiry || (() => {
+          const d = new Date(purchaseDate);
+          d.setFullYear(d.getFullYear() + 2);
+          return d.toISOString().split('T')[0];
+        })();
+
+        return {
+          warranty_id: r.warranty_id || `WTY-${Date.now().toString().slice(-4)}${i + 1}`,
+          serial_number: r.serial_number,
+          battery_model: r.battery_model,
+          product_name: r.product_name || r.battery_model,
+          customer_name: r.customer_name,
+          customer_id: r.customer_id || '',
+          purchase_date: purchaseDate,
+          warranty_expiry: expiryDate,
+          status: (r.status || 'active').toLowerCase(),
+          notes: r.notes || 'Bulk imported warranty record',
+        };
+      });
+
+      const { error } = await supabase.from('battery_warranties').insert(warrantiesToInsert);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warranties'] });
+      toast.success('Warranties imported successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Error importing warranties: ${error.message}`);
+    },
   });
 };

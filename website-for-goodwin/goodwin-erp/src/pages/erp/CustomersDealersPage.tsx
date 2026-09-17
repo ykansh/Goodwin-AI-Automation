@@ -1,21 +1,26 @@
 import { useState } from 'react';
 import { useCustomers } from '../../hooks/queries';
-import { useDeleteCustomer } from '../../hooks/mutations';
+import { useDeleteCustomer, useBulkAddCustomers } from '../../hooks/mutations';
 import type { Customer } from '../../types';
 import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal';
 import { NewCustomerModal } from '../../components/modals/NewCustomerModal';
 import { EditCustomerModal } from '../../components/modals/EditCustomerModal';
+import { ExcelActions } from '../../components/common/ExcelActions';
+import { ExcelImportModal } from '../../components/common/ExcelImportModal';
+import { ENTITY_SCHEMAS } from '../../utils/excel';
 import { Search, UserPlus, Filter, Edit3, History, Trash2, Loader2 } from 'lucide-react';
 
 export function CustomersDealersPage() {
   const { data: customers = [], isLoading } = useCustomers();
   const deleteCustomerMutation = useDeleteCustomer();
+  const bulkAddCustomersMutation = useBulkAddCustomers();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedLedgerCustomer, setSelectedLedgerCustomer] = useState<Customer | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Filter logic
   const filteredCustomers = customers.filter((c) => {
@@ -44,15 +49,33 @@ export function CustomersDealersPage() {
             </p>
           </div>
 
-          {/* Top Right: Add Customer Option */}
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>+ Add Customer</span>
-          </button>
+          {/* Top Right: Actions */}
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+            <ExcelActions
+              data={customers.map((c) => ({
+                'UOI': c.uoi,
+                'Name': c.name,
+                'Contact': c.contact,
+                'Email': c.email,
+                'GSTIN': c.gstin,
+                'Type': c.type,
+                'Credit Limit': c.credit_limit,
+                'Outstanding': c.outstanding,
+                'Address': c.address,
+                'Salesperson': c.salesperson,
+              }))}
+              fileName="Goodwin_Customers_Directory"
+              onOpenImport={() => setShowImportModal(true)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ Add Customer</span>
+            </button>
+          </div>
         </div>
 
         {/* Integrated Search + Filter Row */}
@@ -202,6 +225,15 @@ export function CustomersDealersPage() {
       )}
 
       {showAddModal && <NewCustomerModal onClose={() => setShowAddModal(false)} />}
+
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        schema={ENTITY_SCHEMAS.customers}
+        onConfirmImport={async (rows) => {
+          await bulkAddCustomersMutation.mutateAsync(rows);
+        }}
+      />
     </div>
   );
 }

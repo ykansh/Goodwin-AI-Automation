@@ -1,17 +1,22 @@
 import { useState } from 'react';
 import { useProducts } from '../../hooks/queries';
-import { useDeleteProduct } from '../../hooks/mutations';
+import { useDeleteProduct, useBulkAddProducts } from '../../hooks/mutations';
 import type { Product } from '../../types';
 import { NewProductModal } from '../../components/modals/NewProductModal';
 import { EditProductModal } from '../../components/modals/EditProductModal';
+import { ExcelActions } from '../../components/common/ExcelActions';
+import { ExcelImportModal } from '../../components/common/ExcelImportModal';
+import { ENTITY_SCHEMAS } from '../../utils/excel';
 import { Plus, Search, Trash2, Loader2 } from 'lucide-react';
 
 export function ProductsInventoryPage() {
   const { data: products = [], isLoading } = useProducts();
   const deleteProductMutation = useDeleteProduct();
+  const bulkAddProductsMutation = useBulkAddProducts();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const filteredProducts = products.filter(
@@ -34,14 +39,34 @@ export function ProductsInventoryPage() {
           </p>
         </div>
 
-        {/* Top Right: Add Products Option */}
-        <button
-          type="button"
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-        >
-          <Plus className="w-4 h-4" /> + Add Products
-        </button>
+        {/* Top Right: Actions */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+          <ExcelActions
+            data={products.map((p) => ({
+              'Product Name': p.name,
+              'Battery Model': p.battery_model,
+              'Voltage': p.voltage,
+              'Ah': p.ah,
+              'SKU': p.sku,
+              'HSN': p.hsn,
+              'Category': p.category,
+              'Technology': p.technology,
+              'Purchase Price': p.purchase_price,
+              'Selling Price': p.selling_price,
+              'Current Stock': p.stock,
+              'Stable Stock': p.stable_stock ?? 20,
+            }))}
+            fileName="Goodwin_Products_Inventory"
+            onOpenImport={() => setShowImportModal(true)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /> + Add Products
+          </button>
+        </div>
       </div>
 
       {/* Search Top Left */}
@@ -176,6 +201,15 @@ export function ProductsInventoryPage() {
       {editingProduct && (
         <EditProductModal product={editingProduct} onClose={() => setEditingProduct(null)} />
       )}
+
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        schema={ENTITY_SCHEMAS.products}
+        onConfirmImport={async (rows) => {
+          await bulkAddProductsMutation.mutateAsync(rows);
+        }}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSuppliers, useProducts } from '../../hooks/queries';
 import { useCreatePurchaseOrder } from '../../hooks/mutations';
 import { X, Plus, Trash2, ShoppingCart, CheckCircle } from 'lucide-react';
@@ -24,6 +24,23 @@ export function NewPurchaseModal({ onClose }: NewPurchaseModalProps) {
       rate: products[0]?.purchase_price || 9500,
     },
   ]);
+
+  // Set default selections once data is loaded asynchronously
+  useEffect(() => {
+    if (suppliers.length > 0 && !supplierId) {
+      setSupplierId(suppliers[0].id);
+    }
+  }, [suppliers, supplierId]);
+
+  useEffect(() => {
+    if (products.length > 0 && (!items[0] || !items[0].product_id)) {
+      setItems([{
+        product_id: products[0].id,
+        quantity: 20,
+        rate: products[0].purchase_price || 9500,
+      }]);
+    }
+  }, [products]);
 
   const selectedSupplier = suppliers.find((s) => s.id === supplierId);
 

@@ -12,7 +12,6 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
   const { data: settings } = useSettings();
   const addCustomerMutation = useAddCustomer();
 
-  if (!settings) return null;
 
   const [name, setName] = useState('');
   const [type, setType] = useState<CustomerType>('dealer');
@@ -22,7 +21,7 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
   const [creditLimit, setCreditLimit] = useState(300000);
   const [outstanding, setOutstanding] = useState<number | string>('');
   const [address, setAddress] = useState('');
-  const [salesperson, setSalesperson] = useState(settings.battery_configs.salespersons[0] || 'Deepak Singh');
+  const [salesperson, setSalesperson] = useState(settings?.battery_configs?.salespersons?.[0] || 'Deepak Singh');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +42,7 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
     onClose();
   };
 
+  if (!settings) return null;
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
       {/* 4. Page Header (Height 56-70px, max-w-1200px aligned) */}
@@ -155,7 +155,7 @@ export function NewCustomerModal({ onClose }: NewCustomerModalProps) {
                     onChange={(e) => setSalesperson(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold bg-white dark:bg-[#1a1d1a]"
                   >
-                    {settings.battery_configs.salespersons.map((sp) => (
+                    {(settings.battery_configs?.salespersons || []).map((sp) => (
                       <option key={sp} value={sp}>
                         {sp}
                       </option>

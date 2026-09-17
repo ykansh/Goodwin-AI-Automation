@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Briefcase, Plus, X, Calendar, Activity, List, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Briefcase, Plus, X, Calendar, Activity, List, Clock, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import { useHrmsProjects, useHrmsTasks, useHrmsTimesheets, useHrmsEmployees } from '../../hooks/queries';
-import { useAddHrmsProject, useUpdateHrmsProject, useAddHrmsTask, useUpdateHrmsTask, useAddHrmsTimesheet, useUpdateHrmsTimesheet } from '../../hooks/mutations';
+import { useAddHrmsProject, useUpdateHrmsProject, useAddHrmsTask, useUpdateHrmsTask, useAddHrmsTimesheet, useUpdateHrmsTimesheet, useDeleteHrmsProject } from '../../hooks/mutations';
 import toast from 'react-hot-toast';
 
 export function ProjectsPage() {
@@ -12,6 +12,7 @@ export function ProjectsPage() {
   
   const addProjectMutation = useAddHrmsProject();
   const updateProjectMutation = useUpdateHrmsProject();
+  const deleteProjectMutation = useDeleteHrmsProject();
   const addTaskMutation = useAddHrmsTask();
   const updateTaskMutation = useUpdateHrmsTask();
   const addTimesheetMutation = useAddHrmsTimesheet();
@@ -135,6 +136,11 @@ export function ProjectsPage() {
           projects={hrmsProjects} 
           onAdd={() => setShowProjectModal(true)} 
           updateProject={(id: string, data: any) => updateProjectMutation.mutate({ id, data })}
+          deleteProject={(id: string) => {
+            if (window.confirm('Are you sure you want to delete this project?')) {
+              deleteProjectMutation.mutate(id);
+            }
+          }}
           isLoading={isLoading}
         />
       )}
@@ -169,7 +175,7 @@ export function ProjectsPage() {
 // TABS
 // ============================================================================
 
-function ProjectsTab({ projects, onAdd, updateProject, isLoading }: { projects: any[], onAdd: () => void, updateProject: any, isLoading?: boolean }) {
+function ProjectsTab({ projects, onAdd, updateProject, deleteProject, isLoading }: { projects: any[], onAdd: () => void, updateProject: any, deleteProject: any, isLoading?: boolean }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -207,6 +213,9 @@ function ProjectsTab({ projects, onAdd, updateProject, isLoading }: { projects: 
                       <option value="Completed">COMPLETED</option>
                     </select>
                   </div>
+                  <button onClick={() => deleteProject(proj.id)} className="text-red-500 hover:text-red-700 p-1.5 bg-red-50 dark:bg-red-900/30 dark:hover:bg-red-900/50 hover:bg-red-100 rounded-md transition-colors cursor-pointer shrink-0">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
                 
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-6 line-clamp-2 flex-grow">

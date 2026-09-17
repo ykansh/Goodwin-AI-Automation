@@ -11,18 +11,18 @@ interface EditSupplierModalProps {
 export function EditSupplierModal({ supplier, onClose }: EditSupplierModalProps) {
   const updateSupplierMutation = useUpdateSupplier();
 
-  if (!supplier) return null;
 
-  const [name, setName] = useState(supplier.name);
-  const [type, setType] = useState(supplier.type);
-  const [contact, setContact] = useState(supplier.contact);
-  const [email, setEmail] = useState(supplier.email);
-  const [gstin, setGstin] = useState(supplier.gstin);
-  const [outstanding, setOutstanding] = useState<number>(supplier.outstanding ?? 0);
-  const [address, setAddress] = useState(supplier.address);
+  const [name, setName] = useState(supplier?.name);
+  const [type, setType] = useState(supplier?.type);
+  const [contact, setContact] = useState(supplier?.contact);
+  const [email, setEmail] = useState(supplier?.email);
+  const [gstin, setGstin] = useState(supplier?.gstin);
+  const [outstanding, setOutstanding] = useState<number>(supplier?.outstanding ?? 0);
+  const [address, setAddress] = useState(supplier?.address);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supplier) return;
 
     updateSupplierMutation.mutate({
       id: supplier.id,
@@ -40,6 +40,7 @@ export function EditSupplierModal({ supplier, onClose }: EditSupplierModalProps)
     onClose();
   };
 
+  if (!supplier) return null;
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
       {/* 4. Page Header (Height 56-70px, max-w-1200px aligned) */}

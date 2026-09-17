@@ -5,7 +5,8 @@ import {
   XAxis, YAxis, CartesianGrid, AreaChart, Area
 } from 'recharts';
 import {
-  TrendingUp, Package, Users, AlertCircle, ShieldCheck, ArrowUpRight, Activity
+  TrendingUp, Package, Users, AlertCircle, ShieldCheck, ArrowUpRight, Activity,
+  RotateCcw, Calendar, ArrowRight
 } from 'lucide-react';
 
 export function ErpDashboard({
@@ -42,20 +43,21 @@ export function ErpDashboard({
   }
 
   // ── KPI Calculations ─────────────────────────────────────────────────
-  const totalSalesRevenue = invoices.reduce((acc, cur) => acc + cur.grand_total, 0);
+  const validInvoices = invoices.filter(inv => inv.lifecycle_status !== 'Quotation' && inv.lifecycle_status !== 'Cancelled');
+  const totalSalesRevenue = validInvoices.reduce((acc, cur) => acc + cur.grand_total, 0);
   const totalOutstanding   = customers.reduce((acc, cur) => acc + cur.outstanding, 0);
   const totalStockVal      = products.reduce((acc, cur) => acc + cur.stock * cur.purchase_price, 0);
   const totalStockUnits    = products.reduce((acc, cur) => acc + cur.stock, 0);
   const lowStockCount      = products.filter((p) => p.stock < 5).length;
 
   // ── Top 3 Recent Orders ───────────────────────────────────────────────
-  const recentOrders = [...invoices]
+  const recentOrders = [...validInvoices]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, orderCount);
 
   // ── Top 3 Selling Products ────────────────────────────────────────────
   const productSalesMap: Record<string, { name: string; sku: string; qty: number; totalVal: number }> = {};
-  invoices.forEach((inv) =>
+  validInvoices.forEach((inv) =>
     inv.items.forEach((item) => {
       if (!productSalesMap[item.product_id]) {
         productSalesMap[item.product_id] = { name: item.product_name, sku: item.sku, qty: 0, totalVal: 0 };
@@ -65,6 +67,56 @@ export function ErpDashboard({
     })
   );
   const topSelling = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty).slice(0, productCount);
+
+  // ── Repeat Customers / Frequent Orders ──────────────────────────────────
+  interface RepeatCustomerItem {
+    customerId: string;
+    name: string;
+    type?: string;
+    uoi?: string;
+    count: number;
+    totalAmount: number;
+    lastOrderDate: string;
+    lastInvoiceNumber: string;
+  }
+
+  const customerOrdersMap: Record<string, RepeatCustomerItem> = {};
+  validInvoices.forEach(inv => {
+    const custKey = inv.customer_name?.trim() || inv.customer_id;
+    if (custKey) {
+      if (!customerOrdersMap[custKey]) {
+        const custMeta = customers.find(
+          c => (inv.customer_id && c.id === inv.customer_id) || 
+               c.name.trim().toLowerCase() === (inv.customer_name || '').trim().toLowerCase()
+        );
+        customerOrdersMap[custKey] = {
+          customerId: inv.customer_id || custMeta?.id || '',
+          name: inv.customer_name || custMeta?.name || 'Unknown Customer',
+          type: custMeta?.type,
+          uoi: custMeta?.uoi || inv.customer_uoi,
+          count: 0,
+          totalAmount: 0,
+          lastOrderDate: inv.date || '',
+          lastInvoiceNumber: inv.invoice_number || '',
+        };
+      }
+      customerOrdersMap[custKey].count += 1;
+      customerOrdersMap[custKey].totalAmount += (inv.grand_total || 0);
+      if (inv.date && (!customerOrdersMap[custKey].lastOrderDate || new Date(inv.date) >= new Date(customerOrdersMap[custKey].lastOrderDate))) {
+        customerOrdersMap[custKey].lastOrderDate = inv.date;
+        customerOrdersMap[custKey].lastInvoiceNumber = inv.invoice_number;
+      }
+    }
+  });
+
+  const repeatCustomers = Object.values(customerOrdersMap)
+    .filter(c => c.count > 1)
+    .sort((a, b) => b.count - a.count || b.totalAmount - a.totalAmount);
+
+  const repeatRevenueTotal = repeatCustomers.reduce((acc, c) => acc + c.totalAmount, 0);
+  const repeatRevenuePercent = totalSalesRevenue > 0 
+    ? Math.round((repeatRevenueTotal / totalSalesRevenue) * 100) 
+    : 0;
 
   // ── Pie Chart Data ────────────────────────────────────────────────────
   const stockByVoltage: Record<string, number> = {};
@@ -76,7 +128,7 @@ export function ErpDashboard({
   const PIE_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
   // ── Area Chart (Trend) Data mock ──────────────────────────────────────
-  const trendData = invoices.slice(0, 10).map((inv) => ({
+  const trendData = validInvoices.slice(0, 10).map((inv) => ({
     name: inv.date.slice(5, 10), // MM-DD
     sales: inv.grand_total,
   })).reverse();
@@ -351,6 +403,135 @@ export function ErpDashboard({
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECTION 5: Customer Loyalty & Repeat Orders ── */}
+      <div className="grid grid-cols-1 gap-8 mt-8">
+        <div className="glass flex flex-col overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border-b border-black/5 dark:border-white/5 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#22c55e]/10 text-[#22c55e] rounded-md">
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-black text-[#111814] dark:text-white">Repeat Orders & Loyalty</h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#22c55e]/10 text-[#22c55e]">
+                    {repeatCustomers.length} Frequent Accounts
+                  </span>
+                </div>
+                <p className="text-xs text-[#5f7365] dark:text-[#8fa093] font-medium mt-0.5">
+                  Customers who have placed multiple orders across their lifetime.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 self-start sm:self-auto">
+              <div className="text-left sm:text-right">
+                <div className="text-[11px] font-bold text-[#5f7365] dark:text-[#8fa093]">Repeat Order Revenue</div>
+                <div className="text-sm font-black text-[#22c55e]">
+                  ₹{repeatRevenueTotal.toLocaleString('en-IN')}{' '}
+                  <span className="text-[10px] text-[#5f7365] dark:text-[#8fa093] font-bold">({repeatRevenuePercent}% of sales)</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => onNavigate?.('sales')} 
+                className="text-xs font-bold text-[#22c55e] hover:underline flex items-center gap-1 shrink-0 ml-2"
+              >
+                <span>All Orders</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-0 overflow-x-auto">
+            {repeatCustomers.length === 0 ? (
+              <div className="p-10 text-center flex flex-col items-center justify-center space-y-2">
+                <RotateCcw className="w-8 h-8 text-black/20 dark:text-white/20 animate-spin-slow" />
+                <div className="text-sm font-black text-[#111814] dark:text-white">No repeat customer orders detected yet</div>
+                <p className="text-xs text-[#5f7365] dark:text-[#8fa093] max-w-sm">
+                  When customers confirm 2 or more orders, they will automatically appear here with their loyalty frequency, average basket size, and lifetime spend.
+                </p>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-black/5 dark:border-white/5 text-[11px] text-[#5f7365] dark:text-[#8fa093] font-extrabold uppercase tracking-wider bg-black/[0.02] dark:bg-white/[0.02]">
+                    <th className="py-3 px-4 pl-6">Customer / Account</th>
+                    <th className="py-3 px-4 text-center">Frequency</th>
+                    <th className="py-3 px-4">Latest Order</th>
+                    <th className="py-3 px-4 text-right">Avg. Order Value</th>
+                    <th className="py-3 px-4 pr-6 text-right">Total Lifetime Spend</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y border-black/5 dark:divide-white/5">
+                  {repeatCustomers.map((cust, idx) => {
+                    const avgValue = Math.round(cust.totalAmount / cust.count);
+                    return (
+                      <tr 
+                        key={idx} 
+                        className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                        onClick={() => onNavigate?.('sales')}
+                        title="Click to view sales orders"
+                      >
+                        <td className="py-3.5 px-4 pl-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-black text-[#111814] dark:text-white group-hover:text-[#22c55e] transition-colors">
+                              {cust.name}
+                            </span>
+                            {cust.type && (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wide bg-black/5 dark:bg-white/10 text-[#5f7365] dark:text-[#8fa093]">
+                                {cust.type}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-[#5f7365] dark:text-[#8fa093] font-mono mt-0.5">
+                            {cust.uoi ? cust.uoi : `Account #${idx + 1}`}
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-blue-500/10 text-blue-500">
+                            <RotateCcw className="w-3 h-3" />
+                            <span>{cust.count} Orders</span>
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-[#111814] dark:text-white">
+                            <Calendar className="w-3.5 h-3.5 text-[#5f7365] dark:text-[#8fa093]" />
+                            <span>{cust.lastOrderDate || '—'}</span>
+                          </div>
+                          {cust.lastInvoiceNumber && (
+                            <div className="text-[10px] font-mono text-[#5f7365] dark:text-[#8fa093] mt-0.5">
+                              {cust.lastInvoiceNumber}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="text-xs font-black text-[#111814] dark:text-white">
+                            ₹{avgValue.toLocaleString('en-IN')}
+                          </div>
+                          <span className="text-[10px] text-[#5f7365] dark:text-[#8fa093]">per order</span>
+                        </td>
+
+                        <td className="py-3.5 px-4 pr-6 text-right">
+                          <div className="text-sm font-black text-[#22c55e]">
+                            ₹{cust.totalAmount.toLocaleString('en-IN')}
+                          </div>
+                          <span className="text-[10px] font-bold text-[#5f7365] dark:text-[#8fa093] group-hover:text-[#22c55e] inline-flex items-center gap-0.5">
+                            View <ArrowRight className="w-2.5 h-2.5" />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}

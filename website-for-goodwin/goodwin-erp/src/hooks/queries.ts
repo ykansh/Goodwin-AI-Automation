@@ -23,7 +23,7 @@ function createUseQuery<T>(tableName: string, queryKey: string, orderColumn = 'c
           console.error(`[Supabase] Error fetching ${tableName}:`, error);
           throw error;
         }
-        return data as T[];
+        return (data || []) as T[];
       }
     });
   };
@@ -46,7 +46,7 @@ export function useSalesInvoices() {
     queryFn: async () => {
       const { data, error } = await supabase.from('sales_invoices').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 }
@@ -57,7 +57,7 @@ export function usePurchaseOrders() {
     queryFn: async () => {
       const { data, error } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 };
@@ -85,7 +85,7 @@ export const useHrmsAttendance = () => useQuery({
   queryFn: async () => {
     const { data, error } = await supabase.from('hrms_attendance').select('*, employee:hrms_employees(*)').order('date', { ascending: false });
     if (error) throw error;
-    return data as HrmsAttendance[];
+    return (data || []) as HrmsAttendance[];
   }
 });
 
@@ -94,7 +94,7 @@ export const useHrmsLeaves = () => useQuery({
   queryFn: async () => {
     const { data, error } = await supabase.from('hrms_leaves').select('*, employee:hrms_employees(*)').order('created_at', { ascending: false });
     if (error) throw error;
-    return data as HrmsLeave[];
+    return (data || []) as HrmsLeave[];
   }
 });
 
@@ -103,7 +103,7 @@ export const useHrmsPayroll = () => useQuery({
   queryFn: async () => {
     const { data, error } = await supabase.from('hrms_payroll').select('*, employee:hrms_employees(*)').order('created_at', { ascending: false });
     if (error) throw error;
-    return data as HrmsPayroll[];
+    return (data || []) as HrmsPayroll[];
   }
 });
 
@@ -112,7 +112,7 @@ export const useHrmsTasks = () => useQuery({
   queryFn: async () => {
     const { data, error } = await supabase.from('hrms_tasks').select('*, employee:hrms_employees(*), project:hrms_projects(*)').order('created_at', { ascending: false });
     if (error) throw error;
-    return data as HrmsTask[];
+    return (data || []) as HrmsTask[];
   }
 });
 
@@ -121,6 +121,6 @@ export const useHrmsTimesheets = () => useQuery({
   queryFn: async () => {
     const { data, error } = await supabase.from('hrms_timesheets').select('*, employee:hrms_employees(*), task:hrms_tasks(*)').order('date', { ascending: false });
     if (error) throw error;
-    return data as HrmsTimesheet[];
+    return (data || []) as HrmsTimesheet[];
   }
 });

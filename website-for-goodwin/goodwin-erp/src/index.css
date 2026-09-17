@@ -255,18 +255,83 @@ html.dark .data-table tbody td {
    PRINT
    ============================================= */
 @media print {
-  .no-print { display: none !important; }
-  body * {
-    visibility: hidden;
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
   }
-  #printable-invoice, #printable-invoice * {
-    visibility: visible;
+
+  /* When printing an invoice, hide the main application and any other body children */
+  body.invoice-modal-open > *:not(#invoice-modal-portal),
+  body:has(#invoice-modal-portal) > *:not(#invoice-modal-portal) {
+    display: none !important;
   }
+
+  .no-print { 
+    display: none !important; 
+  }
+
+  html, body { 
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important; 
+    color: #000000 !important; 
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #invoice-modal-portal {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  .invoice-print-wrapper {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+  }
+
   #printable-invoice {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
   }
-  body { background: white !important; color: black !important; }
+
+  #printable-invoice * {
+    visibility: visible !important;
+  }
+
+  table {
+    page-break-inside: auto;
+    width: 100% !important;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr, .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }

@@ -13,20 +13,20 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
   const { data: settings } = useSettings();
   const updateCustomerMutation = useUpdateCustomer();
 
-  if (!customer || !settings) return null;
 
-  const [name, setName] = useState(customer.name);
-  const [type, setType] = useState<CustomerType>(customer.type);
-  const [contact, setContact] = useState(customer.contact);
-  const [email, setEmail] = useState(customer.email);
-  const [gstin, setGstin] = useState(customer.gstin);
-  const [creditLimit, setCreditLimit] = useState(customer.credit_limit);
-  const [outstanding, setOutstanding] = useState<number>(customer.outstanding ?? 0);
-  const [address, setAddress] = useState(customer.address);
-  const [salesperson, setSalesperson] = useState(customer.salesperson || settings.battery_configs.salespersons[0]);
+  const [name, setName] = useState(customer?.name);
+  const [type, setType] = useState<CustomerType>(customer?.type || 'dealer');
+  const [contact, setContact] = useState(customer?.contact);
+  const [email, setEmail] = useState(customer?.email);
+  const [gstin, setGstin] = useState(customer?.gstin);
+  const [creditLimit, setCreditLimit] = useState(customer?.credit_limit);
+  const [outstanding, setOutstanding] = useState<number>(customer?.outstanding ?? 0);
+  const [address, setAddress] = useState(customer?.address);
+  const [salesperson, setSalesperson] = useState(customer?.salesperson || settings?.battery_configs?.salespersons?.[0] || 'Deepak Singh');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!customer) return;
 
     updateCustomerMutation.mutate({
       id: customer.id,
@@ -46,6 +46,7 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
     onClose();
   };
 
+  if (!customer || !settings) return null;
   return (
     <div className="absolute inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
       {/* 4. Page Header (Height 56-70px, max-w-1200px aligned) */}
@@ -156,7 +157,7 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
                     onChange={(e) => setSalesperson(e.target.value)}
                     className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold bg-white dark:bg-[#1a1d1a]"
                   >
-                    {settings.battery_configs.salespersons.map((sp) => (
+                    {(settings.battery_configs?.salespersons || []).map((sp) => (
                       <option key={sp} value={sp}>
                         {sp}
                       </option>

@@ -1,20 +1,25 @@
 import { useState } from 'react';
 import { useSuppliers } from '../../hooks/queries';
-import { useDeleteSupplier } from '../../hooks/mutations';
+import { useDeleteSupplier, useBulkAddSuppliers } from '../../hooks/mutations';
 import type { Supplier } from '../../types';
 import { CustomerLedgerModal } from '../../components/modals/CustomerLedgerModal';
 import { NewSupplierModal } from '../../components/modals/NewSupplierModal';
 import { EditSupplierModal } from '../../components/modals/EditSupplierModal';
+import { ExcelActions } from '../../components/common/ExcelActions';
+import { ExcelImportModal } from '../../components/common/ExcelImportModal';
+import { ENTITY_SCHEMAS } from '../../utils/excel';
 import { Search, Truck, Edit3, History, Trash2, Loader2 } from 'lucide-react';
 
 export function SuppliersVendorsPage() {
   const { data: suppliers = [], isLoading } = useSuppliers();
   const deleteSupplierMutation = useDeleteSupplier();
+  const bulkAddSuppliersMutation = useBulkAddSuppliers();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLedgerSupplier, setSelectedLedgerSupplier] = useState<Supplier | null>(null);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const filteredSuppliers = suppliers.filter(
     (s) =>
@@ -37,15 +42,31 @@ export function SuppliersVendorsPage() {
             </p>
           </div>
 
-          {/* Top Right: Add Supplier Option */}
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer self-start md:self-auto shrink-0"
-          >
-            <Truck className="w-4 h-4" />
-            <span>+ Add Vendor / Supplier</span>
-          </button>
+          {/* Top Right: Actions */}
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+            <ExcelActions
+              data={suppliers.map((s) => ({
+                'UOI': s.uoi || '',
+                'Name': s.name,
+                'Contact': s.contact,
+                'Email': s.email,
+                'GSTIN': s.gstin,
+                'Type': s.type,
+                'Outstanding': s.outstanding,
+                'Address': s.address,
+              }))}
+              fileName="Goodwin_Suppliers_Vendors"
+              onOpenImport={() => setShowImportModal(true)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#00a631] hover:bg-[#008a29] text-white text-xs sm:text-sm font-extrabold rounded-md shadow-lg shadow-[#00a631]/30 transition-all cursor-pointer"
+            >
+              <Truck className="w-4 h-4" />
+              <span>+ Add Vendor / Supplier</span>
+            </button>
+          </div>
         </div>
 
         {/* Search bar — flex layout */}
@@ -171,6 +192,15 @@ export function SuppliersVendorsPage() {
       )}
 
       {showAddModal && <NewSupplierModal onClose={() => setShowAddModal(false)} />}
+
+      <ExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        schema={ENTITY_SCHEMAS.suppliers}
+        onConfirmImport={async (rows) => {
+          await bulkAddSuppliersMutation.mutateAsync(rows);
+        }}
+      />
     </div>
   );
 }
