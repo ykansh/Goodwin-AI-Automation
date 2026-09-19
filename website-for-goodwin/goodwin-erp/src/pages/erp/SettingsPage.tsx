@@ -143,7 +143,7 @@ export function SettingsPage() {
       gstin: companyGstin,
       address: companyAddress,
       bank_details: {
-        ...(settings?.bank_details || {}),
+        ...settings?.bank_details,
         bank_name: bankName,
         account_number: accountNumber
       }
