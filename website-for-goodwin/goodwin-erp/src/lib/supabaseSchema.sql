@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS payments (
 
 -- ── 9. LEDGER ENTRIES TABLE ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ledger_entries (
-  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),   
   party_id       UUID NOT NULL,
   party_name     VARCHAR(255) NOT NULL,
   party_uoi      VARCHAR(50),
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS company_settings (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name           VARCHAR(255) NOT NULL DEFAULT 'Goodwin Batteries Pvt. Ltd.',
   gstin          VARCHAR(50) DEFAULT '27AABCG1234F1Z5',
-  address        TEXT DEFAULT '',
+  address        TEXT DEFAULT '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012',
   phone          VARCHAR(50) DEFAULT '',
   email          VARCHAR(255) DEFAULT '',
   logo_url       TEXT DEFAULT '',

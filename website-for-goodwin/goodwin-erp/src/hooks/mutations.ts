@@ -159,17 +159,18 @@ export const useUpdateSettings = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (updates: Partial<any>) => {
-      // Typically there is only one row in company_settings, so we can update without ID 
-      // or assume the single row has a specific ID (e.g., 1 or hardcoded UUID).
-      // Assuming ID is not needed or we update all.
-      // Wait, let's fetch the first row's ID and update it.
+      // Map name -> company_name if present, since the Supabase column is company_name
+      const sanitizedUpdates = { ...updates };
+      if ('name' in sanitizedUpdates && !sanitizedUpdates.company_name) {
+        sanitizedUpdates.company_name = sanitizedUpdates.name;
+        delete sanitizedUpdates.name;
+      }
       const { data } = await supabase.from('company_settings').select('id').limit(1).maybeSingle();
       if (!data) {
-        // insert if not exists
-        const { error } = await supabase.from('company_settings').insert(updates);
+        const { error } = await supabase.from('company_settings').insert(sanitizedUpdates);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('company_settings').update(updates).eq('id', data.id);
+        const { error } = await supabase.from('company_settings').update(sanitizedUpdates).eq('id', data.id);
         if (error) throw error;
       }
     },
@@ -782,7 +783,9 @@ export const useCreateSalesInvoice = () => {
 
       // Step 2: Handle initial payment if present
       if (invoice.initial_payment && invoice.initial_payment > 0) {
+        const receiptNumber = `RCT-${Date.now().toString().slice(-6)}${Math.floor(10 + Math.random() * 90)}`;
         const payment = {
+          receipt_number: receiptNumber,
           date: invoice.date,
           party_id: invoice.customer_id,
           party_name: invoice.customer_name,
@@ -790,11 +793,10 @@ export const useCreateSalesInvoice = () => {
           direction: 'in',
           amount: invoice.initial_payment,
           payment_mode: 'Cash',
-          reference_no: `INV-${insertedInvoice.invoice_number}`,
-          notes: 'Initial payment for invoice',
+          reference: `INV-${insertedInvoice.invoice_number}`,
         };
         const { error: payError } = await supabase.from('payments').insert(payment);
-        if (payError) throw payError;
+        if (payError) console.error('Error recording initial payment for invoice:', payError);
       }
     },
     onSuccess: () => {
@@ -832,10 +834,59 @@ export const useCreatePaymentIn = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payment: any) => {
-      // payment represents a 'Payment In' type
-      const fullPayment = { ...payment, type: 'Payment In' };
-      const { error } = await supabase.from('payments').insert(fullPayment);
-      if (error) throw error;
+      const receiptNumber = payment.receipt_number || `RCT-${Date.now().toString().slice(-6)}${Math.floor(10 + Math.random() * 90)}`;
+      const paymentPayload = {
+        receipt_number: receiptNumber,
+        date: payment.date || new Date().toISOString().split('T')[0],
+        party_name: payment.party_name,
+        party_id: payment.party_id,
+        party_uoi: payment.party_uoi || null,
+        party_type: payment.party_type || 'Customer',
+        payment_mode: payment.payment_mode || 'bank',
+        reference: payment.reference || '',
+        amount: Number(payment.amount),
+        direction: 'in',
+      };
+
+      const { data: insertedPayment, error: payError } = await supabase
+        .from('payments')
+        .insert(paymentPayload)
+        .select()
+        .single();
+      if (payError) throw payError;
+
+      // Update customer outstanding balance if party_id exists
+      if (payment.party_id) {
+        try {
+          const { data: cust } = await supabase.from('customers').select('outstanding').eq('id', payment.party_id).maybeSingle();
+          if (cust) {
+            const currentOutstanding = Number(cust.outstanding || 0);
+            const newOutstanding = Math.max(0, currentOutstanding - Number(payment.amount));
+            await supabase.from('customers').update({ outstanding: newOutstanding }).eq('id', payment.party_id);
+          }
+        } catch (e) {
+          console.warn('Failed to update customer outstanding balance:', e);
+        }
+
+        // Insert ledger entry for double-entry tracking
+        try {
+          await supabase.from('ledger_entries').insert({
+            party_id: payment.party_id,
+            party_name: payment.party_name,
+            party_uoi: payment.party_uoi || null,
+            party_type: 'Customer',
+            date: payment.date || new Date().toISOString().split('T')[0],
+            description: `Payment Received (${payment.payment_mode || 'Bank'}) Ref: ${payment.reference || ''}`,
+            doc_number: receiptNumber,
+            credit: Number(payment.amount),
+            debit: 0,
+            reference_type: 'payment',
+            reference_id: insertedPayment?.id
+          });
+        } catch (e) {
+          console.warn('Failed to record ledger entry:', e);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
@@ -853,10 +904,59 @@ export const useCreatePaymentOut = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payment: any) => {
-      // payment represents a 'Payment Out' type
-      const fullPayment = { ...payment, type: 'Payment Out' };
-      const { error } = await supabase.from('payments').insert(fullPayment);
-      if (error) throw error;
+      const voucherNumber = payment.receipt_number || `VCH-${Date.now().toString().slice(-6)}${Math.floor(10 + Math.random() * 90)}`;
+      const paymentPayload = {
+        receipt_number: voucherNumber,
+        date: payment.date || new Date().toISOString().split('T')[0],
+        party_name: payment.party_name,
+        party_id: payment.party_id,
+        party_uoi: payment.party_uoi || null,
+        party_type: payment.party_type || 'Supplier',
+        payment_mode: payment.payment_mode || 'bank',
+        reference: payment.reference || '',
+        amount: Number(payment.amount),
+        direction: 'out',
+      };
+
+      const { data: insertedPayment, error: payError } = await supabase
+        .from('payments')
+        .insert(paymentPayload)
+        .select()
+        .single();
+      if (payError) throw payError;
+
+      // Update supplier outstanding balance if party_id exists
+      if (payment.party_id) {
+        try {
+          const { data: supp } = await supabase.from('suppliers').select('outstanding').eq('id', payment.party_id).maybeSingle();
+          if (supp) {
+            const currentOutstanding = Number(supp.outstanding || 0);
+            const newOutstanding = Math.max(0, currentOutstanding - Number(payment.amount));
+            await supabase.from('suppliers').update({ outstanding: newOutstanding }).eq('id', payment.party_id);
+          }
+        } catch (e) {
+          console.warn('Failed to update supplier outstanding balance:', e);
+        }
+
+        // Insert ledger entry for double-entry tracking
+        try {
+          await supabase.from('ledger_entries').insert({
+            party_id: payment.party_id,
+            party_name: payment.party_name,
+            party_uoi: payment.party_uoi || null,
+            party_type: 'Supplier',
+            date: payment.date || new Date().toISOString().split('T')[0],
+            description: `Payment Out (${payment.payment_mode || 'Bank'}) Ref: ${payment.reference || ''}`,
+            doc_number: voucherNumber,
+            debit: Number(payment.amount),
+            credit: 0,
+            reference_type: 'payment',
+            reference_id: insertedPayment?.id
+          });
+        } catch (e) {
+          console.warn('Failed to record ledger entry:', e);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] });

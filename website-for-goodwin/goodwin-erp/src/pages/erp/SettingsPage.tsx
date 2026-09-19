@@ -45,9 +45,9 @@ export function SettingsPage() {
       setWarehouses(config.warehouses?.join('\n') || '');
       setSalespersons(config.salespersons?.join(', ') || '');
 
-      setCompanyName(settings.name || '');
+      setCompanyName(settings.company_name || settings.name || 'Goodwin Batteries Pvt. Ltd.');
       setCompanyGstin(settings.gstin || '');
-      setCompanyAddress(settings.address || '');
+      setCompanyAddress(settings.address || '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012');
       setBankName(settings.bank_details?.bank_name || '');
       setAccountNumber(settings.bank_details?.account_number || '');
     }
@@ -138,6 +138,7 @@ export function SettingsPage() {
 
   const handleSaveCompany = () => {
     updateSettingsMutation.mutate({
+      company_name: companyName,
       name: companyName,
       gstin: companyGstin,
       address: companyAddress,

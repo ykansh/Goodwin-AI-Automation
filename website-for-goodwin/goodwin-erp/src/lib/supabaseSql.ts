@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS company_settings (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name           VARCHAR(255) NOT NULL DEFAULT 'Goodwin Batteries Pvt. Ltd.',
   gstin          VARCHAR(50) DEFAULT '27AABCG1234F1Z5',
-  address        TEXT DEFAULT '',
+  address        TEXT DEFAULT '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012',
   phone          VARCHAR(50) DEFAULT '',
   email          VARCHAR(255) DEFAULT '',
   logo_url       TEXT DEFAULT '',

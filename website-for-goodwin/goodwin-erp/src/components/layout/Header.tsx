@@ -48,7 +48,11 @@ export function Header({
         </button>
 
         <div className="flex items-center gap-3 shrink-0">
-          <img src={logoImg} alt="Goodwin" className="h-16 sm:h-20 w-auto object-contain" />
+          <img
+            src={logoImg}
+            alt="Goodwin"
+            className="h-12 sm:h-14 w-auto object-contain dark:bg-white/95 dark:px-2.5 dark:py-1 dark:rounded-md transition-all"
+          />
           <div className="hidden xs:block border-l-2 border-black/10 dark:border-white/10 pl-3">
             <div className="text-[10px] text-[#22c55e] font-extrabold tracking-widest uppercase">
               Operating System

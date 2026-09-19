@@ -81,7 +81,7 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
     window.print();
   };
 
-  if (!invoice || !settings) return null;
+  if (!invoice) return null;
 
   return createPortal(
     <div id="invoice-modal-portal" className="fixed inset-0 z-50 flex flex-col bg-[#f8faf8] dark:bg-[#121412] h-full w-full animate-fade-in">
@@ -188,12 +188,17 @@ export function InvoiceViewModal({ invoice, onClose }: InvoiceViewModalProps) {
             {/* Left Logo / Sold By */}
             <div className="w-1/2 pr-4">
               <div className="flex items-center gap-2 mb-2">
-                <img src={logo} alt="Goodwin Logo" className="h-20 w-auto object-contain" />
+                <img src={logo} alt="Goodwin Logo" className="h-20 w-auto max-w-[240px] object-contain" />
               </div>
               <div className="mt-4 leading-snug">
                 <p className="font-bold text-[13px]">Sold By :</p>
-                <p className="font-bold uppercase text-[13px]">{settings.name}</p>
-                <p className="mt-1 text-[11px] text-gray-800 break-words">{settings.address}</p>
+                <p className="font-bold uppercase text-[13px]">{settings?.company_name || settings?.name || 'GOODWIN BATTERIES PVT. LTD.'}</p>
+                <p className="mt-1 text-[11px] text-gray-800 break-words leading-relaxed">
+                  {settings?.address || '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012'}
+                </p>
+                {settings?.gstin && (
+                  <p className="text-[11px] text-gray-800 font-mono mt-0.5">GSTIN: {settings.gstin}</p>
+                )}
               </div>
             </div>
 

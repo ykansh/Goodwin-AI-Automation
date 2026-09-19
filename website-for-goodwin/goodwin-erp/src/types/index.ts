@@ -217,7 +217,8 @@ export interface LedgerEntry {
 
 export interface CompanySettings {
   id: string;
-  name: string;
+  name?: string;
+  company_name?: string;
   gstin: string;
   address: string;
   phone: string;

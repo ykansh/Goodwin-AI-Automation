@@ -35,7 +35,12 @@ export const useSettings = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from('company_settings').select('*').limit(1).maybeSingle();
       if (error) throw error;
-      return data as CompanySettings | null;
+      if (!data) return null;
+      return {
+        ...data,
+        name: data.company_name || data.name || 'Goodwin Batteries Pvt. Ltd.',
+        address: data.address || '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012',
+      } as CompanySettings;
     }
   });
 }
