@@ -59,7 +59,7 @@ project published on vercel.
     (local host working with supabase whereas this vercel ain't) reason - When you deploy to Vercel, if the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables are missing (or weren't read correctly during the build step), the application automatically sets an internal flag (isSupabaseConfigured = false). When this flag is false, the application gracefully degrades into an "offline dummy mode" and reads from dummyData.ts and localStorage instead of crashing.
     fixed by making user on supabase ,then aking .env on supabase ,  then redeploy . 
 
-01/08/2026                (neutral review)
+01/09/2026                (neutral review)
 
 Created 2 more users in supabase for admin access. 
 Made an automation for content. 
@@ -75,26 +75,26 @@ Made an automation for content.
         9) posting and storing data 
 Did made account on bitwarden. 
 
-02/08/2026                   (neutral review)
+02/09/2026                   (neutral review)
 
 Website completed successfully.
 Supabase integrated. 
 credentials created. 
 not posted on vercel yet. 
 
-03/08/2026
+03/09/2026
 
 deployment on vercel 
 SOP created pdf
 
-04/08/2026
+04/09/2026
 
 designed prompt for the goodwin frow website 
 learnt Stitch
 MCP 
 made a website. 
 
-05/08/2026 (positive review)
+05/09/2026 (positive review)
 
 connected mcp. got a better result 
 designed the website fully 
@@ -102,21 +102,47 @@ showed website design
 
 <7-8 holiday>
 
-09/08/2026
+09/09/2026
 
 Worked on website.
 debugging and checking features one by one.
 had a meetng got some changes in goodwin batteries website.
 
-10/08/2026
+10/09/2026
 goodwin batteries changes done one by one. 
 
-11/08/2026
+11/09/2026
 will handover website goodwin battery 
 will complete the website of goodwin grow 
 
 <12 holiday>
 
-14/08/2026
+14/09/2026
 
 did website battery.
+
+15/09/2026 
+
+new changes in website + past errors 
+worked on website changes 
+
+16/09/2026
+
+worked on website 
+
+17/09/2026
+
+both website deployed and delivered.
+new changes made in website. 
+
+18/09/2026
+
+worked on website and content engine. 
+
+19/09/2026
+
+delivered both websites.
+new changes 
+delivered again. 
+worked on content engine. 
+
