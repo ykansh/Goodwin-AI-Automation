@@ -125,10 +125,10 @@ export const CampaignTracker = () => {
                 <TableCell>{campaign.name}</TableCell>
                 <TableCell>{campaign.platform}</TableCell>
                 <TableCell>{campaign.type || 'Standard'}</TableCell>
-                <TableCell className="text-right">${Number(campaign.budget || 0).toLocaleString()}</TableCell>
-                <TableCell className="text-right">${Number(campaign.spent || 0).toLocaleString()}</TableCell>
+                <TableCell className="text-right">₹{Number(campaign.budget || 0).toLocaleString()}</TableCell>
+                <TableCell className="text-right">₹{Number(campaign.spent || 0).toLocaleString()}</TableCell>
                 <TableCell className="text-right font-medium">{campaign.leads || 0}</TableCell>
-                <TableCell className="text-right">${(campaign.leads ? (Number(campaign.spent || 0) / campaign.leads) : 0).toFixed(2)}</TableCell>
+                <TableCell className="text-right">₹{(campaign.leads ? (Number(campaign.spent || 0) / campaign.leads) : 0).toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge variant={campaign.status === 'active' ? 'success' : campaign.status === 'completed' ? 'default' : 'warning'}>
                     {campaign.status}
@@ -177,7 +177,7 @@ export const CampaignTracker = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="enterprise-label">Budget ($)</label>
+              <label className="enterprise-label">Budget (₹)</label>
               <Input 
                 type="number" 
                 placeholder="0.00" 

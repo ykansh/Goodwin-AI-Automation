@@ -254,11 +254,11 @@ export const Assets = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="enterprise-label">Value ($)</label>
+            <label className="enterprise-label">Value (₹)</label>
             <Input 
               type="number" 
-              value={formData.value || ''}
-              onChange={(e) => setFormData({...formData, value: Number(e.target.value)})}
+              value={formData.value || ''} 
+              onChange={(e) => setFormData({...formData, value: Number(e.target.value)})} 
             />
           </div>
           <div className="pt-4 flex justify-end space-x-2 border-t border-canvas-variant">

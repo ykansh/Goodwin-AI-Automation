@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../lib/authStore';
@@ -8,6 +8,7 @@ export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const checkSession = useAuthStore(state => state.checkSession);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
@@ -21,6 +22,7 @@ export const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -29,7 +31,7 @@ export const Login = () => {
 
     if (error) {
       setIsLoading(false);
-      alert(error.message);
+      setErrorMessage(error.message);
       return;
     }
 
@@ -65,6 +67,20 @@ export const Login = () => {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-6">
+            {errorMessage && (
+              <div className="p-3.5 bg-danger/10 border border-danger/20 rounded-xl flex items-start space-x-3 text-sm text-danger">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium">{errorMessage}</p>
+                  {errorMessage.toLowerCase().includes('email not confirmed') && (
+                    <p className="text-xs text-secondary-light leading-relaxed">
+                      Supabase requires email confirmation by default. To allow immediate logins, go to your <strong>Supabase Dashboard &gt; Authentication &gt; Providers &gt; Email</strong> and turn off <strong>Confirm email</strong>, or manually confirm this user under <strong>Authentication &gt; Users</strong>.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-secondary-light group-focus-within:text-primary transition-colors">

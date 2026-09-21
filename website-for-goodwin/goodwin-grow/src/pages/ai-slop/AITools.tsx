@@ -111,7 +111,7 @@ export const AITools = () => {
                   <Badge variant="ai">{tool.category}</Badge>
                 </TableCell>
                 <TableCell className="text-xs text-secondary-light">{tool.usedFor}</TableCell>
-                <TableCell className="text-right font-medium">${tool.cost}</TableCell>
+                <TableCell className="text-right font-medium">₹{tool.cost}</TableCell>
                 <TableCell>{tool.sub}</TableCell>
                 <TableCell className="text-xs">{tool.email}</TableCell>
                 <TableCell>{tool.renewal}</TableCell>
@@ -169,9 +169,9 @@ export const AITools = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-secondary-dark mb-1">Cost ($)</label>
+              <label className="block text-sm font-medium text-secondary-dark mb-1">Cost (₹)</label>
               <Input 
-                type="number"
+                type="number" 
                 value={isEditing?.cost || ''} 
                 onChange={e => setIsEditing({...isEditing, cost: parseFloat(e.target.value)})} 
               />

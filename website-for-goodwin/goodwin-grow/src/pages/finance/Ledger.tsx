@@ -115,7 +115,7 @@ export const Ledger = () => {
                   </Badge>
                 </td>
                 <td className={`px-6 py-4 text-right font-bold ${txn.type === 'Credit' ? 'text-green-600' : 'text-secondary-dark'}`}>
-                  {txn.type === 'Credit' ? '+' : '-'}${txn.amount.toLocaleString()}
+                  {txn.type === 'Credit' ? '+' : '-'}₹{txn.amount.toLocaleString()}
                 </td>
               </tr>
             ))}
@@ -141,7 +141,7 @@ export const Ledger = () => {
             />
           </div>
           <div>
-            <label className="enterprise-label">Amount</label>
+            <label className="enterprise-label">Amount (₹)</label>
             <Input 
               type="number"
               value={isEditing?.amount || ''} 

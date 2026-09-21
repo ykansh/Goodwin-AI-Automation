@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, DollarSign, PieChart, TrendingUp, Download } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, IndianRupee, PieChart, TrendingUp, Download } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { useFinanceStore } from '../../lib/financeStore';
 
@@ -7,7 +7,7 @@ export const Reports = () => {
   const { invoices, expenses, receivables, payables } = useFinanceStore();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
   };
 
   const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
@@ -80,7 +80,7 @@ export const Reports = () => {
         <div className="bg-canvas-surface p-6 rounded-xl border border-canvas-variant shadow-sm flex flex-col">
           <div className="flex justify-between items-start mb-4">
             <div className="p-2 bg-primary/10 rounded-lg text-primary-dark">
-              <DollarSign className="w-6 h-6" />
+              <IndianRupee className="w-6 h-6" />
             </div>
           </div>
           <h3 className="text-secondary-light text-sm font-medium mb-1">Net Profit (YTD)</h3>

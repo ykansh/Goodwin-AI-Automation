@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Select } from '../../components/ui/Select';
-import { TrendingUp, Users, Flame, CheckCircle, UserCircle, CreditCard, DollarSign } from 'lucide-react';
+import { TrendingUp, Users, Flame, CheckCircle, UserCircle, CreditCard, IndianRupee } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import { useFinanceStore } from '../../lib/financeStore';
 import { useMarketingStore } from '../../lib/marketingStore';
@@ -51,14 +51,14 @@ export const MarketingDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">
-                  ${revenuePeriod === 'monthly' ? revenue.toLocaleString() : revenuePeriod === 'weekly' ? Math.round(revenue / 4).toLocaleString() : Math.round(revenue / 30).toLocaleString()}
+                  ₹{revenuePeriod === 'monthly' ? revenue.toLocaleString() : revenuePeriod === 'weekly' ? Math.round(revenue / 4).toLocaleString() : Math.round(revenue / 30).toLocaleString()}
                 </div>
                 <p className="text-xs text-primary font-medium flex items-center mt-1">
                   <TrendingUp className="h-3 w-3 mr-1" /> +12.5% vs last {revenuePeriod.replace('ly', '')}
                 </p>
               </div>
               <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                <DollarSign className="h-5 w-5" />
+                <IndianRupee className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
@@ -151,7 +151,7 @@ export const MarketingDashboard = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">${totalExpenses.toLocaleString()}</div>
+                <div className="text-3xl font-bold font-display text-secondary-dark tracking-tight">₹{totalExpenses.toLocaleString()}</div>
                 <p className="text-xs text-secondary-light font-medium mt-1">Monthly aggregate</p>
               </div>
             </div>

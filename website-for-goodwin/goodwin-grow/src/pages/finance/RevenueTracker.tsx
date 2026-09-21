@@ -119,7 +119,7 @@ export const RevenueTracker = () => {
                 <TableCell className="font-medium text-secondary-dark">{inv.invoiceNo}</TableCell>
                 <TableCell>{inv.client}</TableCell>
                 <TableCell className="text-secondary-light text-xs">{inv.description}</TableCell>
-                <TableCell className="text-right font-semibold text-secondary-dark">${inv.amount?.toLocaleString()}</TableCell>
+                <TableCell className="text-right font-semibold text-secondary-dark">₹{inv.amount?.toLocaleString()}</TableCell>
                 <TableCell>{inv.date}</TableCell>
                 <TableCell>{inv.due}</TableCell>
                 <TableCell>
@@ -175,9 +175,9 @@ export const RevenueTracker = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-secondary-dark mb-1">Amount ($)</label>
+            <label className="block text-sm font-medium text-secondary-dark mb-1">Amount (₹)</label>
             <Input 
-              type="number"
+              type="number" 
               value={isEditing?.amount || ''} 
               onChange={e => setIsEditing({...isEditing, amount: parseFloat(e.target.value)})} 
             />

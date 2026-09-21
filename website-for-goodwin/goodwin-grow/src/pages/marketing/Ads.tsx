@@ -123,7 +123,7 @@ export const Ads = () => {
                 <TableCell>
                   <Badge variant={ad.status === 'Active' ? 'success' : 'default'}>{ad.status}</Badge>
                 </TableCell>
-                <TableCell className="text-right">${ad.spend.toLocaleString()}</TableCell>
+                <TableCell className="text-right">₹{ad.spend.toLocaleString()}</TableCell>
                 <TableCell className="text-right">{ad.clicks.toLocaleString()}</TableCell>
                 <TableCell className="text-right">{ad.conversions.toLocaleString()}</TableCell>
                 <TableCell className="text-right">
@@ -189,7 +189,7 @@ export const Ads = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="enterprise-label">Spend ($)</label>
+              <label className="enterprise-label">Spend (₹)</label>
               <Input 
                 type="number"
                 placeholder="0"

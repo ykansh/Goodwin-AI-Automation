@@ -34,7 +34,7 @@ import {
   Filter, 
   X, 
   ArrowUpRight, 
-  DollarSign, 
+  IndianRupee, 
   Calendar, 
   User, 
   Clock, 
@@ -414,7 +414,7 @@ export const Leads = () => {
             <p className="text-2xl font-bold font-display text-secondary-dark mt-1">{formatCurrency(metrics.pipelineValue)}</p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-            <DollarSign className="w-5 h-5" />
+            <IndianRupee className="w-5 h-5" />
           </div>
         </div>
 
@@ -1102,7 +1102,7 @@ export const Leads = () => {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="enterprise-label text-xs">Deal Value (₹ / $)</label>
+                  <label className="enterprise-label text-xs">Deal Value (₹)</label>
                   <Input 
                     type="number"
                     placeholder="250000" 

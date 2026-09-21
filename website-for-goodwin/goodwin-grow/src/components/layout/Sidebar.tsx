@@ -7,10 +7,10 @@ import {
   PieChart, 
   Settings,
   Bot,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../lib/authStore';
 
 const navItems = [
@@ -20,27 +20,57 @@ const navItems = [
   { name: 'Finance', path: '/finance', icon: PieChart },
 ];
 
-export const Sidebar = () => {
+interface SidebarProps {
+  isMobile?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const role = useAuthStore(state => state.role);
   const signOut = useAuthStore(state => state.signOut);
 
+  const handleLinkClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
   const handleSignOut = async () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
     await signOut();
     navigate('/login');
   };
 
   return (
-    <aside className="w-64 bg-secondary flex-shrink-0 hidden md:flex flex-col h-full border-r border-canvas-variant shadow-level-2 z-10 transition-all duration-300">
+    <aside 
+      className={cn(
+        "bg-secondary flex flex-col h-full border-r border-canvas-variant shadow-level-2 z-10 transition-all duration-300",
+        isMobile ? "w-full flex" : "w-64 flex-shrink-0 hidden md:flex"
+      )}
+    >
       {/* Brand Header */}
-      <div className="h-16 flex items-center px-6 bg-secondary-dark text-white border-b border-secondary">
-        <div className="w-8 flex items-center justify-center mr-3">
-          <img src="/logo.png" alt="Logo" className="w-full h-auto object-contain" />
+      <div className="h-16 flex items-center justify-between px-6 bg-secondary-dark text-white border-b border-secondary shrink-0">
+        <div className="flex items-center">
+          <div className="w-8 flex items-center justify-center mr-3">
+            <img src="/logo.png" alt="Logo" className="w-full h-auto object-contain" />
+          </div>
+          <span className="font-display font-bold text-lg tracking-wide text-canvas-surface">
+            GOODWIN <span className="text-tertiary">GROW</span>
+          </span>
         </div>
-        <span className="font-display font-bold text-lg tracking-wide text-canvas-surface">
-          GOODWIN <span className="text-tertiary">GROW</span>
-        </span>
+        {isMobile && (
+          <button 
+            onClick={onClose} 
+            className="p-1.5 -mr-2 rounded-lg text-canvas-variant hover:text-white hover:bg-secondary-light/30 transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -54,6 +84,7 @@ export const Sidebar = () => {
             <NavLink
               key={item.name}
               to={item.path}
+              onClick={handleLinkClick}
               className={cn(
                 "flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 group relative",
                 isActive 
@@ -81,6 +112,7 @@ export const Sidebar = () => {
           </div>
           <NavLink
             to="/ai-slop"
+            onClick={handleLinkClick}
             className={({ isActive }) => cn(
               "flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 group relative",
               isActive 
@@ -94,6 +126,7 @@ export const Sidebar = () => {
           {role === 'admin' && (
             <NavLink
               to="/admin"
+              onClick={handleLinkClick}
               className={({ isActive }) => cn(
                 "flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 group relative mt-1",
                 isActive 
@@ -109,8 +142,11 @@ export const Sidebar = () => {
       </nav>
 
       {/* Footer User Area */}
-      <div className="p-4 border-t border-secondary-light/30">
-        <button onClick={handleSignOut} className="flex items-center w-full px-3 py-2 rounded-md text-sm font-medium text-canvas-variant hover:bg-secondary-light/30 hover:text-white transition-colors">
+      <div className="p-4 border-t border-secondary-light/30 shrink-0">
+        <button 
+          onClick={handleSignOut} 
+          className="flex items-center w-full px-3 py-2 rounded-md text-sm font-medium text-canvas-variant hover:bg-secondary-light/30 hover:text-white transition-colors"
+        >
           <LogOut className="mr-3 h-4 w-4" />
           Sign Out
         </button>

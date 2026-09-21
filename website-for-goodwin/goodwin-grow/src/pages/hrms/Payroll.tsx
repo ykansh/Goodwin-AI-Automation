@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, MoreHorizontal, DollarSign, Pencil, Trash2 } from 'lucide-react';
+import { Search, Filter, Download, MoreHorizontal, IndianRupee, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
@@ -87,7 +87,7 @@ export const Payroll = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
   };
 
   return (
@@ -98,7 +98,7 @@ export const Payroll = () => {
           <p className="text-secondary-light text-sm mt-1">Manage employee salaries, deductions, and payslips.</p>
         </div>
         <Button onClick={handleRunPayroll} disabled={isRunning}>
-          <DollarSign className="h-4 w-4 mr-2" />
+          <IndianRupee className="h-4 w-4 mr-2" />
           {isRunning ? 'Running...' : 'Run Payroll'}
         </Button>
       </div>

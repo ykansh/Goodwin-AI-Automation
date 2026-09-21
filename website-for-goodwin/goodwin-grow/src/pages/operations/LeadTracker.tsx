@@ -152,7 +152,7 @@ export const LeadTracker = () => {
                     <p className="text-xs text-secondary-light mb-3">{lead.company}</p>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-canvas-variant">
                       <Badge variant="default" className="text-[10px] py-0">Value</Badge>
-                      <span className="text-xs font-medium text-secondary-dark">${lead.value.toLocaleString()}</span>
+                      <span className="text-xs font-medium text-secondary-dark">₹{lead.value.toLocaleString()}</span>
                     </div>
                   </div>
                 ))}
@@ -182,9 +182,9 @@ export const LeadTracker = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="enterprise-label">Value ($)</label>
+              <label className="enterprise-label">Value (₹)</label>
               <Input 
-                type="number"
+                type="number" 
                 value={formData.value || ''} 
                 onChange={(e) => setFormData({...formData, value: Number(e.target.value)})} 
               />

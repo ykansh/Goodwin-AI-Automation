@@ -125,7 +125,7 @@ export const ClientTracker = () => {
                 <TableCell className="font-medium text-secondary-dark">{client.name}</TableCell>
                 <TableCell>{client.businessType}</TableCell>
                 <TableCell>{client.package}</TableCell>
-                <TableCell className="text-right">${Number(client.value || 0).toLocaleString()}</TableCell>
+                <TableCell className="text-right">₹{Number(client.value || 0).toLocaleString()}</TableCell>
                 <TableCell>
                   <Badge variant={client.status === 'active' ? 'success' : 'warning'}>
                     {client.status.replace('_', ' ')}
@@ -196,7 +196,7 @@ export const ClientTracker = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="enterprise-label">Monthly Value ($)</label>
+              <label className="enterprise-label">Monthly Value (₹)</label>
               <Input 
                 type="number"
                 value={formData.value || ''} 

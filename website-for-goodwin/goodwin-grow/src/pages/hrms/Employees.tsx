@@ -96,7 +96,7 @@ export const Employees = () => {
                 <TableCell className="font-medium text-secondary-dark">{emp.name}</TableCell>
                 <TableCell>{emp.role}</TableCell>
                 <TableCell>{emp.type}</TableCell>
-                <TableCell className="text-right">${emp.salary.toLocaleString()}</TableCell>
+                <TableCell className="text-right">₹{emp.salary.toLocaleString()}</TableCell>
                 <TableCell>{emp.joinDate}</TableCell>
                 <TableCell>
                   <Badge variant={emp.status === 'active' ? 'success' : 'warning'}>
@@ -151,7 +151,7 @@ export const Employees = () => {
             />
           </div>
           <div>
-            <label className="enterprise-label">Salary</label>
+            <label className="enterprise-label">Salary (₹)</label>
             <Input 
               type="number"
               value={newEmployee.salary.toString()} 

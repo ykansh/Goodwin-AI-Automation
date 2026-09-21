@@ -124,7 +124,7 @@ export const Expenses = () => {
 
         <div className="flex justify-between items-center bg-canvas-surface p-4 rounded-lg border border-canvas-variant shadow-sm">
           <div className="text-secondary-dark font-medium">
-            Total Spent: <span className="text-danger font-bold ml-2">${totalSpent.toLocaleString()}</span>
+            Total Spent: <span className="text-danger font-bold ml-2">₹{totalSpent.toLocaleString()}</span>
           </div>
           <div className="flex space-x-2">
             <Button variant="secondary" onClick={() => handleExport(projectExpenses, getProjectName(selectedProjectId))}>
@@ -158,7 +158,7 @@ export const Expenses = () => {
                     <Badge variant="default">{expense.category}</Badge>
                   </td>
                   <td className="px-6 py-4 text-right font-medium text-secondary-dark">
-                    ${expense.amount.toLocaleString()}
+                    ₹{expense.amount.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -227,7 +227,7 @@ export const Expenses = () => {
             <div>
               <p className="text-xs text-secondary-light mb-1">Total Spent</p>
               <p className="font-bold text-danger text-lg">
-                ${(expenses?.filter((e: any) => e.projectId === 'others').reduce((sum: number, e: any) => sum + e.amount, 0) || 0).toLocaleString()}
+                ₹{(expenses?.filter((e: any) => e.projectId === 'others').reduce((sum: number, e: any) => sum + e.amount, 0) || 0).toLocaleString()}
               </p>
             </div>
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors text-primary">
@@ -253,7 +253,7 @@ export const Expenses = () => {
               <div className="flex justify-between items-end mt-4">
                 <div>
                   <p className="text-xs text-secondary-light mb-1">Total Spent</p>
-                  <p className="font-bold text-danger text-lg">${totalSpent.toLocaleString()}</p>
+                  <p className="font-bold text-danger text-lg">₹{totalSpent.toLocaleString()}</p>
                 </div>
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors text-primary">
                   <ArrowLeft className="h-4 w-4 rotate-135" />
@@ -289,7 +289,7 @@ export const Expenses = () => {
               />
             </div>
             <div>
-              <label className="enterprise-label">Amount ($)</label>
+              <label className="enterprise-label">Amount (₹)</label>
               <Input 
                 type="number" 
                 min="0"

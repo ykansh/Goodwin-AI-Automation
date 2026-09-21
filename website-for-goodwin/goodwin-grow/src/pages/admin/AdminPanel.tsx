@@ -22,6 +22,7 @@ export const AdminPanel = () => {
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [pingData, setPingData] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
 
   // User Management State
   const [users, setUsers] = useState<any[]>([]);
@@ -63,7 +64,11 @@ export const AdminPanel = () => {
 
       if (dbError) throw dbError;
 
-      alert("User added successfully!");
+      if (authData?.user && !authData.session) {
+        alert("User added! Note: If 'Confirm email' is enabled in your Supabase Auth settings, the user cannot log in until confirmed. Disable 'Confirm email' in Supabase settings or run the Auto-Confirm SQL script.");
+      } else {
+        alert("User added successfully!");
+      }
       setNewEmail('');
       setNewPassword('');
       setNewRole('employee');
@@ -110,6 +115,30 @@ export const AdminPanel = () => {
     navigator.clipboard.writeText(schemaText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyAutoConfirmSql = () => {
+    const sqlText = `-- Auto-confirm existing and future Supabase Auth users
+UPDATE auth.users SET email_confirmed_at = NOW() WHERE email_confirmed_at IS NULL;
+
+CREATE OR REPLACE FUNCTION public.auto_confirm_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.email_confirmed_at IS NULL THEN
+    NEW.email_confirmed_at := NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created_auto_confirm ON auth.users;
+CREATE TRIGGER on_auth_user_created_auto_confirm
+  BEFORE INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.auto_confirm_new_user();`;
+    navigator.clipboard.writeText(sqlText);
+    setSqlCopied(true);
+    setTimeout(() => setSqlCopied(false), 2500);
   };
 
   return (
@@ -165,6 +194,33 @@ export const AdminPanel = () => {
                 </div>
               </div>
             </form>
+
+            {/* Email Confirmation Tip Box */}
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="text-secondary-dark">
+                <span className="font-semibold text-amber-700 dark:text-amber-400">Fix for "Email not confirmed" error:</span>
+                <p className="text-secondary-light mt-0.5">
+                  Turn off <strong>Confirm email</strong> in Supabase (<em>Authentication &gt; Providers &gt; Email</em>) or run our 1-click Auto-Confirm SQL.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={copyAutoConfirmSql}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-amber-300 text-amber-900 rounded shadow-sm hover:bg-amber-50 text-xs font-medium shrink-0 transition-colors"
+              >
+                {sqlCopied ? (
+                  <>
+                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                    <span>SQL Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 text-amber-600" />
+                    <span>Copy Auto-Confirm SQL</span>
+                  </>
+                )}
+              </button>
+            </div>
 
             {/* Users List */}
             <div className="border border-canvas-variant rounded-md overflow-hidden">

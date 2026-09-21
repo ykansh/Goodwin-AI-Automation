@@ -169,7 +169,7 @@ export const Projects = () => {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-secondary-light">Budget</span>
-                <span className="text-secondary-dark font-medium">${Number(project.budget || 0).toLocaleString()}</span>
+                <span className="text-secondary-dark font-medium">₹{Number(project.budget || 0).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -243,7 +243,7 @@ export const Projects = () => {
           </div>
 
           <div>
-            <label className="enterprise-label">Budget</label>
+            <label className="enterprise-label">Budget (₹)</label>
             <Input 
               type="number"
               value={formData.budget}

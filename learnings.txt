@@ -6,12 +6,14 @@ Prompt Engineering:
 
 Automation:
     n8n 
+    REST API
 
 Cloud:
+    CI-CD (Github)
     VPC server (AWS,Hostinger)
+    Vercel , Render , Antideploy (deployment)
 
 others: 
     Supabase (backend)
     Bitwarden
-    vercel (deployment)
     eraser (workflows)

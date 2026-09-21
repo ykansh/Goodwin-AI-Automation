@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { DollarSign, TrendingDown, FileText, ArrowUpRight, ArrowDownRight, PieChart } from 'lucide-react';
+import { IndianRupee, TrendingDown, FileText, ArrowUpRight, ArrowDownRight, PieChart } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const financeNav = [
-  { name: 'Revenue', path: '/finance/revenue', icon: DollarSign },
+  { name: 'Revenue', path: '/finance/revenue', icon: IndianRupee },
   { name: 'Expenses', path: '/finance/expenses', icon: TrendingDown },
   { name: 'Receivables', path: '/finance/receivables', icon: ArrowDownRight },
   { name: 'Payables', path: '/finance/payables', icon: ArrowUpRight },

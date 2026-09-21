@@ -112,7 +112,7 @@ export const Receivables = () => {
                   <div className="text-xs text-secondary-light mt-0.5">{invoice.invoiceNumber || invoice.id}</div>
                 </td>
                 <td className="px-6 py-4 text-right font-medium text-secondary-dark">
-                  ${invoice.amount.toLocaleString()}
+                  ₹{invoice.amount.toLocaleString()}
                 </td>
                 <td className="px-6 py-4 text-secondary-light">
                   <div className="flex items-center">
@@ -153,7 +153,7 @@ export const Receivables = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="enterprise-label">Amount</label>
+              <label className="enterprise-label">Amount (₹)</label>
               <Input 
                 type="number"
                 value={isEditing?.amount || ''} 

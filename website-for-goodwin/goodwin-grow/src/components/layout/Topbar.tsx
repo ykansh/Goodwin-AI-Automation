@@ -3,16 +3,25 @@ import { Search, Bell, User, Menu } from 'lucide-react';
 
 export const Topbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   return (
-    <header className="h-16 bg-canvas-surface border-b border-canvas-variant flex items-center justify-between px-4 lg:px-6 shadow-level-1 z-20">
-      <div className="flex items-center flex-1">
+    <header className="h-16 bg-canvas-surface border-b border-canvas-variant flex items-center justify-between px-3 sm:px-4 lg:px-6 shadow-level-1 z-20 shrink-0">
+      <div className="flex items-center flex-1 min-w-0 mr-2">
         {toggleSidebar && (
           <button 
             onClick={toggleSidebar}
-            className="mr-4 p-2 rounded-md text-secondary-light hover:bg-canvas-variant hover:text-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary lg:hidden"
+            className="mr-2.5 p-2 rounded-md text-secondary-light hover:bg-canvas-variant hover:text-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary md:hidden shrink-0"
+            aria-label="Open navigation menu"
           >
             <Menu className="h-5 w-5" />
           </button>
         )}
+
+        {/* Mobile Brand Logo and Title */}
+        <div className="flex items-center space-x-2 md:hidden mr-2 shrink-0">
+          <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+          <span className="font-display font-bold text-sm tracking-tight text-secondary-dark truncate">
+            GOODWIN <span className="text-primary">GROW</span>
+          </span>
+        </div>
         
         {/* Global Search Bar */}
         <div className="max-w-md w-full relative hidden sm:block">
@@ -27,8 +36,8 @@ export const Topbar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         </div>
       </div>
 
-      <div className="ml-4 flex items-center space-x-4">
-        <button className="p-2 text-secondary-light hover:text-primary transition-colors relative">
+      <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
+        <button className="p-2 text-secondary-light hover:text-primary transition-colors relative" aria-label="Notifications">
           <Bell className="h-5 w-5" />
           <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-danger ring-2 ring-canvas-surface"></span>
         </button>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Users, CalendarCheck, Clock, DollarSign, UserPlus, FileCheck } from 'lucide-react';
+import { Users, CalendarCheck, Clock, IndianRupee, UserPlus, FileCheck } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../lib/authStore';
 
@@ -8,7 +8,7 @@ const hrmsNav = [
   { name: 'Employees', path: '/hrms/employees', icon: Users },
   { name: 'Attendance', path: '/hrms/attendance', icon: Clock },
   { name: 'Leave', path: '/hrms/leave', icon: CalendarCheck },
-  { name: 'Payroll', path: '/hrms/payroll', icon: DollarSign },
+  { name: 'Payroll', path: '/hrms/payroll', icon: IndianRupee },
   { name: 'Recruit', path: '/hrms/recruit', icon: UserPlus },
   { name: 'Onboarding', path: '/hrms/onboarding', icon: FileCheck },
 ];
