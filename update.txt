@@ -146,3 +146,9 @@ new changes
 delivered again. 
 worked on content engine. 
 
+21/09/2026
+
+ran ads.(learned about meta-ads)
+completed content engine.
+website minor changes. 
+learned about REST API

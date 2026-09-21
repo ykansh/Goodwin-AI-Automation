@@ -6,7 +6,7 @@ Prompt Engineering:
 
 Automation:
     n8n 
-    REST API
+    REST API (GOOGLE CLOUD CONSOLE)
 
 Cloud:
     CI-CD (Github)
