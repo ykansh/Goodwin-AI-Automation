@@ -17,6 +17,7 @@ import {
   isSameMonth, 
   isSameDay, 
   addDays,
+  getDay
 } from 'date-fns';
 
 export const Attendance = () => {
@@ -41,6 +42,17 @@ export const Attendance = () => {
     departure: '17:00'
   });
 
+  // Helper to match employee attendance with whitespace-trimmed fallback
+  const getEmployeeAttendance = (dateKey: string, empName: string | null) => {
+    if (!empName) return null;
+    const dayRec = attendance[dateKey];
+    if (!dayRec) return null;
+    if (dayRec[empName]) return dayRec[empName];
+    const trimmed = empName.trim();
+    const found = Object.entries(dayRec).find(([k]) => k.trim() === trimmed);
+    return found ? found[1] : null;
+  };
+
   const handleEmployeeClick = (employeeName: string) => {
     setSelectedEmployee(employeeName);
     setIsCalendarModalOpen(true);
@@ -53,7 +65,7 @@ export const Attendance = () => {
   const onDateClick = (day: Date) => {
     if (!selectedEmployee) return;
     const dateKey = format(day, 'yyyy-MM-dd');
-    const existingRecord = attendance[dateKey]?.[selectedEmployee];
+    const existingRecord = getEmployeeAttendance(dateKey, selectedEmployee);
     
     if (existingRecord?.isFinalized) {
       alert('This record is finalized and cannot be edited.');
@@ -96,10 +108,10 @@ export const Attendance = () => {
             >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary-dark font-bold text-lg mr-4 group-hover:scale-105 transition-transform">
-                  {emp.name.charAt(0)}
+                  {emp.name.trim().charAt(0)}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-secondary-dark">{emp.name}</h3>
+                  <h3 className="font-semibold text-secondary-dark">{emp.name.trim()}</h3>
                   <p className="text-xs text-secondary-light">{emp.role}</p>
                 </div>
               </div>
@@ -108,7 +120,11 @@ export const Attendance = () => {
                   <CalendarIcon className="h-4 w-4 mr-2 text-secondary-light" />
                   View Attendance
                 </span>
-                <UserCheck className="h-4 w-4 text-primary" />
+                <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                  emp.status === 'active' ? 'bg-green-500/10 text-green-700' : 'bg-canvas-variant text-secondary-light'
+                }`}>
+                  {emp.status}
+                </span>
               </div>
             </div>
           );
@@ -125,70 +141,92 @@ export const Attendance = () => {
     const endDate = endOfWeek(monthEnd);
 
     const dateFormat = "d";
-    const rows = [];
-    let days = [];
+    const cells = [];
     let day = startDate;
 
     while (day <= endDate) {
       for (let i = 0; i < 7; i++) {
-        const formattedDate = format(day, dateFormat);
         const cloneDay = day;
-        const dateKey = format(cloneDay, 'yyyy-MM-dd');
-        
-        const record = selectedEmployee ? attendance[dateKey]?.[selectedEmployee] : null;
-        
-        let bgColorClass = !isSameMonth(day, monthStart)
-          ? "bg-canvas text-secondary-light/50 hover:bg-canvas-variant/30"
-          : isSameDay(day, new Date()) 
-            ? "bg-primary/5 text-primary-dark hover:bg-canvas-variant/30" 
-            : "bg-canvas-surface text-secondary-dark hover:bg-canvas-variant/30";
+        const isCurrentMonth = isSameMonth(cloneDay, monthStart);
+        const isSunday = getDay(cloneDay) === 0;
 
-        // Color coding based on attendance
-        if (record) {
-          if (record.status === 'Present') bgColorClass = "bg-green-500/10 text-green-800 hover:bg-green-500/20";
-          else if (record.status === 'Absent') bgColorClass = "bg-danger/10 text-danger hover:bg-danger/20";
-          else if (record.status === 'Half-Day') bgColorClass = "bg-warning/10 text-warning hover:bg-warning/20";
+        // Hide other month dates - empty placeholder slot
+        if (!isCurrentMonth) {
+          cells.push(
+            <div
+              key={cloneDay.toISOString()}
+              className={`h-[125px] border-b border-r border-canvas-variant ${isSunday ? 'bg-neutral-950/20' : 'bg-canvas/30'} pointer-events-none`}
+            />
+          );
+          day = addDays(day, 1);
+          continue;
         }
 
-        days.push(
+        const formattedDate = format(cloneDay, dateFormat);
+        const dateKey = format(cloneDay, 'yyyy-MM-dd');
+        
+        const record = getEmployeeAttendance(dateKey, selectedEmployee);
+        
+        let bgColorClass = "";
+        let dateColorClass = "text-secondary-dark";
+
+        if (isSunday) {
+          // Sunday appears black
+          bgColorClass = "bg-neutral-950 text-white hover:bg-neutral-900 border-neutral-800";
+          dateColorClass = "text-white font-bold";
+        } else if (record) {
+          if (record.status === 'Present') {
+            bgColorClass = "bg-green-500/10 text-green-800 hover:bg-green-500/20";
+            dateColorClass = "text-green-700 font-bold";
+          } else if (record.status === 'Absent') {
+            bgColorClass = "bg-danger/15 text-danger border-danger/30 hover:bg-danger/25";
+            dateColorClass = "text-danger font-bold";
+          } else if (record.status === 'Half-Day') {
+            bgColorClass = "bg-warning/10 text-warning border-warning/30 hover:bg-warning/20";
+            dateColorClass = "text-warning font-bold";
+          }
+        } else if (isSameDay(cloneDay, new Date())) {
+          bgColorClass = "bg-primary/5 text-primary-dark hover:bg-canvas-variant/30";
+          dateColorClass = "text-primary-dark font-bold";
+        } else {
+          bgColorClass = "bg-canvas-surface text-secondary-dark hover:bg-canvas-variant/30";
+        }
+
+        const isToday = isSameDay(cloneDay, new Date());
+
+        cells.push(
           <div
-            className={`flex-1 min-h-[100px] border-b border-r border-canvas-variant p-2 cursor-pointer transition-colors ${bgColorClass}`}
-            key={day.toString()}
+            className={`h-[125px] flex flex-col p-2 border-b border-r border-canvas-variant cursor-pointer transition-colors overflow-hidden select-none ${bgColorClass}`}
+            key={cloneDay.toISOString()}
             onClick={() => onDateClick(cloneDay)}
           >
-            <div className="flex justify-between items-start">
-              <span className={`text-sm font-semibold ${isSameDay(day, new Date()) ? 'bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center' : ''}`}>
+            <div className="flex justify-between items-start flex-shrink-0 mb-1">
+              <span className={`text-xs font-semibold ${isToday ? 'bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-sm' : dateColorClass}`}>
                 {formattedDate}
               </span>
+              {record && (
+                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                  record.status === 'Present' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/70' :
+                  record.status === 'Absent' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/70' :
+                  'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/70'
+                }`}>
+                  {record.status}
+                </span>
+              )}
             </div>
             
-            {record && (
-              <div className="mt-2 space-y-1">
-                <div className={`text-[10px] px-1.5 py-0.5 rounded truncate border ${
-                    record.status === 'Present' ? 'bg-green-500/10 border-green-500/30' : 
-                    record.status === 'Absent' ? 'bg-danger/10 border-danger/30' : 
-                    'bg-warning/10 border-warning/30'
-                  }`}>
-                  <strong>{record.status}</strong>
+            {record && record.status !== 'Absent' && (
+              <div className="mt-auto pt-1">
+                <div className={`text-[10px] flex items-center ${isSunday ? 'text-neutral-300' : 'text-secondary-dark'}`}>
+                  <Clock className="w-3 h-3 mr-1 inline opacity-70" />
+                  {record.arrival || '--'} - {record.departure || '--'}
                 </div>
-                {record.status !== 'Absent' && (
-                  <div className="text-[10px] text-secondary-dark flex items-center mt-1">
-                    <Clock className="w-3 h-3 mr-1 inline" />
-                    {record.arrival} - {record.departure}
-                  </div>
-                )}
               </div>
             )}
           </div>
         );
         day = addDays(day, 1);
       }
-      rows.push(
-        <div className="flex" key={day.toString()}>
-          {days}
-        </div>
-      );
-      days = [];
     }
 
     return (
@@ -206,15 +244,22 @@ export const Attendance = () => {
             </Button>
           </div>
         </div>
-        <div className="flex bg-canvas-surface border-l border-r border-canvas-variant">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="flex-1 text-center font-bold text-xs uppercase text-secondary-light tracking-wider py-3 border-b border-canvas-variant">
+        <div className="grid grid-cols-7 bg-canvas-surface border-l border-r border-canvas-variant">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, index) => (
+            <div 
+              key={d} 
+              className={`text-center font-bold text-xs uppercase tracking-wider py-3 border-b border-r last:border-r-0 border-canvas-variant ${
+                index === 0 
+                  ? 'bg-neutral-950 text-white font-black' 
+                  : 'text-secondary-light'
+              }`}
+            >
               {d}
             </div>
           ))}
         </div>
-        <div className="bg-canvas-surface border-l border-canvas-variant rounded-b-lg overflow-hidden border-b border-r">
-          {rows}
+        <div className="grid grid-cols-7 bg-canvas-surface border-l border-canvas-variant rounded-b-lg overflow-hidden border-b">
+          {cells}
         </div>
       </div>
     );
@@ -242,23 +287,23 @@ export const Attendance = () => {
       <Modal 
         isOpen={isCalendarModalOpen} 
         onClose={() => setIsCalendarModalOpen(false)} 
-        title={`${selectedEmployee}'s Attendance`}
+        title={`${selectedEmployee?.trim()}'s Attendance`}
         className="max-w-5xl"
       >
         <div className="max-h-[80vh] overflow-y-auto pr-2 pb-4">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-dark font-bold">
-              {selectedEmployee?.charAt(0)}
+              {selectedEmployee?.trim().charAt(0)}
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-secondary-dark">{selectedEmployee}</h3>
+              <h3 className="font-semibold text-lg text-secondary-dark">{selectedEmployee?.trim()}</h3>
               <p className="text-sm text-secondary-light">Daily attendance and working hours</p>
             </div>
           </div>
 
           {(() => {
             const todayStr = format(new Date(), 'yyyy-MM-dd');
-            const todaysRecord = selectedEmployee ? attendance[todayStr]?.[selectedEmployee] : null;
+            const todaysRecord = getEmployeeAttendance(todayStr, selectedEmployee);
             return (
               <div className="flex justify-between items-center bg-canvas p-4 rounded-lg border border-canvas-variant mb-6 shadow-sm">
                 <div>

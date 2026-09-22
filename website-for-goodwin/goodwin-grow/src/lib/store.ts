@@ -67,6 +67,9 @@ export interface AITool {
   email: string;
   renewal: string;
   notes: string;
+  expenseTarget?: string;
+  receiptUrl?: string;
+  expenseId?: string;
 }
 
 export interface GlobalState {
@@ -110,7 +113,7 @@ export interface GlobalState {
 
   // AI Tools
   aiTools: AITool[];
-  addAITool: (tool: Omit<AITool, 'id'>) => Promise<void>;
+  addAITool: (tool: Omit<AITool, 'id'>) => Promise<AITool>;
   updateAITool: (id: string, tool: Partial<AITool>) => Promise<void>;
   deleteAITool: (id: string) => Promise<void>;
 
@@ -247,17 +250,38 @@ export const useStore = create<GlobalState>((set, get) => ({
       const { data: aiData, error: aiError } = await supabase.from('ai_tools').select('*');
       if (aiError && aiError.code !== '42P01') throw aiError;
       
-      const aiTools = (aiData || []).map(t => ({
-        id: t.id,
-        name: t.name,
-        category: t.category,
-        usedFor: t.used_for,
-        cost: t.monthly_cost,
-        sub: t.subscription_type,
-        email: t.login_email,
-        renewal: t.renewal_date,
-        notes: t.notes
-      }));
+      const aiTools = (aiData || []).map(t => {
+        let cleanNotes = t.notes || '';
+        let expenseTarget = 'others';
+        let receiptUrl = '';
+        let expenseId = '';
+
+        const metaMatch = cleanNotes.match(/\n\[META:([\s\S]*?)\]$/);
+        if (metaMatch) {
+          try {
+            const meta = JSON.parse(metaMatch[1]);
+            if (meta.expenseTarget) expenseTarget = meta.expenseTarget;
+            if (meta.receiptUrl) receiptUrl = meta.receiptUrl;
+            if (meta.expenseId) expenseId = meta.expenseId;
+          } catch {}
+          cleanNotes = cleanNotes.replace(/\n\[META:[\s\S]*?\]$/, '');
+        }
+
+        return {
+          id: t.id,
+          name: t.name,
+          category: t.category,
+          usedFor: t.used_for,
+          cost: t.monthly_cost,
+          sub: t.subscription_type,
+          email: t.login_email,
+          renewal: t.renewal_date,
+          notes: cleanNotes,
+          expenseTarget,
+          receiptUrl,
+          expenseId
+        };
+      });
 
       // Fetch Metrics
       const { data: metData, error: metError } = await supabase.from('metrics').select('*').single();
@@ -687,14 +711,57 @@ export const useStore = create<GlobalState>((set, get) => ({
   },
 
   addAITool: async (tool) => {
-    const { data, error } = await supabase.from('ai_tools').insert([{
-      name: tool.name, category: tool.category, used_for: tool.usedFor, monthly_cost: tool.cost, subscription_type: tool.sub, login_email: tool.email, renewal_date: tool.renewal, notes: tool.notes
-    }]).select().single();
-    if (error) throw error;
-    set(state => ({ aiTools: [...state.aiTools, { ...tool, id: data.id }] }));
+    let serializedNotes = tool.notes || '';
+    const meta: any = {};
+    if (tool.expenseTarget) meta.expenseTarget = tool.expenseTarget;
+    if (tool.receiptUrl) meta.receiptUrl = tool.receiptUrl;
+    if (tool.expenseId) meta.expenseId = tool.expenseId;
+    if (Object.keys(meta).length > 0) {
+      serializedNotes = `${tool.notes || ''}\n[META:${JSON.stringify(meta)}]`;
+    }
+
+    try {
+      const { data, error } = await supabase.from('ai_tools').insert([{
+        name: tool.name,
+        category: tool.category,
+        used_for: tool.usedFor,
+        monthly_cost: tool.cost,
+        subscription_type: tool.sub,
+        login_email: tool.email,
+        renewal_date: tool.renewal,
+        notes: serializedNotes
+      }]).select().single();
+
+      if (error) {
+        console.warn('Supabase addAITool failed, using local fallback:', error);
+        const localTool: AITool = { ...tool, id: (tool as any).id || Math.random().toString(36).substring(2, 9) };
+        set(state => ({ aiTools: [...state.aiTools, localTool] }));
+        return localTool;
+      }
+      const createdTool: AITool = { ...tool, id: data.id };
+      set(state => ({ aiTools: [...state.aiTools, createdTool] }));
+      return createdTool;
+    } catch (err) {
+      console.warn('Error inserting ai_tool, adding locally:', err);
+      const localTool: AITool = { ...tool, id: (tool as any).id || Math.random().toString(36).substring(2, 9) };
+      set(state => ({ aiTools: [...state.aiTools, localTool] }));
+      return localTool;
+    }
   },
   
   updateAITool: async (id, updatedFields) => {
+    const existing = get().aiTools.find(t => t.id === id);
+    const merged = { ...existing, ...updatedFields };
+
+    let serializedNotes = merged.notes || '';
+    const meta: any = {};
+    if (merged.expenseTarget) meta.expenseTarget = merged.expenseTarget;
+    if (merged.receiptUrl) meta.receiptUrl = merged.receiptUrl;
+    if (merged.expenseId) meta.expenseId = merged.expenseId;
+    if (Object.keys(meta).length > 0) {
+      serializedNotes = `${merged.notes || ''}\n[META:${JSON.stringify(meta)}]`;
+    }
+
     const dbUpdates: any = {};
     if (updatedFields.name !== undefined) dbUpdates.name = updatedFields.name;
     if (updatedFields.category !== undefined) dbUpdates.category = updatedFields.category;
@@ -703,16 +770,24 @@ export const useStore = create<GlobalState>((set, get) => ({
     if (updatedFields.sub !== undefined) dbUpdates.subscription_type = updatedFields.sub;
     if (updatedFields.email !== undefined) dbUpdates.login_email = updatedFields.email;
     if (updatedFields.renewal !== undefined) dbUpdates.renewal_date = updatedFields.renewal;
-    if (updatedFields.notes !== undefined) dbUpdates.notes = updatedFields.notes;
+    dbUpdates.notes = serializedNotes;
 
-    const { error } = await supabase.from('ai_tools').update(dbUpdates).eq('id', id);
-    if (error) throw error;
-    set(state => ({ aiTools: state.aiTools.map(t => t.id === id ? { ...t, ...updatedFields } : t) }));
+    try {
+      const { error } = await supabase.from('ai_tools').update(dbUpdates).eq('id', id);
+      if (error) console.warn('Supabase updateAITool error:', error);
+    } catch (err) {
+      console.warn('Error updating ai_tool in Supabase:', err);
+    }
+    set(state => ({ aiTools: state.aiTools.map(t => t.id === id ? { ...t, ...merged } : t) }));
   },
   
   deleteAITool: async (id) => {
-    const { error } = await supabase.from('ai_tools').delete().eq('id', id);
-    if (error) throw error;
+    try {
+      const { error } = await supabase.from('ai_tools').delete().eq('id', id);
+      if (error) console.warn('Supabase deleteAITool error:', error);
+    } catch (err) {
+      console.warn('Error deleting ai_tool from Supabase:', err);
+    }
     set(state => ({ aiTools: state.aiTools.filter(t => t.id !== id) }));
   }
 }));

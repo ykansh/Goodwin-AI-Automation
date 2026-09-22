@@ -8,6 +8,8 @@ export interface Expense {
   category: string;
   amount: number;
   projectId?: string;
+  receiptUrl?: string;
+  aiToolId?: string;
 }
 
 export interface Invoice {
@@ -62,7 +64,7 @@ export interface FinanceState {
   addInvoice: (inv: Omit<Invoice, 'id'>) => Promise<void>;
   updateInvoice: (id: string, inv: Partial<Invoice>) => Promise<void>;
   deleteInvoice: (id: string) => Promise<void>;
-  addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
+  addExpense: (expense: Omit<Expense, 'id'>) => Promise<Expense>;
   updateExpense: (id: string, expense: Partial<Expense>) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
 
@@ -119,9 +121,32 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       if (invError && invError.code !== '42P01') throw invError;
 
       set({
-        expenses: (expData || []).map((e: any) => ({
-          id: e.id, date: e.date, description: e.description, category: e.category, amount: e.amount, projectId: e.project_id
-        })),
+        expenses: (expData || []).map((e: any) => {
+          let desc = e.description || '';
+          let receiptUrl = '';
+          let aiToolId = '';
+          
+          const metaMatch = desc.match(/\n\[META:([\s\S]*?)\]$/);
+          if (metaMatch) {
+            try {
+              const meta = JSON.parse(metaMatch[1]);
+              if (meta.receiptUrl) receiptUrl = meta.receiptUrl;
+              if (meta.aiToolId) aiToolId = meta.aiToolId;
+            } catch {}
+            desc = desc.replace(/\n\[META:[\s\S]*?\]$/, '');
+          }
+
+          return {
+            id: e.id,
+            date: e.date,
+            description: desc,
+            category: e.category,
+            amount: e.amount,
+            projectId: e.project_id,
+            receiptUrl,
+            aiToolId
+          };
+        }),
         invoices: (invData || []).map((i: any) => ({
           id: i.id, invoiceNo: i.invoice_number, client: i.client_name || 'Unknown', description: i.description, amount: i.amount, date: i.invoice_date, due: i.due_date, paid: i.paid_date, status: i.status, mode: i.payment_mode
         })),
@@ -172,22 +197,75 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   addExpense: async (exp) => {
-    const { data, error } = await supabase.from('expenses').insert([{
-      date: exp.date, description: exp.description, category: exp.category, amount: exp.amount, project_id: exp.projectId
-    }]).select().single();
-    if (error) throw error;
-    set(state => ({ expenses: [...state.expenses, { ...exp, id: data.id }] }));
+    let serializedDesc = exp.description || '';
+    const meta: any = {};
+    if (exp.receiptUrl) meta.receiptUrl = exp.receiptUrl;
+    if (exp.aiToolId) meta.aiToolId = exp.aiToolId;
+    if (Object.keys(meta).length > 0) {
+      serializedDesc = `${exp.description}\n[META:${JSON.stringify(meta)}]`;
+    }
+
+    try {
+      const { data, error } = await supabase.from('expenses').insert([{
+        date: exp.date,
+        description: serializedDesc,
+        category: exp.category,
+        amount: exp.amount,
+        project_id: exp.projectId
+      }]).select().single();
+
+      if (error) {
+        console.warn('Supabase insert expense failed, using local fallback:', error);
+        const localExp: Expense = { ...exp, id: (exp as any).id || Math.random().toString(36).substring(2, 9) };
+        set(state => ({ expenses: [...state.expenses, localExp] }));
+        return localExp;
+      }
+
+      const createdExp: Expense = { ...exp, id: data.id };
+      set(state => ({ expenses: [...state.expenses, createdExp] }));
+      return createdExp;
+    } catch (err) {
+      console.warn('Error inserting expense, adding locally:', err);
+      const localExp: Expense = { ...exp, id: (exp as any).id || Math.random().toString(36).substring(2, 9) };
+      set(state => ({ expenses: [...state.expenses, localExp] }));
+      return localExp;
+    }
   },
   updateExpense: async (id, exp) => {
-    const { error } = await supabase.from('expenses').update({
-      date: exp.date, description: exp.description, category: exp.category, amount: exp.amount, project_id: exp.projectId
-    }).eq('id', id);
-    if (error) throw error;
-    set(state => ({ expenses: state.expenses.map(e => e.id === id ? { ...e, ...exp } : e) }));
+    const existing = get().expenses.find(e => e.id === id);
+    const merged = { ...existing, ...exp };
+    let serializedDesc = merged.description || '';
+    const meta: any = {};
+    if (merged.receiptUrl) meta.receiptUrl = merged.receiptUrl;
+    if (merged.aiToolId) meta.aiToolId = merged.aiToolId;
+    if (Object.keys(meta).length > 0) {
+      serializedDesc = `${merged.description}\n[META:${JSON.stringify(meta)}]`;
+    }
+
+    try {
+      const { error } = await supabase.from('expenses').update({
+        date: merged.date,
+        description: serializedDesc,
+        category: merged.category,
+        amount: merged.amount,
+        project_id: merged.projectId
+      }).eq('id', id);
+      if (error) console.warn('Supabase update expense error:', error);
+    } catch (err) {
+      console.warn('Error updating expense in Supabase:', err);
+    }
+
+    set(state => ({
+      expenses: state.expenses.map(e => e.id === id ? { ...e, ...merged } : e)
+    }));
   },
   deleteExpense: async (id) => {
-    const { error } = await supabase.from('expenses').delete().eq('id', id);
-    if (error) throw error;
+    try {
+      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      if (error) console.warn('Supabase delete expense error:', error);
+    } catch (err) {
+      console.warn('Error deleting expense from Supabase:', err);
+    }
     set(state => ({ expenses: state.expenses.filter(e => e.id !== id) }));
   },
 

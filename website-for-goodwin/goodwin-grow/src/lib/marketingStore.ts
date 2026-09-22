@@ -302,7 +302,7 @@ export interface MarketingState {
 export const useMarketingStore = create<MarketingState>((set, get) => ({
   isLoading: false,
   error: null,
-  marketingLeads: INITIAL_MARKETING_LEADS,
+  marketingLeads: [],
   socialPosts: [],
   creatives: [],
   campaigns: [],
@@ -332,39 +332,34 @@ export const useMarketingStore = create<MarketingState>((set, get) => ({
       if (adsErr) console.warn('Ads fetch notice:', adsErr.message);
 
       set(state => {
-        let leads = state.marketingLeads;
-        if (leadsData && leadsData.length > 0) {
-          leads = leadsData.map((l: any) => {
-            const matchingSeed = INITIAL_MARKETING_LEADS.find(s => s.name === l.name || s.company === l.company);
-            return {
-              id: l.id?.toString() || matchingSeed?.id || `lead_${Date.now()}`,
-              name: l.name || matchingSeed?.name || 'New Lead',
-              company: l.company || matchingSeed?.company || '',
-              date: l.date || matchingSeed?.date || new Date().toISOString().split('T')[0],
-              status: l.status || matchingSeed?.status || 'New',
-              assignedTo: l.assigned_to || matchingSeed?.assignedTo || '',
-              work: l.work || matchingSeed?.work || 'not started',
-              legalName: l.legal_name || matchingSeed?.legalName || l.company,
-              designation: l.designation || matchingSeed?.designation || 'Business Contact',
-              email: l.email || matchingSeed?.email || '',
-              phone: l.phone || matchingSeed?.phone || '',
-              website: l.website || matchingSeed?.website || '',
-              city: l.city || matchingSeed?.city || 'India',
-              state: l.state || matchingSeed?.state || '',
-              industry: l.industry || matchingSeed?.industry || 'General Industry',
-              businessType: l.business_type || matchingSeed?.businessType || 'Manufacturer',
-              businessModel: l.business_model || matchingSeed?.businessModel || 'B2B',
-              description: l.description || matchingSeed?.description || '',
-              leadSource: l.lead_source || l.source || matchingSeed?.leadSource || 'Website',
-              dealValue: Number(l.deal_value || l.value || matchingSeed?.dealValue || 250000),
-              priority: (l.priority || matchingSeed?.priority || 'Warm') as 'Hot' | 'Warm' | 'Cold',
-              responseSpeed: l.response_speed || matchingSeed?.responseSpeed || 'Within 1 hour',
-              productsInterested: l.products_interested || matchingSeed?.productsInterested || '',
-              qualificationNotes: l.qualification_notes || matchingSeed?.qualificationNotes || '',
-              nextFollowUp: l.next_follow_up || matchingSeed?.nextFollowUp || new Date().toISOString().split('T')[0]
-            };
-          });
-        }
+        const leads = (leadsData || []).map((l: any) => ({
+          id: l.id?.toString(),
+          name: l.name || 'New Lead',
+          company: l.company || '',
+          date: l.date || new Date().toISOString().split('T')[0],
+          status: l.status || 'New',
+          assignedTo: l.assigned_to || '',
+          work: l.work || 'not started',
+          legalName: l.legal_name || l.company,
+          designation: l.designation || 'Business Contact',
+          email: l.email || '',
+          phone: l.phone || '',
+          website: l.website || '',
+          city: l.city || 'India',
+          state: l.state || '',
+          industry: l.industry || 'General Industry',
+          businessType: l.business_type || 'Manufacturer',
+          businessModel: l.business_model || 'B2B',
+          description: l.description || '',
+          leadSource: l.lead_source || l.source || 'Website',
+          dealValue: Number(l.deal_value || l.value || 0),
+          priority: (l.priority || 'Warm') as 'Hot' | 'Warm' | 'Cold',
+          responseSpeed: l.response_speed || 'Within 1 hour',
+          productsInterested: l.products_interested || '',
+          qualificationNotes: l.qualification_notes || '',
+          nextFollowUp: l.next_follow_up || new Date().toISOString().split('T')[0]
+        }));
+
         return {
           marketingLeads: leads,
           socialPosts: postsData ? postsData.map(p => ({

@@ -19,7 +19,7 @@ export const AppLayout = () => {
     setIsMobileSidebarOpen(false);
   }, [location.pathname]);
 
-  const hideSidebarRoutes = ['/ai-slop', '/admin'];
+  const hideSidebarRoutes: string[] = [];
   const shouldHideSidebar = hideSidebarRoutes.some(route => location.pathname.startsWith(route));
   
   const fetchInitialData = useStore(state => state.fetchInitialData);

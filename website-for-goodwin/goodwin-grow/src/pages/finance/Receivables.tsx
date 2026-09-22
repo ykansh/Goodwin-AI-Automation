@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Filter, Search, Plus, Calendar, Mail } from 'lucide-react';
+import { Download, Filter, Search, Plus, Calendar, Mail, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
@@ -132,9 +132,14 @@ export const Receivables = () => {
                   />
                 </td>
                 <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Mail className="h-4 w-4 text-secondary-light" />
-                  </Button>
+                  <div className="flex items-center justify-end space-x-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(invoice)} title="Edit invoice">
+                      <Edit className="h-4 w-4 text-secondary-light" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:text-danger" onClick={() => handleDelete(invoice.id)} title="Delete invoice">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
