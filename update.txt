@@ -152,3 +152,11 @@ ran ads.(learned about meta-ads)
 completed content engine.
 website minor changes. 
 learned about REST API
+
+22/09/2026
+
+appended data to website.
+changes in goodwin grow
+purchased google api
+purchased open api  
+deployed goodwin grow
