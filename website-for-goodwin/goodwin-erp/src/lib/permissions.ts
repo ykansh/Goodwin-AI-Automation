@@ -37,7 +37,7 @@ export const unifiedPermissions: ModulePermissions = {
   'ledger-sales': ['super_admin', 'admin', 'accounts'],
   'payment-in': ['super_admin', 'admin', 'accounts', 'sales_manager'],
   'payment-out': ['super_admin', 'admin', 'accounts'],
-  'credit-terms': ['super_admin', 'admin', 'accounts', 'sales_manager'],
+  'credit-terms': ['super_admin', 'admin', 'accounts', 'sales_manager', 'sales_executive'],
   'reports': ['super_admin', 'admin', 'accounts', 'sales_manager', 'inventory_manager'],
   
   // HRMS

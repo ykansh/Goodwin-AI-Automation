@@ -1173,8 +1173,29 @@ export const useBulkAddCustomers = () => {
         };
       });
 
-      const { error } = await supabase.from('customers').insert(customersToInsert);
+      const { data: inserted, error } = await supabase
+        .from('customers')
+        .insert(customersToInsert)
+        .select();
+
       if (error) throw error;
+
+      // Persist credit terms for inserted records
+      if (inserted && Array.isArray(inserted)) {
+        for (let i = 0; i < inserted.length; i++) {
+          const cust = inserted[i];
+          const rawRow = rows[i] || {};
+          const creditDetails = {
+            fixed_credit_terms: rawRow.fixed_credit_terms || undefined,
+            payment_commitment_date: rawRow.payment_commitment_date || undefined,
+            material_received_time: rawRow.material_received_time || undefined,
+            payment_cycle: rawRow.payment_cycle || undefined,
+            order_cycle: rawRow.order_cycle || undefined,
+            credit_notes: rawRow.credit_notes || undefined,
+          };
+          await persistCustomerCreditTerms(cust.id, creditDetails);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -1182,6 +1203,108 @@ export const useBulkAddCustomers = () => {
     },
     onError: (error: any) => {
       toast.error(`Error importing customers: ${error.message}`);
+    },
+  });
+};
+
+export const useBulkUpdateCreditTerms = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (rows: Record<string, any>[]) => {
+      const { data: existingCustomers, error: fetchErr } = await supabase
+        .from('customers')
+        .select('*');
+      if (fetchErr) throw fetchErr;
+
+      const customersList = existingCustomers || [];
+      const nums = customersList
+        .map((c) => {
+          const m = c.uoi?.match(/GW-CUST-(\d+)/i);
+          return m ? parseInt(m[1], 10) : 0;
+        })
+        .filter((n) => !isNaN(n) && n > 0);
+      let nextNum = nums.length > 0 ? Math.max(...nums) + 1 : 1001;
+
+      let updatedCount = 0;
+      let insertedCount = 0;
+
+      for (const row of rows) {
+        const rowName = (row.name || '').trim().toLowerCase();
+        const rowContact = (row.contact || '').trim();
+
+        // Match existing customer by name or contact
+        const match = customersList.find((c) => {
+          if (rowName && c.name?.trim().toLowerCase() === rowName) return true;
+          if (rowContact && c.contact?.trim() === rowContact) return true;
+          return false;
+        });
+
+        const creditDetails = {
+          fixed_credit_terms: row.fixed_credit_terms || undefined,
+          payment_commitment_date: row.payment_commitment_date || undefined,
+          material_received_time: row.material_received_time || undefined,
+          payment_cycle: row.payment_cycle || undefined,
+          order_cycle: row.order_cycle || undefined,
+          credit_notes: row.credit_notes || undefined,
+        };
+
+        if (match) {
+          const updatePayload: Record<string, any> = {};
+          if (row.credit_limit !== undefined && row.credit_limit !== '') {
+            updatePayload.credit_limit = Number(row.credit_limit);
+          }
+          if (row.outstanding !== undefined && row.outstanding !== '') {
+            updatePayload.outstanding = Number(row.outstanding);
+          }
+          if (row.contact && !match.contact) {
+            updatePayload.contact = row.contact;
+          }
+
+          if (Object.keys(updatePayload).length > 0) {
+            await supabase.from('customers').update(updatePayload).eq('id', match.id);
+          }
+
+          await persistCustomerCreditTerms(match.id, creditDetails);
+          updatedCount++;
+        } else {
+          const uoi = `GW-CUST-${nextNum++}`;
+          const newCust = {
+            name: row.name,
+            contact: row.contact || 'N/A',
+            email: `${row.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@batterydealer.com`,
+            gstin: '23AABCX9988Z1',
+            type: 'dealer',
+            credit_limit: Number(row.credit_limit || 300000),
+            outstanding: Number(row.outstanding || 0),
+            address: 'Madhya Pradesh',
+            salesperson: 'Deepak Singh',
+            uoi,
+          };
+
+          const { data: inserted, error: insErr } = await supabase
+            .from('customers')
+            .insert([newCust])
+            .select()
+            .single();
+
+          if (!insErr && inserted?.id) {
+            await persistCustomerCreditTerms(inserted.id, creditDetails);
+            customersList.push(inserted);
+            insertedCount++;
+          }
+        }
+      }
+
+      return { updatedCount, insertedCount };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success(
+        `Credit Terms & Payment data synced: ${result?.updatedCount || 0} updated, ${result?.insertedCount || 0} new added!`
+      );
+    },
+    onError: (error: any) => {
+      toast.error(`Error importing credit terms: ${error.message}`);
     },
   });
 };

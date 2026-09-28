@@ -19,6 +19,7 @@ export function EditCreditTermsModal({ customer, onClose }: EditCreditTermsModal
 
   const [fixedCreditTerms, setFixedCreditTerms] = useState(customer.fixed_credit_terms || '30 Days Net');
   const [creditLimit, setCreditLimit] = useState(customer.credit_limit || 300000);
+  const [outstanding, setOutstanding] = useState(customer.outstanding || 0);
   const [paymentCommitmentDate, setPaymentCommitmentDate] = useState(customer.payment_commitment_date || '');
   const [materialReceivedTime, setMaterialReceivedTime] = useState(customer.material_received_time || 'Within 3-5 Days');
   const [paymentCycle, setPaymentCycle] = useState(customer.payment_cycle || '15/30 Days');
@@ -40,6 +41,7 @@ export function EditCreditTermsModal({ customer, onClose }: EditCreditTermsModal
       details: {
         fixed_credit_terms: fixedCreditTerms,
         credit_limit: Number(creditLimit),
+        outstanding: Number(outstanding),
         payment_commitment_date: paymentCommitmentDate || undefined,
         material_received_time: materialReceivedTime,
         payment_cycle: paymentCycle,
@@ -63,7 +65,7 @@ export function EditCreditTermsModal({ customer, onClose }: EditCreditTermsModal
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white">
-                Maintain Credit Terms & Payment Cycle
+                Maintain Credit Terms & Payment Details
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {customer.name} <span className="font-mono text-[#00a631] font-bold">({customer.uoi})</span>
@@ -83,17 +85,17 @@ export function EditCreditTermsModal({ customer, onClose }: EditCreditTermsModal
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
           
           {/* Current Financial Status Bar */}
-          <div className="p-3.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 flex items-center justify-between">
+          <div className="p-3.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-400">Total Outstanding</span>
+              <span className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-400">Unpaid / Total Outstanding</span>
               <div className="text-lg font-black text-red-600 dark:text-red-400">
-                ₹{Number(customer.outstanding || 0).toLocaleString('en-IN')}
+                ₹{Number(outstanding || 0).toLocaleString('en-IN')}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-400">Current Credit Limit</span>
+              <span className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-400">Credit Limit</span>
               <div className="text-lg font-black text-gray-900 dark:text-white">
-                ₹{Number(customer.credit_limit || 0).toLocaleString('en-IN')}
+                ₹{Number(creditLimit || 0).toLocaleString('en-IN')}
               </div>
             </div>
           </div>
@@ -135,6 +137,22 @@ export function EditCreditTermsModal({ customer, onClose }: EditCreditTermsModal
               />
               <span className="text-[11px] text-gray-400 mt-1 block">
                 Maximum allowable credit exposure for this account
+              </span>
+            </div>
+
+            {/* 3. Unpaid / Outstanding Balance */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                Unpaid / Outstanding Amount (₹)
+              </label>
+              <input
+                type="number"
+                value={outstanding}
+                onChange={(e) => setOutstanding(Number(e.target.value))}
+                className="w-full h-10 px-3 text-xs sm:text-sm glass-input font-bold text-red-600 dark:text-red-400"
+              />
+              <span className="text-[11px] text-gray-400 mt-1 block">
+                Customer-wise total unpaid outstanding balance
               </span>
             </div>
 

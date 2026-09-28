@@ -96,7 +96,7 @@ export function saveCreditTermsToLocalStorage(customerId: string, details: Custo
   try {
     const map = getStoredCreditTermsMap();
     map[customerId] = {
-      ...(map[customerId] || {}),
+      ...map[customerId],
       ...details,
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(map));

@@ -6,17 +6,19 @@ import { X, ArrowDownLeft, CheckCircle } from 'lucide-react';
 
 interface NewPaymentInModalProps {
   onClose: () => void;
+  initialCustomerId?: string;
+  initialAmount?: number;
 }
 
-export function NewPaymentInModal({ onClose }: NewPaymentInModalProps) {
+export function NewPaymentInModal({ onClose, initialCustomerId, initialAmount }: NewPaymentInModalProps) {
   const { data: customers = [] } = useCustomers();
   const createPaymentInMutation = useCreatePaymentIn();
 
-  const [customerId, setCustomerId] = useState(customers[0]?.id || '');
+  const [customerId, setCustomerId] = useState(initialCustomerId || customers[0]?.id || '');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('bank');
   const [reference, setReference] = useState('UTR-88991122');
-  const [amount, setAmount] = useState(50000);
+  const [amount, setAmount] = useState(initialAmount !== undefined ? initialAmount : 50000);
 
   const selectedCustomer = customers.find((c) => c.id === customerId);
 

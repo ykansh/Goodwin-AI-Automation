@@ -67,7 +67,7 @@ export function PendingBillsModal({
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Fixed Credit Term: <span className="font-bold text-gray-700 dark:text-gray-200">{customer.fixed_credit_terms || '30 Days Net'}</span> • Payment Cycle: <span className="font-bold text-gray-700 dark:text-gray-200">{customer.payment_cycle || '15/30 Days'}</span>
+                Fixed Credit Term: <span className="font-bold text-gray-700 dark:text-gray-200">{customer.fixed_credit_terms || '30 Days Net'}</span> • Payment Cycle: <span className="font-bold text-gray-700 dark:text-gray-200">{customer.payment_cycle || '15/30 Days'}</span> • Material Recv Time: <span className="font-bold text-gray-700 dark:text-gray-200">{customer.material_received_time || 'Within 3-5 Days'}</span> • Order Cycle: <span className="font-bold text-gray-700 dark:text-gray-200">{customer.order_cycle || 'Weekly'}</span>
               </p>
             </div>
           </div>
