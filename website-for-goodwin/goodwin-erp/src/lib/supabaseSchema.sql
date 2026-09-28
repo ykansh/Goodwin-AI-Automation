@@ -351,3 +351,18 @@ ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'Unpaid';
 
 ALTER TABLE products
 ADD COLUMN IF NOT EXISTS stable_stock INT DEFAULT 20;
+
+-- ── MIGRATION: CREDIT TERMS & PAYMENT TRACKING ────────────────────────────────
+ALTER TABLE customers
+ADD COLUMN IF NOT EXISTS fixed_credit_terms VARCHAR(100) DEFAULT '30 Days Net',
+ADD COLUMN IF NOT EXISTS payment_commitment_date DATE,
+ADD COLUMN IF NOT EXISTS material_received_time VARCHAR(100) DEFAULT 'Within 3-5 Days',
+ADD COLUMN IF NOT EXISTS payment_cycle VARCHAR(100) DEFAULT '15/30 Days',
+ADD COLUMN IF NOT EXISTS order_cycle VARCHAR(100) DEFAULT 'Weekly',
+ADD COLUMN IF NOT EXISTS credit_notes TEXT;
+
+ALTER TABLE sales_invoices
+ADD COLUMN IF NOT EXISTS payment_commitment_date DATE,
+ADD COLUMN IF NOT EXISTS due_date DATE,
+ADD COLUMN IF NOT EXISTS material_received_time VARCHAR(100);
+

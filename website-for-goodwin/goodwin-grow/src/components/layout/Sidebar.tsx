@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../lib/authStore';
+import { useCurrentUser } from '../../lib/useCurrentUser';
 
 const navItems = [
   { name: 'Marketing', path: '/marketing', icon: BarChart3 },
@@ -28,7 +29,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const role = useAuthStore(state => state.role);
+  const { role, employeeName } = useCurrentUser();
   const signOut = useAuthStore(state => state.signOut);
 
   const handleLinkClick = () => {
@@ -142,7 +143,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobile = false, onClose }) =
       </nav>
 
       {/* Footer User Area */}
-      <div className="p-4 border-t border-secondary-light/30 shrink-0">
+      <div className="p-4 border-t border-secondary-light/30 shrink-0 space-y-2">
+        <div className="px-3 py-2 rounded-md bg-secondary-dark/60 border border-secondary-light/20 flex items-center justify-between">
+          <div className="min-w-0 pr-2">
+            <p className="text-xs font-semibold text-canvas-surface truncate">{employeeName}</p>
+            <p className="text-[10px] text-tertiary uppercase tracking-wider capitalize font-medium">{role}</p>
+          </div>
+          <span className={cn(
+            "w-2 h-2 rounded-full shrink-0",
+            role === 'admin' ? "bg-amber-400" : "bg-emerald-400"
+          )} title={role === 'admin' ? 'Administrator' : 'Employee'} />
+        </div>
         <button 
           onClick={handleSignOut} 
           className="flex items-center w-full px-3 py-2 rounded-md text-sm font-medium text-canvas-variant hover:bg-secondary-light/30 hover:text-white transition-colors"

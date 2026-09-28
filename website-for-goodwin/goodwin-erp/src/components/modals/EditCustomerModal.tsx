@@ -2,7 +2,13 @@ import { useState } from 'react';
 import type { Customer, CustomerType } from '../../types';
 import { useSettings } from '../../hooks/queries';
 import { useUpdateCustomer } from '../../hooks/mutations';
-import { X, Edit3, CheckCircle } from 'lucide-react';
+import { 
+  CREDIT_TERM_OPTIONS, 
+  PAYMENT_CYCLE_OPTIONS, 
+  ORDER_CYCLE_OPTIONS, 
+  MATERIAL_RECEIVED_TIME_OPTIONS 
+} from '../../utils/creditTermsStorage';
+import { X, Edit3, CheckCircle, Clock } from 'lucide-react';
 
 interface EditCustomerModalProps {
   customer: Customer | null;
@@ -13,7 +19,6 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
   const { data: settings } = useSettings();
   const updateCustomerMutation = useUpdateCustomer();
 
-
   const [name, setName] = useState(customer?.name);
   const [type, setType] = useState<CustomerType>(customer?.type || 'dealer');
   const [contact, setContact] = useState(customer?.contact);
@@ -23,6 +28,13 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
   const [outstanding, setOutstanding] = useState<number>(customer?.outstanding ?? 0);
   const [address, setAddress] = useState(customer?.address);
   const [salesperson, setSalesperson] = useState(customer?.salesperson || settings?.battery_configs?.salespersons?.[0] || 'Deepak Singh');
+
+  // Credit & Payment Tracking Details
+  const [fixedCreditTerms, setFixedCreditTerms] = useState(customer?.fixed_credit_terms || '30 Days Net');
+  const [paymentCycle, setPaymentCycle] = useState(customer?.payment_cycle || '15/30 Days');
+  const [orderCycle, setOrderCycle] = useState(customer?.order_cycle || 'Weekly');
+  const [materialReceivedTime, setMaterialReceivedTime] = useState(customer?.material_received_time || 'Within 3-5 Days');
+  const [paymentCommitmentDate, setPaymentCommitmentDate] = useState(customer?.payment_commitment_date || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +52,11 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
         outstanding: Number(outstanding),
         address,
         salesperson,
+        fixed_credit_terms: fixedCreditTerms,
+        payment_cycle: paymentCycle,
+        order_cycle: orderCycle,
+        material_received_time: materialReceivedTime,
+        payment_commitment_date: paymentCommitmentDate || undefined,
       }
     });
 
@@ -167,11 +184,96 @@ export function EditCustomerModal({ customer, onClose }: EditCustomerModalProps)
               </div>
             </div>
 
-            {/* Card 2: Contact & Location */}
+            {/* Card 2: Credit Terms & Payment Tracking */}
+            <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
+              <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
+                <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>2. Credit Terms &amp; Payment Cycle Details</span>
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Fixed credit duration, payment cadence, order frequency &amp; commitment date</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Fixed Credit Terms <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={fixedCreditTerms}
+                    onChange={(e) => setFixedCreditTerms(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold"
+                  >
+                    {CREDIT_TERM_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Payment Cycle (Pattern) <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={paymentCycle}
+                    onChange={(e) => setPaymentCycle(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold"
+                  >
+                    {PAYMENT_CYCLE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Order Cycle (Frequency) <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={orderCycle}
+                    onChange={(e) => setOrderCycle(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold"
+                  >
+                    {ORDER_CYCLE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Material Received Time
+                  </label>
+                  <select
+                    value={materialReceivedTime}
+                    onChange={(e) => setMaterialReceivedTime(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-semibold"
+                  >
+                    {MATERIAL_RECEIVED_TIME_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs sm:text-[13px] font-bold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Payment Commitment Date
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentCommitmentDate}
+                    onChange={(e) => setPaymentCommitmentDate(e.target.value)}
+                    className="w-full h-10 sm:h-11 px-3.5 text-sm glass-input font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Contact & Location */}
             <div className="bg-white dark:bg-[#1a1d1a] border border-gray-200 dark:border-[#2d302d] rounded-md p-5 sm:p-6 shadow-xs space-y-5">
               <div className="border-b border-gray-100 dark:border-[#2d302d] pb-3">
                 <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  2. Contact & Billing Location
+                  3. Contact &amp; Billing Location
                 </h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">GST details, communication channel, and delivery address</p>
               </div>

@@ -105,20 +105,25 @@ export function NewPaymentInModal({ onClose }: NewPaymentInModalProps) {
               {selectedCustomer && (
                 <div className="p-4 rounded-md bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <span className="text-gray-500 font-bold block text-[11px] uppercase">GSTIN</span>
-                    <span className="font-mono font-bold text-gray-800 dark:text-gray-200 text-sm">{selectedCustomer.gstin || 'Unregistered'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 font-bold block text-[11px] uppercase">Contact</span>
+                    <span className="text-gray-500 font-bold block text-[11px] uppercase">GSTIN &amp; Contact</span>
                     <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">{selectedCustomer.contact}</span>
+                    <span className="font-mono text-[10px] text-gray-500 block">{selectedCustomer.gstin || 'Unregistered'}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 font-bold block text-[11px] uppercase">Current Receivables</span>
-                    <span className="font-black text-red-600 dark:text-red-400 text-sm">₹{selectedCustomer.outstanding.toLocaleString('en-IN')}</span>
+                    <span className="font-black text-red-600 dark:text-red-400 text-base">₹{selectedCustomer.outstanding.toLocaleString('en-IN')}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 font-bold block text-[11px] uppercase">Credit Limit</span>
+                    <span className="text-gray-500 font-bold block text-[11px] uppercase">Credit Terms &amp; Limit</span>
                     <span className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">₹{selectedCustomer.credit_limit.toLocaleString('en-IN')}</span>
+                    <span className="text-[10px] text-gray-500 font-bold block">{selectedCustomer.fixed_credit_terms || '30 Days Net'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 font-bold block text-[11px] uppercase">Payment Pattern</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-xs block">{selectedCustomer.payment_cycle || '15/30 Days'}</span>
+                    <span className="text-[10px] text-gray-500 block">
+                      Commitment: <strong className="text-gray-700 dark:text-gray-300">{selectedCustomer.payment_commitment_date || 'None'}</strong>
+                    </span>
                   </div>
                 </div>
               )}

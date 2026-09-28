@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
+import { persistCustomerCreditTerms } from '../utils/creditTermsStorage';
 
 // Example hooks - we will implement the rest similarly
 
@@ -659,8 +660,37 @@ export const useAddCustomer = () => {
       const max = nums.length > 0 ? Math.max(...nums) : 1000;
       customer.uoi = `GW-CUST-${max + 1}`;
 
-      const { error } = await supabase.from('customers').insert(customer);
-      if (error) throw error;
+      const {
+        fixed_credit_terms,
+        payment_commitment_date,
+        material_received_time,
+        payment_cycle,
+        order_cycle,
+        credit_notes,
+        ...coreCustomer
+      } = customer;
+
+      const creditDetails = {
+        fixed_credit_terms,
+        payment_commitment_date,
+        material_received_time,
+        payment_cycle,
+        order_cycle,
+        credit_notes,
+      };
+
+      // Try inserting with credit fields first
+      const { data: inserted, error } = await supabase.from('customers').insert(customer).select().single();
+      if (error) {
+        // If error due to missing columns, retry inserting only core fields
+        const { data: fallbackInserted, error: fallbackError } = await supabase.from('customers').insert(coreCustomer).select().single();
+        if (fallbackError) throw fallbackError;
+        if (fallbackInserted?.id) {
+          await persistCustomerCreditTerms(fallbackInserted.id, creditDetails);
+        }
+      } else if (inserted?.id) {
+        await persistCustomerCreditTerms(inserted.id, creditDetails);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -676,8 +706,35 @@ export const useUpdateCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const {
+        fixed_credit_terms,
+        payment_commitment_date,
+        material_received_time,
+        payment_cycle,
+        order_cycle,
+        credit_notes,
+        ...coreData
+      } = data;
+
+      const creditDetails = {
+        fixed_credit_terms,
+        payment_commitment_date,
+        material_received_time,
+        payment_cycle,
+        order_cycle,
+        credit_notes,
+      };
+
+      // Always persist to client/local sync store
+      await persistCustomerCreditTerms(id, creditDetails);
+
+      // Attempt updating full data in Supabase
       const { error } = await supabase.from('customers').update(data).eq('id', id);
-      if (error) throw error;
+      if (error) {
+        // Retry with core data if missing columns
+        const { error: fallbackError } = await supabase.from('customers').update(coreData).eq('id', id);
+        if (fallbackError) throw fallbackError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -685,6 +742,30 @@ export const useUpdateCustomer = () => {
     },
     onError: (error) => {
       toast.error(`Error updating customer: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateCustomerCreditTerms = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, details }: { id: string; details: any }) => {
+      await persistCustomerCreditTerms(id, details);
+      // Also update credit limit or outstanding if provided
+      const coreUpdates: Record<string, any> = {};
+      if (details.credit_limit !== undefined) coreUpdates.credit_limit = Number(details.credit_limit);
+      if (details.outstanding !== undefined) coreUpdates.outstanding = Number(details.outstanding);
+
+      if (Object.keys(coreUpdates).length > 0) {
+        await supabase.from('customers').update(coreUpdates).eq('id', id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Credit terms updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error updating credit terms: ${error.message}`);
     }
   });
 };

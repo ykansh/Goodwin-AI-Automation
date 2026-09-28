@@ -23,6 +23,7 @@ import { UserManagementPage } from './pages/erp/UserManagementPage';
 import { PartiesPage } from './pages/ledger/PartiesPage';
 import { PaymentInPage } from './pages/ledger/PaymentInPage';
 import { PaymentOutPage } from './pages/ledger/PaymentOutPage';
+import { CreditTermListPage } from './pages/ledger/CreditTermListPage';
 import { LeadsPage } from './pages/leads/LeadsPage';
 import { PipelinePage } from './pages/leads/PipelinePage';
 import { StockMainPage } from './pages/erp/StockMainPage';
@@ -91,6 +92,7 @@ function MainAppContent() {
       case 'parties': return <PartiesPage />;
       case 'payment-in': return <PaymentInPage />;
       case 'payment-out': return <PaymentOutPage />;
+      case 'credit-terms': return <CreditTermListPage />;
       
       // CRM
       case 'leads': return <LeadsPage />;

@@ -37,6 +37,7 @@ export const unifiedPermissions: ModulePermissions = {
   'ledger-sales': ['super_admin', 'admin', 'accounts'],
   'payment-in': ['super_admin', 'admin', 'accounts', 'sales_manager'],
   'payment-out': ['super_admin', 'admin', 'accounts'],
+  'credit-terms': ['super_admin', 'admin', 'accounts', 'sales_manager'],
   'reports': ['super_admin', 'admin', 'accounts', 'sales_manager', 'inventory_manager'],
   
   // HRMS
@@ -90,6 +91,7 @@ export const sidebarGroups = [
       { key: 'parties', label: 'Ledger Accounts', icon: 'BookOpen', path: '/ledger/parties', module: 'parties' },
       { key: 'payment-in', label: 'Payment In (Receipts)', icon: 'ArrowDownLeft', path: '/ledger/payment-in', module: 'payment-in' },
       { key: 'payment-out', label: 'Payment Out', icon: 'ArrowUpRight', path: '/ledger/payment-out', module: 'payment-out' },
+      { key: 'credit-terms', label: 'Credit Terms & Payments', icon: 'Clock', path: '/ledger/credit-terms', module: 'credit-terms' },
       { key: 'reports', label: 'Financial Reports', icon: 'BarChart3', path: '/reports', module: 'reports' },
     ]
   },

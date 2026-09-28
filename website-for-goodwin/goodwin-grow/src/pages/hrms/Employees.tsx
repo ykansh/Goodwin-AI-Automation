@@ -13,14 +13,16 @@ import { Badge } from '../../components/ui/Badge';
 import { Plus, Search, Filter, Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Select } from '../../components/ui/Select';
-
 import { useStore } from '../../lib/store';
+import { useCurrentUser, isSameEmployee } from '../../lib/useCurrentUser';
 
 export const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const employees = useStore((state) => state.employees);
   const deleteEmployee = useStore((state) => state.deleteEmployee);
   const addEmployee = useStore((state) => state.addEmployee);
+
+  const { isAdmin, employeeName } = useCurrentUser();
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
@@ -69,10 +71,12 @@ export const Employees = () => {
           </Button>
         </div>
         
-        <Button className="w-full sm:w-auto" onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Employee
-        </Button>
+        {isAdmin && (
+          <Button className="w-full sm:w-auto" onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Employee
+          </Button>
+        )}
       </div>
 
       <div className="bg-canvas-surface rounded-lg border border-canvas-variant shadow-sm overflow-hidden">
@@ -87,7 +91,7 @@ export const Employees = () => {
               <TableHead>Status</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Skills</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -96,7 +100,11 @@ export const Employees = () => {
                 <TableCell className="font-medium text-secondary-dark">{emp.name}</TableCell>
                 <TableCell>{emp.role}</TableCell>
                 <TableCell>{emp.type}</TableCell>
-                <TableCell className="text-right">₹{emp.salary.toLocaleString()}</TableCell>
+                <TableCell className="text-right">
+                  {isAdmin || isSameEmployee(emp.name, employeeName)
+                    ? `₹${emp.salary.toLocaleString()}`
+                    : '••••••'}
+                </TableCell>
                 <TableCell>{emp.joinDate}</TableCell>
                 <TableCell>
                   <Badge variant={emp.status === 'active' ? 'success' : 'warning'}>
@@ -108,16 +116,18 @@ export const Employees = () => {
                   <div className="text-xs text-secondary-light">{emp.phone}</div>
                 </TableCell>
                 <TableCell className="text-xs text-secondary-light">{emp.skills}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:text-danger" onClick={() => deleteEmployee(emp.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+                {isAdmin && (
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end space-x-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:text-danger" onClick={() => deleteEmployee(emp.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

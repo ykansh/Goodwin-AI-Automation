@@ -92,6 +92,16 @@ export const AdminPanel = () => {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase.from('app_users').update({ role: newRole }).eq('id', userId);
+      if (error) throw error;
+      fetchUsers();
+    } catch (err: any) {
+      alert('Failed to update user role: ' + err.message);
+    }
+  };
+
   const testConnection = async () => {
     setIsTesting(true);
     setConnectionStatus('idle');
@@ -237,9 +247,18 @@ CREATE TRIGGER on_auth_user_created_auto_confirm
                     <tr key={u.id} className="bg-canvas-surface hover:bg-canvas-variant/50">
                       <td className="px-4 py-3 font-medium text-secondary-dark">{u.email}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${u.role === 'admin' ? 'bg-primary/10 text-primary-dark' : 'bg-secondary/10 text-secondary-dark'}`}>
-                          {u.role}
-                        </span>
+                        <select
+                          value={u.role}
+                          onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                          className={`text-xs font-semibold rounded-md px-2 py-1 border transition-colors cursor-pointer ${
+                            u.role === 'admin' 
+                              ? 'bg-primary/10 text-primary-dark border-primary/30' 
+                              : 'bg-canvas text-secondary-dark border-canvas-variant'
+                          }`}
+                        >
+                          <option value="admin">admin</option>
+                          <option value="employee">employee</option>
+                        </select>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => handleDeleteUser(u.id, u.email)} className="p-1 text-danger hover:bg-danger/10 rounded">

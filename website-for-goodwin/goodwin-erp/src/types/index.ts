@@ -33,6 +33,13 @@ export interface Customer {
   address: string;
   salesperson: string;
   created_at: string;
+  // Credit & Payment Tracking Details
+  fixed_credit_terms?: string; // e.g. '30 Days Net', '15 Days', 'Bill-to-Bill', 'Advance / No Credit'
+  payment_commitment_date?: string; // YYYY-MM-DD committed payment date
+  material_received_time?: string; // e.g. 'Within 48 Hours', '3-5 Days', '7 Days', 'On Delivery'
+  payment_cycle?: string; // e.g. 'Weekly', '10 Days', '15/30 Days', 'Bill-to-Bill', 'Monthly'
+  order_cycle?: string; // e.g. 'Weekly', 'Bi-weekly', 'Monthly', '10 Days', 'As Needed'
+  credit_notes?: string; // Optional credit remarks/terms notes
 }
 
 export interface Supplier {
@@ -109,6 +116,9 @@ export interface SalesInvoice {
   transport_gstin?: string;
   dispatch_status?: string;
   order_type?: string;
+  payment_commitment_date?: string;
+  due_date?: string;
+  material_received_time?: string;
   created_at: string;
 }
 

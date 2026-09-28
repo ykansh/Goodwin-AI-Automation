@@ -152,11 +152,18 @@ export function PartiesPage() {
                     {/* GSTIN */}
                     <td className="font-mono text-xs text-gray-600 dark:text-gray-300">{p.gstin}</td>
 
-                    {/* TYPE */}
+                    {/* TYPE & CREDIT TERMS */}
                     <td>
-                      <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase bg-gray-200/60 dark:bg-gray-800 text-[#3a3b39] dark:text-gray-200">
-                        {p.type}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-gray-200/60 dark:bg-gray-800 text-[#3a3b39] dark:text-gray-200 w-fit">
+                          {p.type}
+                        </span>
+                        {'fixed_credit_terms' in p && p.fixed_credit_terms && (
+                          <span className="text-[10px] text-[#00a631] font-bold">
+                            {p.fixed_credit_terms}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* CREDIT LIMIT */}

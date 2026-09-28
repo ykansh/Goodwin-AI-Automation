@@ -6,6 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Select } from '../../components/ui/Select';
 import { useStore } from '../../lib/store';
+import { useCurrentUser, isSameEmployee } from '../../lib/useCurrentUser';
 
 export const Leave = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,6 +15,8 @@ export const Leave = () => {
   const requestLeave = useStore(state => state.requestLeave);
   const updateLeave = useStore(state => state.updateLeave);
   const deleteLeave = useStore(state => state.deleteLeave);
+
+  const { isAdmin, isEmployee, employeeName, employee: currentEmp } = useCurrentUser();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,7 +27,14 @@ export const Leave = () => {
   const [status, setStatus] = useState('Pending');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const filteredLeaves = leaves.filter(l => 
+  const userLeaves = React.useMemo(() => {
+    if (isEmployee) {
+      return leaves.filter(l => l.employeeId === currentEmp?.id || isSameEmployee(l.name, employeeName));
+    }
+    return leaves;
+  }, [leaves, isEmployee, currentEmp, employeeName]);
+
+  const filteredLeaves = userLeaves.filter(l => 
     l.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     l.type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -96,7 +106,7 @@ export const Leave = () => {
         </div>
         <Button onClick={() => {
           setEditingId(null);
-          setEmployeeId('');
+          setEmployeeId(isEmployee ? (currentEmp?.id || '') : '');
           setStartDate('');
           setEndDate('');
           setStatus('Pending');
@@ -187,15 +197,19 @@ export const Leave = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-secondary-dark mb-1">Employee</label>
-            <Select 
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-              options={[
-                { value: '', label: 'Select Employee...' },
-                ...employees.map(emp => ({ value: emp.id, label: emp.name }))
-              ]}
-              required
-            />
+            {isEmployee ? (
+              <Input value={employeeName} disabled className="bg-canvas/50 cursor-not-allowed" />
+            ) : (
+              <Select 
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                options={[
+                  { value: '', label: 'Select Employee...' },
+                  ...employees.map(emp => ({ value: emp.id, label: emp.name }))
+                ]}
+                required
+              />
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-secondary-dark mb-1">Leave Type</label>

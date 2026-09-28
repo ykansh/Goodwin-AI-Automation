@@ -7,6 +7,7 @@ import type {
   HrmsEmployee, HrmsAttendance, HrmsLeave, HrmsPayroll,
   HrmsProject, HrmsMilestone, HrmsTask, HrmsTimesheet
 } from '../types';
+import { enrichCustomerWithCreditTerms } from '../utils/creditTermsStorage';
 
 // Generic hook factory for basic table fetches
 function createUseQuery<T>(tableName: string, queryKey: string, orderColumn = 'created_at', ascending = false) {
@@ -67,7 +68,23 @@ export function usePurchaseOrders() {
   });
 };
 
-export const useCustomers = createUseQuery<Customer>('customers', 'customers');
+export const useCustomers = () => {
+  return useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[Supabase] Error fetching customers:', error);
+        throw error;
+      }
+      return ((data || []) as Customer[]).map(enrichCustomerWithCreditTerms);
+    }
+  });
+};
 export const useSuppliers = createUseQuery<Supplier>('suppliers', 'suppliers');
 export const useProducts = createUseQuery<Product>('products', 'products');
 export const useInvoices = createUseQuery<SalesInvoice>('sales_invoices', 'invoices');

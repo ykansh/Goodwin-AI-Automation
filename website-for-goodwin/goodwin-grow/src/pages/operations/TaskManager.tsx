@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Badge } from '../../components/ui/Badge';
 import { useStore } from '../../lib/store';
+import { useCurrentUser, isSameEmployee } from '../../lib/useCurrentUser';
 import { 
   format, 
   addMonths, 
@@ -28,6 +29,8 @@ export const TaskManager = () => {
   const attendance = useStore((state: any) => state.attendance);
   const leaves = useStore((state: any) => state.leaves);
   const updateAttendance = useStore((state: any) => state.updateAttendance);
+
+  const { isAdmin, isEmployee, employeeName } = useCurrentUser();
 
   const tasksList = useOperationsStore((state: any) => state.tasks);
   const addTask = useOperationsStore((state: any) => state.addTask);
@@ -64,8 +67,11 @@ export const TaskManager = () => {
     return found ? found[1] : null;
   };
 
-  const handleEmployeeClick = (employeeName: string) => {
-    setSelectedEmployee(employeeName);
+  const handleEmployeeClick = (targetEmployeeName: string) => {
+    if (isEmployee && !isSameEmployee(targetEmployeeName, employeeName)) {
+      return;
+    }
+    setSelectedEmployee(targetEmployeeName);
     setIsCalendarModalOpen(true);
     setCurrentDate(new Date()); // reset calendar to current month
   };
@@ -80,11 +86,12 @@ export const TaskManager = () => {
 
   const handleCreateTask = async () => {
     if (!selectedDate || !newTaskName.trim() || !selectedEmployee) return;
+    const targetAssignee = isEmployee ? employeeName : selectedEmployee;
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
     await addTask({
       date: dateKey,
       title: newTaskName.trim(),
-      assignee: selectedEmployee,
+      assignee: targetAssignee,
       status: 'pending',
       priority: 'Medium'
     });
@@ -102,6 +109,9 @@ export const TaskManager = () => {
 
   const handleSetAttendance = async (status: 'Present' | 'Absent' | 'Half-Day') => {
     if (!selectedDate || !selectedEmployee) return;
+    if (isEmployee && !isSameEmployee(selectedEmployee, employeeName)) {
+      return;
+    }
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
     await updateAttendance(dateKey, selectedEmployee, {
       status,
@@ -111,16 +121,24 @@ export const TaskManager = () => {
     });
   };
 
+  // Filter visible employees for employee view vs admin view
+  const visibleEmployees = React.useMemo(() => {
+    if (isEmployee) {
+      return employees.filter((emp: any) => isSameEmployee(emp.name, employeeName));
+    }
+    return employees;
+  }, [employees, isEmployee, employeeName]);
+
   // Render Employee Grid
   const renderEmployeeGrid = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {employees.map((emp: any) => {
+        {visibleEmployees.map((emp: any) => {
           // Count active tasks for this employee
           let activeTasks = 0;
           Object.values(tasks).forEach(dayTasks => {
             activeTasks += dayTasks.filter((t: any) => {
-              const match = t.assignee === emp.name || t.assignee?.trim() === emp.name?.trim();
+              const match = isSameEmployee(t.assignee, emp.name);
               return match && t.status === 'pending';
             }).length;
           });
@@ -339,8 +357,21 @@ export const TaskManager = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold font-display text-secondary-dark tracking-tight">Task Manager</h1>
-        <p className="text-secondary-light text-sm mt-1">Select an employee to manage their assigned tasks.</p>
+        <div className="flex items-center space-x-2">
+          <h1 className="text-2xl font-bold font-display text-secondary-dark tracking-tight">
+            {isEmployee ? 'My Tasks & Work Log' : 'Task Manager'}
+          </h1>
+          {isEmployee && (
+            <Badge variant="default" className="bg-primary/10 text-primary-dark border-primary/20">
+              Personal View
+            </Badge>
+          )}
+        </div>
+        <p className="text-secondary-light text-sm mt-1">
+          {isEmployee 
+            ? `Manage daily tasks and review work attendance for ${employeeName}.`
+            : 'Select an employee to manage their assigned tasks and review attendance.'}
+        </p>
       </div>
 
       {renderEmployeeGrid()}

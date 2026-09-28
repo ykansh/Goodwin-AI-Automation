@@ -37,7 +37,9 @@ import { useAuthStore } from './lib/authStore';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const role = useAuthStore(state => state.role);
-  if (role !== 'admin') {
+  const simulatedRole = useAuthStore(state => state.simulatedRole);
+  const effectiveRole = simulatedRole || role;
+  if (effectiveRole !== 'admin') {
     return <Navigate to="/marketing/dashboard" replace />;
   }
   return <>{children}</>;

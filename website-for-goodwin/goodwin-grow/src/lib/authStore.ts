@@ -6,9 +6,11 @@ export type Role = 'admin' | 'employee' | null;
 interface AuthState {
   userEmail: string | null;
   role: Role;
+  simulatedRole: Role;
   isAuthenticated: boolean;
   isLoading: boolean;
   setUser: (email: string | null, role: Role) => void;
+  setSimulatedRole: (role: Role) => void;
   checkSession: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -16,9 +18,11 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   userEmail: null,
   role: null,
+  simulatedRole: null,
   isAuthenticated: false,
   isLoading: true,
   setUser: (email, role) => set({ userEmail: email, role, isAuthenticated: !!email, isLoading: false }),
+  setSimulatedRole: (role) => set({ simulatedRole: role }),
   
   checkSession: async () => {
     set({ isLoading: true });
@@ -49,6 +53,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
-    set({ userEmail: null, role: null, isAuthenticated: false });
+    set({ userEmail: null, role: null, simulatedRole: null, isAuthenticated: false });
   }
 }));

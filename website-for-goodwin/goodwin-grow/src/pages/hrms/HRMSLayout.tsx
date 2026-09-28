@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Users, CalendarCheck, Clock, IndianRupee, UserPlus, FileCheck } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { useAuthStore } from '../../lib/authStore';
+import { useCurrentUser } from '../../lib/useCurrentUser';
 
 const hrmsNav = [
   { name: 'Employees', path: '/hrms/employees', icon: Users },
@@ -14,7 +14,7 @@ const hrmsNav = [
 ];
 
 export const HRMSLayout = () => {
-  const role = useAuthStore(state => state.role);
+  const { role } = useCurrentUser();
   
   const filteredNav = hrmsNav.filter(item => {
     if (item.name === 'Payroll' && role !== 'admin') return false;
