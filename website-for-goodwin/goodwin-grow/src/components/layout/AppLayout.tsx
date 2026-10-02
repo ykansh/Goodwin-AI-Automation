@@ -7,6 +7,8 @@ import { useStore } from '../../lib/store';
 import { useFinanceStore } from '../../lib/financeStore';
 import { useMarketingStore } from '../../lib/marketingStore';
 import { useOperationsStore } from '../../lib/operationsStore';
+import { useProjectNotesStore } from '../../lib/projectNotesStore';
+import { useMarketingCalendarStore } from '../../lib/marketingCalendarStore';
 import { cn } from '../../lib/utils';
 
 export const AppLayout = () => {
@@ -26,6 +28,8 @@ export const AppLayout = () => {
   const fetchFinanceData = useFinanceStore(state => state.fetchFinanceData);
   const fetchMarketingData = useMarketingStore(state => state.fetchMarketingData);
   const fetchOperationsData = useOperationsStore(state => state.fetchOperationsData);
+  const fetchAllNotes = useProjectNotesStore(state => state.fetchAllNotes);
+  const fetchCalendarEntries = useMarketingCalendarStore(state => state.fetchEntries);
   
   const isLoadingHRMS = useStore(state => state.isLoading);
   const isLoadingFinance = useFinanceStore(state => state.isLoading);
@@ -39,7 +43,9 @@ export const AppLayout = () => {
     fetchFinanceData();
     fetchMarketingData();
     fetchOperationsData();
-  }, [fetchInitialData, fetchFinanceData, fetchMarketingData, fetchOperationsData]);
+    fetchAllNotes();
+    fetchCalendarEntries();
+  }, [fetchInitialData, fetchFinanceData, fetchMarketingData, fetchOperationsData, fetchAllNotes, fetchCalendarEntries]);
 
   return (
     <div className="flex h-screen w-full bg-canvas overflow-hidden relative">

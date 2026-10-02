@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Download, Filter, Search, Plus, Calendar, Edit, Trash2, FolderKanban, AlertCircle, ShieldAlert } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Download, Filter, Search, Plus, Calendar, Edit, Trash2, FolderKanban, AlertCircle, ShieldAlert, StickyNote } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
@@ -8,6 +8,8 @@ import { Select } from '../../components/ui/Select';
 import { useOperationsStore } from '../../lib/operationsStore';
 import { useStore } from '../../lib/store';
 import { useCurrentUser, isSameEmployee } from '../../lib/useCurrentUser';
+import { ProjectNotepadModal } from '../../components/operations/ProjectNotepadModal';
+import { useProjectNotesStore } from '../../lib/projectNotesStore';
 
 export const Projects = () => {
   const employees = useStore((state: any) => state.employees);
@@ -16,6 +18,10 @@ export const Projects = () => {
   const updateProject = useOperationsStore((state: any) => state.updateProject);
   const deleteProject = useOperationsStore((state: any) => state.deleteProject);
 
+  const notesMap = useProjectNotesStore((state) => state.notes);
+  const scratchpadsMap = useProjectNotesStore((state) => state.scratchpads);
+  const fetchAllNotes = useProjectNotesStore((state) => state.fetchAllNotes);
+
   const { isAdmin, isEmployee, employeeName } = useCurrentUser();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,6 +29,44 @@ export const Projects = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedNotepadProject, setSelectedNotepadProject] = useState<any | null>(null);
+
+  // Fetch all notes immediately when projects page loads
+  useEffect(() => {
+    fetchAllNotes();
+  }, [fetchAllNotes]);
+
+  // Restore open notepad across reloads via URL query param or sessionStorage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const notepadParam = params.get('notepad') || sessionStorage.getItem('goodwin_active_notepad_project');
+    if (notepadParam && projects && projects.length > 0) {
+      const target = projects.find((p: any) => String(p.id) === String(notepadParam));
+      if (target) {
+        setSelectedNotepadProject(target);
+      }
+    }
+  }, [projects]);
+
+  const handleOpenNotepad = (p: any) => {
+    setSelectedNotepadProject(p);
+    try {
+      sessionStorage.setItem('goodwin_active_notepad_project', String(p.id));
+      const url = new URL(window.location.href);
+      url.searchParams.set('notepad', String(p.id));
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+  };
+
+  const handleCloseNotepad = () => {
+    setSelectedNotepadProject(null);
+    try {
+      sessionStorage.removeItem('goodwin_active_notepad_project');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('notepad');
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+  };
   
   const [formData, setFormData] = useState<any>({
     id: 0,
@@ -138,8 +182,8 @@ export const Projects = () => {
           </div>
           <p className="text-secondary-light text-sm mt-1">
             {isEmployee 
-              ? `Showing projects currently assigned to you (${employeeName}). You can update project status and phases.`
-              : 'Manage ongoing work and team assignments across all clients.'}
+              ? `Showing projects currently assigned to you (${employeeName}). Click any project to open its Notepad & store notes.`
+              : 'Click on any project to open its Google Notes notepad & store project info, links, and credentials.'}
           </p>
         </div>
         <div className="flex space-x-2 w-full sm:w-auto">
@@ -215,67 +259,116 @@ export const Projects = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProjects.map((project: any) => (
-            <div key={project.id} className="bg-canvas-surface p-6 rounded-xl border border-canvas-variant shadow-sm hover:shadow-md hover:border-primary/30 transition-all group relative flex flex-col justify-between">
-              <div>
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenEditModal(project)} title="Edit Project">
-                    <Edit className="h-4 w-4 text-secondary-light" />
-                  </Button>
-                  {isAdmin && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:bg-danger/10" onClick={() => handleDelete(project.id)} title="Delete Project">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                
-                <div className="mb-4 pr-16">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h3 className="font-semibold text-lg text-secondary-dark">{project.companyName}</h3>
-                    {getStatusBadge(project.status)}
-                  </div>
-                  <p className="text-secondary-dark font-medium">{project.projectName}</p>
-                </div>
+          {filteredProjects.map((project: any) => {
+            const pid = String(project?.id ?? '');
+            const projectNotes = (notesMap && pid && notesMap[pid]) ? notesMap[pid] : [];
+            const rawScratchpad = (scratchpadsMap && pid && scratchpadsMap[pid]) ? scratchpadsMap[pid] : '';
+            const hasScratchpad = typeof rawScratchpad === 'string' && rawScratchpad.trim().length > 0;
+            const noteCount = (Array.isArray(projectNotes) ? projectNotes.length : 0) + (hasScratchpad ? 1 : 0);
 
-                <div className="space-y-3 mt-6 border-t border-canvas-variant pt-4">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-secondary-light">Assignee</span>
-                    <span className="text-secondary-dark font-medium flex items-center">
-                      <span className="w-2 h-2 rounded-full bg-primary mr-1.5"></span>
-                      {project.assignedTo}
-                    </span>
+            return (
+              <div 
+                key={project.id} 
+                onClick={() => handleOpenNotepad(project)}
+                className="bg-canvas-surface p-6 rounded-xl border border-canvas-variant shadow-sm hover:shadow-lg hover:border-primary/40 transition-all group relative flex flex-col justify-between cursor-pointer"
+                title="Click to open project notepad & notes"
+              >
+                <div>
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 z-10">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenEditModal(project);
+                      }} 
+                      title="Edit Project"
+                    >
+                      <Edit className="h-4 w-4 text-secondary-light" />
+                    </Button>
+                    {isAdmin && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-danger hover:bg-danger/10" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(project.id);
+                        }} 
+                        title="Delete Project"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-secondary-light">Phase</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getPhaseColor(project.phase)}`}>
-                      {project.phase}
-                    </span>
+                  
+                  <div className="mb-4 pr-16">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-semibold text-lg text-secondary-dark group-hover:text-primary transition-colors">
+                        {project.companyName}
+                      </h3>
+                      {getStatusBadge(project.status)}
+                    </div>
+                    <p className="text-secondary-dark font-medium">{project.projectName}</p>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-secondary-light">Timeline</span>
-                    <div className="flex items-center text-secondary-dark">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      <span>{project.startDate || 'Not set'}</span>
+
+                  <div className="space-y-3 mt-6 border-t border-canvas-variant pt-4">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-secondary-light">Assignee</span>
+                      <span className="text-secondary-dark font-medium flex items-center">
+                        <span className="w-2 h-2 rounded-full bg-primary mr-1.5"></span>
+                        {project.assignedTo}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-secondary-light">Phase</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getPhaseColor(project.phase)}`}>
+                        {project.phase}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-secondary-light">Timeline</span>
+                      <div className="flex items-center text-secondary-dark">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        <span>{project.startDate || 'Not set'}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-secondary-light">Budget</span>
+                      <span className="text-secondary-dark font-medium">₹{Number(project.budget || 0).toLocaleString()}</span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-secondary-light">Budget</span>
-                    <span className="text-secondary-dark font-medium">₹{Number(project.budget || 0).toLocaleString()}</span>
+
+                  {/* Notepad / Google Notes Quick Bar */}
+                  <div className="mt-4 p-2 bg-canvas/80 rounded-lg border border-canvas-variant/70 flex items-center justify-between group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
+                    <div className="flex items-center gap-1.5 text-xs text-secondary-dark">
+                      <StickyNote className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                      <span className="font-medium">
+                        {noteCount > 0 ? `${noteCount} ${noteCount === 1 ? 'Note' : 'Notes'} stored` : 'Google Notes'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-primary font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                      Open Notepad →
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-4 border-t border-canvas-variant/50 mt-4 flex justify-between items-center text-xs">
-                <span className="text-secondary-light">Status: <strong className="text-secondary-dark">{project.status}</strong></span>
-                <button
-                  onClick={() => handleOpenEditModal(project)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  Update Phase →
-                </button>
+                <div className="pt-4 border-t border-canvas-variant/50 mt-4 flex justify-between items-center text-xs">
+                  <span className="text-secondary-light">Status: <strong className="text-secondary-dark">{project.status}</strong></span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenEditModal(project);
+                    }}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Update Phase →
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -379,6 +472,15 @@ export const Projects = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Project Notepad (Google Notes Style) */}
+      {selectedNotepadProject && (
+        <ProjectNotepadModal
+          isOpen={true}
+          project={selectedNotepadProject}
+          onClose={handleCloseNotepad}
+        />
+      )}
     </div>
   );
 };

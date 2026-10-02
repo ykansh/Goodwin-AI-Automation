@@ -15,7 +15,7 @@ interface AuthState {
   signOut: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   userEmail: null,
   role: null,
   simulatedRole: null,
@@ -25,6 +25,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   setSimulatedRole: (role) => set({ simulatedRole: role }),
   
   checkSession: async () => {
+    // If already authenticated in memory, don't clear
+    if (get().isAuthenticated && get().userEmail) {
+      set({ isLoading: false });
+      return;
+    }
     set({ isLoading: true });
     try {
       const { data: { session } } = await supabase.auth.getSession();
