@@ -383,7 +383,7 @@ export const TaskManager = () => {
         title={`${selectedEmployee?.trim()}'s Calendar`}
         className="max-w-5xl"
       >
-        <div className="max-h-[80vh] overflow-y-auto pr-2 pb-4">
+        <div className="pr-1 pb-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-dark font-bold">
@@ -413,8 +413,9 @@ export const TaskManager = () => {
         isOpen={isTaskModalOpen} 
         onClose={() => setIsTaskModalOpen(false)} 
         title={`Tasks & Attendance: ${selectedDate ? format(selectedDate, 'MMM do, yyyy') : ''}`}
+        className="max-w-xl"
       >
-        <div className="space-y-6 mt-4">
+        <div className="space-y-5 mt-2 pb-3">
           {/* Attendance Status Quick-Selector */}
           {selectedDate && selectedEmployee && (() => {
             const dateKey = format(selectedDate, 'yyyy-MM-dd');
@@ -465,57 +466,75 @@ export const TaskManager = () => {
           })()}
 
           {/* Add New Task */}
-          <div className="space-y-4 p-4 bg-canvas/30 rounded-lg border border-canvas-variant">
+          <div className="space-y-3 p-4 bg-canvas/40 rounded-lg border border-canvas-variant">
             <h4 className="font-semibold text-sm text-secondary-dark">Add New Task</h4>
-            <div className="flex gap-4">
+            <div className="flex gap-2 sm:gap-3">
               <Input 
-                placeholder="e.g. Call Client XYZ" 
+                placeholder="e.g. Call Client XYZ or Follow up..." 
                 value={newTaskName} 
                 onChange={(e) => setNewTaskName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCreateTask(); }}
                 className="flex-1"
               />
-              <Button onClick={handleCreateTask} disabled={!newTaskName.trim()}>
-                Add
+              <Button onClick={handleCreateTask} disabled={!newTaskName.trim()} className="shrink-0">
+                Add Task
               </Button>
             </div>
           </div>
 
           {/* Existing Tasks with Status Selector & Requirement 3: Delete Option */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-sm text-secondary-dark">Existing Tasks</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm text-secondary-dark">Existing Tasks</h4>
+              {selectedDate && (() => {
+                const dayTasks = (tasks[format(selectedDate, 'yyyy-MM-dd')] || []).filter((t: any) => 
+                  t.assignee === selectedEmployee || t.assignee?.trim() === selectedEmployee?.trim()
+                );
+                return dayTasks.length > 0 ? (
+                  <span className="text-xs text-secondary-light font-medium bg-canvas-variant/50 px-2 py-0.5 rounded">
+                    {dayTasks.filter((t: any) => t.status === 'completed').length} / {dayTasks.length} Done
+                  </span>
+                ) : null;
+              })()}
+            </div>
+
             {selectedDate && (tasks[format(selectedDate, 'yyyy-MM-dd')] || []).filter((t: any) => {
               return t.assignee === selectedEmployee || t.assignee?.trim() === selectedEmployee?.trim();
             }).length > 0 ? (
-              (tasks[format(selectedDate, 'yyyy-MM-dd')] || [])
-                .filter((t: any) => t.assignee === selectedEmployee || t.assignee?.trim() === selectedEmployee?.trim())
-                .map((t: any) => (
-                  <div key={t.id} className="flex justify-between items-center p-3 bg-canvas-surface rounded-lg border border-canvas-variant hover:border-canvas-variant/80 transition-colors">
-                    <span className={`text-sm flex-1 pr-3 truncate ${t.status === 'completed' ? 'text-secondary-light line-through' : 'text-secondary-dark font-medium'}`}>
-                      {t.title}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Select 
-                        value={t.status}
-                        onChange={(e) => updateTaskStatus(format(selectedDate, 'yyyy-MM-dd'), t.id, e.target.value)}
-                        options={[
-                          { value: 'pending', label: 'Pending' },
-                          { value: 'completed', label: 'Completed' }
-                        ]}
-                        className="h-8 py-1 text-xs w-28"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteTask(t.id)}
-                        className="h-8 w-8 text-secondary-light hover:text-red-600 hover:bg-red-500/10 transition-colors"
-                        title="Delete task"
+              <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1.5 custom-scrollbar pb-2">
+                {(tasks[format(selectedDate, 'yyyy-MM-dd')] || [])
+                  .filter((t: any) => t.assignee === selectedEmployee || t.assignee?.trim() === selectedEmployee?.trim())
+                  .map((t: any) => (
+                    <div key={t.id} className="flex justify-between items-center p-3 bg-canvas-surface rounded-lg border border-canvas-variant hover:border-canvas-variant/80 transition-all shadow-sm">
+                      <span 
+                        className={`text-sm flex-1 pr-3 break-words ${t.status === 'completed' ? 'text-secondary-light line-through' : 'text-secondary-dark font-medium'}`}
+                        title={t.title}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        {t.title}
+                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Select 
+                          value={t.status}
+                          onChange={(e) => updateTaskStatus(format(selectedDate, 'yyyy-MM-dd'), t.id, e.target.value)}
+                          options={[
+                            { value: 'pending', label: 'Pending' },
+                            { value: 'completed', label: 'Completed' }
+                          ]}
+                          className="h-8 py-1 text-xs w-28"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteTask(t.id)}
+                          className="h-8 w-8 text-secondary-light hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                          title="Delete task"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-              ))
+                ))}
+              </div>
             ) : (
               <div className="text-center py-6 text-sm text-secondary-light border border-dashed border-canvas-variant rounded-lg">
                 No tasks assigned on this day.

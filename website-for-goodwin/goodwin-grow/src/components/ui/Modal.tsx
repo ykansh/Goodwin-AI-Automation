@@ -25,7 +25,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       <div 
         className="fixed inset-0 bg-secondary-dark/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
@@ -33,11 +33,11 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       
       <div 
         className={cn(
-          "relative z-50 w-full max-w-lg rounded-xl bg-canvas-surface p-6 shadow-level-3 transition-all",
+          "relative z-50 w-full max-w-lg max-h-[90vh] flex flex-col rounded-xl bg-canvas-surface p-5 sm:p-6 shadow-level-3 transition-all my-auto",
           className
         )}
       >
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <h2 className="text-lg font-display font-semibold text-secondary-dark tracking-tight">
             {title}
           </h2>
@@ -50,7 +50,7 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
           </button>
         </div>
         
-        <div className="mt-2">
+        <div className="overflow-y-auto flex-1 min-h-0 pr-1 custom-scrollbar">
           {children}
         </div>
       </div>
