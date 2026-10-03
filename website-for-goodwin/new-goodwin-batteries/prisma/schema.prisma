@@ -1,0 +1,305 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  CASHIER
+  ACCOUNTANT
+}
+
+enum PartyType {
+  CUSTOMER
+  SUPPLIER
+}
+
+enum ItemType {
+  PRODUCT
+  SERVICE
+}
+
+enum InvoiceType {
+  TAX_INVOICE
+  BILL_OF_SUPPLY
+  ESTIMATE
+  PROFORMA
+  DELIVERY_CHALLAN
+  CREDIT_NOTE
+  DEBIT_NOTE
+}
+
+enum PaymentStatus {
+  PAID
+  PARTIAL
+  UNPAID
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+  NET_BANKING
+  CHEQUE
+}
+
+enum ChequeStatus {
+  PENDING
+  CLEARED
+  BOUNCED
+}
+
+model Tenant {
+  id                   String                 @id @default(uuid())
+  businessName         String
+  tradeName            String?
+  gstin                String?
+  pan                  String?
+  phone                String
+  email                String?
+  address              String?
+  city                 String?
+  state                String
+  stateCode            String                 // e.g. "27" for Maharashtra, "07" for Delhi
+  pincode              String?
+  logoUrl              String?
+  signatureUrl         String?
+  upiId                String?                // For Dynamic UPI QR Code on invoices
+  invoicePrefix        String                 @default("INV-")
+  currentInvoiceNumber Int                    @default(1)
+  settings             Json?                  // Configurable options (thermal printer, theme, etc.)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  users                User[]
+  parties              Party[]
+  godowns              Godown[]
+  categories           Category[]
+  items                Item[]
+  invoices             Invoice[]
+  payments             PaymentTransaction[]
+  expenses             Expense[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  tenantId     String
+  name         String
+  email        String?
+  phone        String
+  role         UserRole  @default(OWNER)
+  passwordHash String
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, phone])
+  @@map("users")
+}
+
+model Godown {
+  id        String      @id @default(uuid())
+  tenantId  String
+  name      String      // e.g. "Main Warehouse", "Shop Counter"
+  location  String?
+  isDefault Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  batches   ItemBatch[]
+  invoices  Invoice[]
+
+  @@map("godowns")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  createdAt DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items     Item[]
+
+  @@unique([tenantId, name])
+  @@map("categories")
+}
+
+model Party {
+  id              String               @id @default(uuid())
+  tenantId        String
+  name            String
+  type            PartyType            @default(CUSTOMER)
+  phone           String
+  email           String?
+  gstin           String?
+  pan             String?
+  billingAddress  String?
+  shippingAddress String?
+  state           String?
+  stateCode       String?
+  creditLimit     Decimal?             @default(0)
+  openingBalance  Decimal              @default(0) // Positive for Receivable (Dr), Negative for Payable (Cr)
+  currentBalance  Decimal              @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoices        Invoice[]
+  payments        PaymentTransaction[]
+
+  @@map("parties")
+}
+
+model Item {
+  id            String        @id @default(uuid())
+  tenantId      String
+  name          String
+  itemType      ItemType      @default(PRODUCT)
+  sku           String?
+  barcode       String?       // For live POS scanner lookup
+  hsnCode       String?       // GST HSN or SAC code
+  unit          String        @default("PCS") // PCS, BOX, KG, LTR, MTR
+  secondaryUnit String?       // e.g. BOX -> PCS
+  conversionRate Decimal?     // e.g. 1 BOX = 10 PCS
+  purchasePrice Decimal       @default(0)
+  salesPrice    Decimal       @default(0)
+  mrp           Decimal?      @default(0)
+  minStockAlert Int           @default(5)
+  taxRate       Decimal       @default(18.0) // 0, 5, 12, 18, 28
+  showInStore   Boolean       @default(false)
+  categoryId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category      Category?     @relation(fields: [categoryId], references: [id])
+  batches       ItemBatch[]
+  invoiceItems  InvoiceItem[]
+
+  @@map("items")
+}
+
+model ItemBatch {
+  id            String        @id @default(uuid())
+  itemId        String
+  godownId      String?
+  batchNo       String?
+  mfgDate       DateTime?
+  expDate       DateTime?     // For Pharmacy / FMCG expiry tracking
+  quantity      Decimal       @default(0)
+  costPrice     Decimal       @default(0)
+  serialNumbers String[]      // For Electronics IMEI / Serial numbers
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  item          Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  godown        Godown?       @relation(fields: [godownId], references: [id])
+  invoiceItems  InvoiceItem[]
+
+  @@map("item_batches")
+}
+
+model Invoice {
+  id             String               @id @default(uuid())
+  tenantId       String
+  godownId       String?
+  partyId        String
+  invoiceNumber  String
+  invoiceType    InvoiceType          @default(TAX_INVOICE)
+  invoiceDate    DateTime             @default(now())
+  dueDate        DateTime?
+  placeOfSupply  String               // State Code e.g. "27"
+  subtotal       Decimal              @default(0)
+  discountTotal  Decimal              @default(0)
+  taxTotal       Decimal              @default(0)
+  cgstTotal      Decimal              @default(0)
+  sgstTotal      Decimal              @default(0)
+  igstTotal      Decimal              @default(0)
+  roundOff       Decimal              @default(0)
+  totalAmount    Decimal              @default(0)
+  paidAmount     Decimal              @default(0)
+  balanceAmount  Decimal              @default(0)
+  paymentStatus  PaymentStatus        @default(UNPAID)
+  notes          String?
+  terms          String?
+  irnNumber      String?              // For Government E-Invoicing
+  ewayBillNumber String?              // For GST E-Way Bill
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  godown         Godown?              @relation(fields: [godownId], references: [id])
+  party          Party                @relation(fields: [partyId], references: [id])
+  items          InvoiceItem[]
+  payments       PaymentTransaction[]
+
+  @@unique([tenantId, invoiceNumber, invoiceType])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String     @id @default(uuid())
+  invoiceId   String
+  itemId      String
+  batchId     String?
+  quantity    Decimal
+  unit        String     @default("PCS")
+  unitPrice   Decimal
+  discount    Decimal    @default(0) // Discount amount
+  taxRate     Decimal    @default(18.0)
+  cgstAmount  Decimal    @default(0)
+  sgstAmount  Decimal    @default(0)
+  igstAmount  Decimal    @default(0)
+  totalAmount Decimal
+
+  invoice     Invoice    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  item        Item       @relation(fields: [itemId], references: [id])
+  batch       ItemBatch? @relation(fields: [batchId], references: [id])
+
+  @@map("invoice_items")
+}
+
+model PaymentTransaction {
+  id              String        @id @default(uuid())
+  tenantId        String
+  partyId         String
+  invoiceId       String?
+  amount          Decimal
+  paymentMode     PaymentMode   @default(CASH)
+  referenceNumber String?
+  chequeStatus    ChequeStatus?
+  date            DateTime      @default(now())
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  party           Party         @relation(fields: [partyId], references: [id])
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
+
+  @@map("payment_transactions")
+}
+
+model Expense {
+  id          String      @id @default(uuid())
+  tenantId    String
+  category    String      // Rent, Electricity, Salaries, Logistics, etc.
+  amount      Decimal
+  paymentMode PaymentMode @default(CASH)
+  date        DateTime    @default(now())
+  description String?
+  receiptUrl  String?
+  createdAt   DateTime    @default(now())
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
