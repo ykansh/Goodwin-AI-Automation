@@ -11,6 +11,7 @@ import {
   QrCode,
   FileText,
   Receipt as ReceiptIcon,
+  Trash2,
 } from 'lucide-react';
 import { MockInvoice } from '@/lib/mockData';
 import { useApp } from '@/context/AppContext';
@@ -28,7 +29,7 @@ export default function InvoiceDetailModal({
   onClose,
   invoice,
 }: InvoiceDetailModalProps) {
-  const { business } = useApp();
+  const { business, deleteInvoice, isAdmin } = useApp();
   const [printFormat, setPrintFormat] = useState<'A4' | 'THERMAL'>('A4');
 
   if (!isOpen || !invoice) return null;
@@ -99,6 +100,22 @@ export default function InvoiceDetailModal({
               <Printer size={13} />
               <span>Print {printFormat === 'A4' ? 'Invoice' : 'Receipt'}</span>
             </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  if (confirm(`Permanently delete invoice ${invoice.invoiceNumber} from Supabase?`)) {
+                    deleteInvoice(invoice.id);
+                    onClose();
+                  }
+                }}
+                title="Delete from Supabase"
+                className="h-8 px-2.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <Trash2 size={13} />
+                <span>Delete</span>
+              </button>
+            )}
 
             <button
               onClick={onClose}
@@ -308,7 +325,7 @@ export default function InvoiceDetailModal({
 
               {/* Signatory Footer */}
               <div className="pt-6 border-t border-slate-200 flex justify-between items-end text-[10px] text-slate-500">
-                <p>Generated via myBillBook GST Cloud</p>
+                <p>Generated via Goodwin Batteries Cloud ERP</p>
                 <div className="text-right">
                   <p className="font-bold text-slate-800 mb-8">For {business.businessName}</p>
                   <p className="border-t border-slate-400 pt-1">Authorized Signatory</p>

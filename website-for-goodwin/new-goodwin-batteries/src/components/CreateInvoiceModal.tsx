@@ -45,17 +45,33 @@ export default function CreateInvoiceModal({
   onClose,
   onInvoiceCreated,
 }: CreateInvoiceModalProps) {
-  const { items, parties, business, addInvoice } = useApp();
+  const { items, parties, business, addInvoice, selectedCompany } = useApp();
   const defaultParty = parties[0] || null;
   const defaultItem = items[0] || null;
 
+  const generateNewInvoiceNumber = () => {
+    const prefix = selectedCompany?.code === 'goodwin-2' ? 'GB2-INV' : 'GW-INV';
+    const randNum = Math.floor(100000 + Math.random() * 900000);
+    return `${prefix}-${randNum}`;
+  };
+
+  const [invoiceNumber, setInvoiceNumber] = useState<string>(generateNewInvoiceNumber());
   const [selectedParty, setSelectedParty] = useState<MockParty | null>(defaultParty);
   const [customerName, setCustomerName] = useState(defaultParty?.name || '');
   const [customerPhone, setCustomerPhone] = useState(defaultParty?.phone || '');
   const [customerGstin, setCustomerGstin] = useState(defaultParty?.gstin || '');
-  const [placeOfSupply, setPlaceOfSupply] = useState(defaultParty?.stateCode || '27');
+  const [placeOfSupply, setPlaceOfSupply] = useState(defaultParty?.stateCode || business.stateCode || '23');
   const [invoiceType, setInvoiceType] = useState<'TAX_INVOICE' | 'BILL_OF_SUPPLY'>('TAX_INVOICE');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Reset or regenerate when opened
+  useEffect(() => {
+    if (isOpen) {
+      setInvoiceNumber(generateNewInvoiceNumber());
+      setIsSuccess(false);
+      setCreatedInvoice(null);
+    }
+  }, [isOpen, selectedCompany?.code]);
 
   // Line items state
   const [lineItems, setLineItems] = useState<BillLineItem[]>([
@@ -170,53 +186,60 @@ export default function CreateInvoiceModal({
     }
   }, [grandTotal, business]);
 
-  const handleSaveInvoice = () => {
-    const invNumber = `${business.invoicePrefix}${business.currentInvoiceNumber + 1}`;
-    const newInvoice: MockInvoice = {
-      id: `inv-${Date.now()}`,
-      invoiceNumber: invNumber,
-      invoiceType,
-      partyName: customerName || 'Cash Sale',
-      partyPhone: customerPhone,
-      partyGstin: customerGstin,
-      partyStateCode: placeOfSupply,
-      invoiceDate,
-      dueDate: invoiceDate,
-      subtotal,
-      discountTotal: 0,
-      taxTotal,
-      cgstTotal,
-      sgstTotal,
-      igstTotal,
-      roundOff,
-      totalAmount: grandTotal,
-      paidAmount: paidAmount > 0 ? paidAmount : grandTotal,
-      balanceAmount: Math.max(0, grandTotal - (paidAmount > 0 ? paidAmount : grandTotal)),
-      paymentStatus:
-        paidAmount >= grandTotal ? 'PAID' : paidAmount > 0 ? 'PARTIAL' : 'PAID',
-      items: calculatedRows.map((r) => ({
-        itemId: r.itemId,
-        name: r.name,
-        hsnCode: r.hsnCode,
-        quantity: r.quantity,
-        unit: r.unit,
-        unitPrice: r.unitPrice,
-        discount: r.discount,
-        taxRate: r.taxRate,
-        cgst: r.cgst,
-        sgst: r.sgst,
-        igst: r.igst,
-        total: r.total,
-      })),
-      upiQrUrl: upiQrDataUrl,
-    };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    setCreatedInvoice(newInvoice);
-    setIsSuccess(true);
-    if (onInvoiceCreated) {
-      onInvoiceCreated(newInvoice);
-    } else {
-      addInvoice(newInvoice);
+  const handleSaveInvoice = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const invNumber = invoiceNumber.trim() || generateNewInvoiceNumber();
+      const newInvoice: MockInvoice = {
+        id: `inv-${Date.now()}`,
+        invoiceNumber: invNumber,
+        invoiceType,
+        partyName: customerName || 'Cash Sale',
+        partyPhone: customerPhone,
+        partyGstin: customerGstin,
+        partyStateCode: placeOfSupply,
+        invoiceDate,
+        dueDate: invoiceDate,
+        subtotal,
+        discountTotal: 0,
+        taxTotal,
+        cgstTotal,
+        sgstTotal,
+        igstTotal,
+        roundOff,
+        totalAmount: grandTotal,
+        paidAmount: paidAmount > 0 ? paidAmount : grandTotal,
+        balanceAmount: Math.max(0, grandTotal - (paidAmount > 0 ? paidAmount : grandTotal)),
+        paymentStatus:
+          paidAmount >= grandTotal ? 'PAID' : paidAmount > 0 ? 'PARTIAL' : 'PAID',
+        items: calculatedRows.map((r) => ({
+          itemId: r.itemId,
+          name: r.name,
+          hsnCode: r.hsnCode,
+          quantity: r.quantity,
+          unit: r.unit,
+          unitPrice: r.unitPrice,
+          discount: r.discount,
+          taxRate: r.taxRate,
+          cgst: r.cgst,
+          sgst: r.sgst,
+          igst: r.igst,
+          total: r.total,
+        })),
+        upiQrUrl: upiQrDataUrl,
+      };
+
+      const saved = await addInvoice(newInvoice);
+      setCreatedInvoice(saved || newInvoice);
+      setIsSuccess(true);
+      if (onInvoiceCreated) {
+        onInvoiceCreated(saved || newInvoice);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -309,9 +332,9 @@ export default function CreateInvoiceModal({
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
               {/* Customer & Invoice Meta Details */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
                 {/* Customer Selector */}
-                <div>
+                <div className="lg:col-span-2">
                   <label className="block font-semibold text-slate-700 mb-1">Customer / Party Name *</label>
                   <input
                     type="text"
@@ -324,7 +347,7 @@ export default function CreateInvoiceModal({
 
                 {/* Phone */}
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Phone Number (WhatsApp)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Phone (WhatsApp)</label>
                   <input
                     type="text"
                     value={customerPhone}
@@ -334,29 +357,33 @@ export default function CreateInvoiceModal({
                   />
                 </div>
 
-                {/* GSTIN */}
+                {/* Invoice # */}
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">GSTIN (Optional)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Invoice # (Auto)</label>
                   <input
                     type="text"
-                    value={customerGstin}
-                    onChange={(e) => {
-                      const val = e.target.value.toUpperCase();
-                      setCustomerGstin(val);
-                      if (val.length >= 2) {
-                        const code = val.slice(0, 2);
-                        setPlaceOfSupply(code);
-                      }
-                    }}
-                    placeholder="e.g. 27ABCDE1234F1Z5"
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 font-mono focus:outline-none focus:border-[#4c3cce]"
+                    value={invoiceNumber}
+                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                    placeholder="e.g. GW-INV-102938"
+                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#4c3cce]"
+                  />
+                </div>
+
+                {/* Invoice Date */}
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Invoice Date</label>
+                  <input
+                    type="date"
+                    value={invoiceDate}
+                    onChange={(e) => setInvoiceDate(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#4c3cce]"
                   />
                 </div>
 
                 {/* Place of Supply */}
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
-                    Place of Supply {isInterState ? '(IGST Applicable)' : '(CGST+SGST)'}
+                    Supply State {isInterState ? '(IGST)' : '(CGST+SGST)'}
                   </label>
                   <select
                     value={placeOfSupply}
@@ -577,10 +604,11 @@ export default function CreateInvoiceModal({
                 </button>
                 <button
                   onClick={handleSaveInvoice}
-                  className="px-6 py-2.5 rounded-xl bg-[#db631a] hover:bg-[#c45312] text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-[0.98]"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-[#db631a] hover:bg-[#c45312] text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-[0.98] disabled:opacity-50"
                 >
                   <Sparkles size={16} />
-                  <span>Save &amp; Generate Bill</span>
+                  <span>{isSubmitting ? 'Saving Invoice...' : 'Save & Generate Bill'}</span>
                 </button>
               </div>
             </div>

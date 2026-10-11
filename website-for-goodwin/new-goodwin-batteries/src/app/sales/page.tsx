@@ -8,6 +8,7 @@ import InvoiceDetailModal from '@/components/sales/InvoiceDetailModal';
 import { useApp } from '@/context/AppContext';
 import { MockInvoice } from '@/lib/mockData';
 import { formatINR } from '@/lib/utils';
+import { exportInvoicesToCSV } from '@/lib/csvUtils';
 import {
   Receipt,
   Plus,
@@ -20,10 +21,12 @@ import {
   Calendar,
   CheckCircle,
   TrendingUp,
+  Trash2,
+  Download,
 } from 'lucide-react';
 
 export default function SalesPage() {
-  const { invoices, addInvoice, business } = useApp();
+  const { invoices, addInvoice, deleteInvoice, business, selectedCompany, isAdmin, isEmployee } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('ALL');
@@ -88,6 +91,15 @@ export default function SalesPage() {
             </div>
 
             <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => exportInvoicesToCSV(invoices, selectedCompany.displayName)}
+                className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+                title="Download sales invoices spreadsheet"
+              >
+                <Download size={14} className="text-emerald-600" />
+                <span>Export CSV</span>
+              </button>
+
               <button
                 onClick={() => setIsBillingModalOpen(true)}
                 className="h-9 px-4 rounded-xl bg-[#db631a] hover:bg-[#c45312] text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-[0.98]"
@@ -324,6 +336,21 @@ export default function SalesPage() {
                             >
                               <Printer size={15} />
                             </button>
+
+                            {/* Delete Invoice (Admin Only) */}
+                            {isAdmin && (
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Permanently delete invoice ${inv.invoiceNumber} from Supabase?`)) {
+                                    deleteInvoice(inv.id);
+                                  }
+                                }}
+                                title="Delete Invoice (Admin Only)"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -346,7 +373,6 @@ export default function SalesPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
-        onInvoiceCreated={(newInv) => addInvoice(newInv)}
       />
     </div>
   );

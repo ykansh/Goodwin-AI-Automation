@@ -3,6 +3,7 @@ import { defineConfig } from '@prisma/config';
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/mybillbook_db?schema=public',
+    // Configured for Supabase PostgreSQL connection pooler
+    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/postgres',
   },
 });

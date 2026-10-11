@@ -7,9 +7,11 @@ import AddPartyModal from '@/components/parties/AddPartyModal';
 import RecordPaymentModal from '@/components/parties/RecordPaymentModal';
 import PartyStatementModal from '@/components/parties/PartyStatementModal';
 import CreateInvoiceModal from '@/components/CreateInvoiceModal';
+import ImportExportModal from '@/components/ImportExportModal';
 import { useApp } from '@/context/AppContext';
 import { MockParty } from '@/lib/mockData';
 import { formatINR } from '@/lib/utils';
+import { exportPartiesToCSV } from '@/lib/csvUtils';
 import {
   Users,
   Plus,
@@ -25,16 +27,19 @@ import {
   Trash2,
   FileText,
   AlertCircle,
+  Download,
+  Upload,
 } from 'lucide-react';
 
 export default function PartiesPage() {
-  const { parties, deleteParty, business, addInvoice } = useApp();
+  const { parties, deleteParty, business, addInvoice, selectedCompany, isAdmin, isEmployee } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'CUSTOMER' | 'SUPPLIER' | 'DUES'>('ALL');
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [editingParty, setEditingParty] = useState<MockParty | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentParty, setPaymentParty] = useState<MockParty | null>(null);
@@ -116,6 +121,24 @@ export default function PartiesPage() {
             </div>
 
             <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => exportPartiesToCSV(parties, selectedCompany.displayName)}
+                className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+                title="Download parties spreadsheet"
+              >
+                <Download size={14} className="text-emerald-600" />
+                <span>Export CSV</span>
+              </button>
+
+              <button
+                onClick={() => setIsImportExportOpen(true)}
+                className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+                title="Upload customers CSV spreadsheet"
+              >
+                <Upload size={14} className="text-[#4c3cce]" />
+                <span>Import CSV</span>
+              </button>
+
               <button
                 onClick={() => {
                   setPaymentParty(null);
@@ -396,18 +419,20 @@ export default function PartiesPage() {
                                 <Edit2 size={14} />
                               </button>
 
-                              {/* Delete Party */}
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Remove ${party.name} from Khata?`)) {
-                                    deleteParty(party.id);
-                                  }
-                                }}
-                                title="Delete"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              {/* Delete Party (Admin Only) */}
+                              {isAdmin && (
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Remove ${party.name} from Khata?`)) {
+                                      deleteParty(party.id);
+                                    }
+                                  }}
+                                  title="Delete Party (Admin Only)"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -453,7 +478,13 @@ export default function PartiesPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
-        onInvoiceCreated={(newInv) => addInvoice(newInv)}
+      />
+
+      {/* CSV Import/Export Modal */}
+      <ImportExportModal
+        isOpen={isImportExportOpen}
+        onClose={() => setIsImportExportOpen(false)}
+        initialTab="IMPORT"
       />
     </div>
   );

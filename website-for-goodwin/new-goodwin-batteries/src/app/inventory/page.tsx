@@ -7,9 +7,11 @@ import AddItemModal from '@/components/inventory/AddItemModal';
 import StockAdjustModal from '@/components/inventory/StockAdjustModal';
 import BarcodePrintModal from '@/components/inventory/BarcodePrintModal';
 import CreateInvoiceModal from '@/components/CreateInvoiceModal';
+import ImportExportModal from '@/components/ImportExportModal';
 import { useApp } from '@/context/AppContext';
 import { MockItem } from '@/lib/mockData';
 import { formatINR } from '@/lib/utils';
+import { exportItemsToCSV } from '@/lib/csvUtils';
 import {
   Package,
   Plus,
@@ -24,10 +26,13 @@ import {
   TrendingDown,
   History,
   FileSpreadsheet,
+  Download,
+  Upload,
+  Lock,
 } from 'lucide-react';
 
 export default function InventoryPage() {
-  const { items, stockLogs, deleteItem, business, addInvoice } = useApp();
+  const { items, stockLogs, deleteItem, business, addInvoice, selectedCompany, isAdmin, isEmployee } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -37,6 +42,7 @@ export default function InventoryPage() {
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MockItem | null>(null);
   const [adjustingItem, setAdjustingItem] = useState<MockItem | null>(null);
   const [barcodeItem, setBarcodeItem] = useState<MockItem | null>(null);
@@ -102,6 +108,24 @@ export default function InventoryPage() {
             </div>
 
             <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => exportItemsToCSV(items, selectedCompany.displayName)}
+                className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+                title="Download inventory items spreadsheet"
+              >
+                <Download size={14} className="text-emerald-600" />
+                <span>Export CSV</span>
+              </button>
+
+              <button
+                onClick={() => setIsImportExportOpen(true)}
+                className="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+                title="Upload products CSV spreadsheet"
+              >
+                <Upload size={14} className="text-[#4c3cce]" />
+                <span>Import CSV</span>
+              </button>
+
               <button
                 onClick={() => {
                   setEditingItem(null);
@@ -405,18 +429,20 @@ export default function InventoryPage() {
                                     <Edit2 size={14} />
                                   </button>
 
-                                  {/* Delete */}
-                                  <button
-                                    onClick={() => {
-                                      if (confirm(`Delete ${item.name}?`)) {
-                                        deleteItem(item.id);
-                                      }
-                                    }}
-                                    title="Delete"
-                                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
+                                  {/* Delete (Admin Only) */}
+                                  {isAdmin && (
+                                    <button
+                                      onClick={() => {
+                                        if (confirm(`Delete ${item.name}?`)) {
+                                          deleteItem(item.id);
+                                        }
+                                      }}
+                                      title="Delete Item (Admin Only)"
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -505,7 +531,13 @@ export default function InventoryPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
-        onInvoiceCreated={(newInv) => addInvoice(newInv)}
+      />
+
+      {/* CSV Import/Export Modal */}
+      <ImportExportModal
+        isOpen={isImportExportOpen}
+        onClose={() => setIsImportExportOpen(false)}
+        initialTab="IMPORT"
       />
     </div>
   );

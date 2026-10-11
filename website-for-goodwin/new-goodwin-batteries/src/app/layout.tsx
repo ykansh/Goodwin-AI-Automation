@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "myBillBook - GST Billing & Inventory Cloud Suite",
-  description: "High-speed GST billing, real-time inventory management, godown tracking, and WhatsApp payment collection for SMBs.",
+  title: "Goodwin Batteries - Cloud Invoicing & Inventory Suite",
+  description: "Official GST Billing, Inventory Management and Cloud Ledger for Goodwin Batteries.",
 };
 
 export default function RootLayout({

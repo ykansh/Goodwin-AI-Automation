@@ -31,7 +31,40 @@ interface CartLine {
 }
 
 export default function POSBillingPage() {
-  const { items, parties, business, addInvoice } = useApp();
+  const { items, parties, business, addInvoice, selectedCompany, selectCompany } = useApp();
+
+  // If POS quick bill is removed for the active company (Goodwin Batteries 2)
+  if (!selectedCompany.hasPos) {
+    return (
+      <div className="flex h-screen bg-[#f8fafc] items-center justify-center p-6 text-slate-800">
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full shadow-lg text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+            <ScanBarcode size={28} />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">
+            POS Quick Bill Removed
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            POS Quick Bill is not available for <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>. Please use Sales Invoices or switch to Goodwin Batteries.
+          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            <Link
+              href="/"
+              className="w-full py-2.5 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all"
+            >
+              Back to Dashboard
+            </Link>
+            <button
+              onClick={() => selectCompany('goodwin-1')}
+              className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all"
+            >
+              Switch to Goodwin Batteries
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -167,7 +200,8 @@ export default function POSBillingPage() {
     const partyPhone = selectedParty ? selectedParty.phone : '9800000000';
     const partyGstin = selectedParty ? selectedParty.gstin : undefined;
 
-    const invNumber = `${business.invoicePrefix}${business.currentInvoiceNumber + 1}`;
+    const prefix = selectedCompany.code === 'goodwin-2' ? 'GB2-INV' : 'GW-INV';
+    const invNumber = `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
     const newInvoice: MockInvoice = {
       id: `inv-pos-${Date.now()}`,
       invoiceNumber: invNumber,

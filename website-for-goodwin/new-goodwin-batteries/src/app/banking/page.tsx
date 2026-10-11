@@ -7,6 +7,7 @@ import AddBankAccountModal from '@/components/banking/AddBankAccountModal';
 import AddExpenseModal from '@/components/banking/AddExpenseModal';
 import TransferFundsModal from '@/components/banking/TransferFundsModal';
 import CreateInvoiceModal from '@/components/CreateInvoiceModal';
+import AccessRestrictedCard from '@/components/AccessRestrictedCard';
 import { useApp } from '@/context/AppContext';
 import { formatINR } from '@/lib/utils';
 import {
@@ -25,7 +26,7 @@ import {
 } from 'lucide-react';
 
 export default function BankingPage() {
-  const { bankAccounts, expenses, cashInHand, payments, invoices, addInvoice } = useApp();
+  const { bankAccounts, expenses, cashInHand, payments, invoices, addInvoice, isEmployee } = useApp();
 
   const [activeTab, setActiveTab] = useState<'DAYBOOK' | 'EXPENSES'>('DAYBOOK');
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
@@ -93,8 +94,15 @@ export default function BankingPage() {
         />
 
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Top Title Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          {isEmployee ? (
+            <AccessRestrictedCard
+              moduleName="Cash & Banking Daybook"
+              description="Access to liquid cash reserves, company bank accounts, operational expense vouchers, and fund transfers is restricted to company Administrators."
+            />
+          ) : (
+            <>
+              {/* Top Title Bar */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-slate-900 tracking-tight">
@@ -231,42 +239,62 @@ export default function BankingPage() {
               </div>
 
               {/* Bank Cards */}
-              {bankAccounts.map((bank) => (
-                <div
-                  key={bank.id}
-                  className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:shadow-xs transition-shadow flex flex-col justify-between"
-                >
+              {bankAccounts.length === 0 ? (
+                <div className="bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-5 flex flex-col items-center justify-center text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <Building size={18} />
+                  </div>
                   <div>
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-50 text-[#4c3cce] flex items-center justify-center font-bold">
-                          <Building size={15} />
-                        </div>
-                        <h4 className="font-bold text-sm text-slate-900">{bank.bankName}</h4>
-                      </div>
-                      {bank.isDefault && (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-100 text-[#4c3cce] uppercase">
-                          Primary
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">
-                      {bank.accountName}
+                    <p className="text-xs font-bold text-slate-700">No Bank Account Linked</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs">
+                      Click &ldquo;+ Add Bank&rdquo; above to link your primary business current account.
                     </p>
-                    <p className="text-xs font-mono font-semibold text-slate-800 mt-1">
-                      A/C: •••• {bank.accountNumber.slice(-4)}
-                    </p>
-                    <p className="text-[10px] font-mono text-slate-400">IFSC: {bank.ifsc}</p>
                   </div>
-
-                  <div className="pt-3 border-t border-slate-100 mt-4 flex items-baseline justify-between">
-                    <span className="text-xs text-slate-500">Balance:</span>
-                    <span className="text-lg font-black text-slate-900">
-                      {formatINR(bank.balance)}
-                    </span>
-                  </div>
+                  <button
+                    onClick={() => setIsBankModalOpen(true)}
+                    className="text-xs text-[#4c3cce] font-semibold hover:underline pt-1"
+                  >
+                    + Link Bank Now
+                  </button>
                 </div>
-              ))}
+              ) : (
+                bankAccounts.map((bank) => (
+                  <div
+                    key={bank.id}
+                    className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:shadow-xs transition-shadow flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-indigo-50 text-[#4c3cce] flex items-center justify-center font-bold">
+                            <Building size={15} />
+                          </div>
+                          <h4 className="font-bold text-sm text-slate-900">{bank.bankName}</h4>
+                        </div>
+                        {bank.isDefault && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-100 text-[#4c3cce] uppercase">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">
+                        {bank.accountName}
+                      </p>
+                      <p className="text-xs font-mono font-semibold text-slate-800 mt-1">
+                        A/C: •••• {bank.accountNumber.slice(-4)}
+                      </p>
+                      <p className="text-[10px] font-mono text-slate-400">IFSC: {bank.ifsc}</p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 mt-4 flex items-baseline justify-between">
+                      <span className="text-xs text-slate-500">Balance:</span>
+                      <span className="text-lg font-black text-slate-900">
+                        {formatINR(bank.balance)}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -392,27 +420,37 @@ export default function BankingPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {expenses.map((exp) => (
-                      <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-4 font-mono text-slate-500">{exp.date}</td>
-                        <td className="py-3 px-3 font-bold text-slate-900">{exp.category}</td>
-                        <td className="py-3 px-3 text-slate-700 font-medium">{exp.paidFrom}</td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full bg-slate-100 font-mono text-[10px] text-slate-700">
-                            {exp.paymentMode}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-slate-500">{exp.notes || '—'}</td>
-                        <td className="py-3 px-4 text-right font-black text-rose-600">
-                          {formatINR(exp.amount)}
+                    {expenses.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-slate-400">
+                          No overhead expenses recorded yet. Click &ldquo;+ Add Expense&rdquo; above.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      expenses.map((exp) => (
+                        <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-4 font-mono text-slate-500">{exp.date}</td>
+                          <td className="py-3 px-3 font-bold text-slate-900">{exp.category}</td>
+                          <td className="py-3 px-3 text-slate-700 font-medium">{exp.paidFrom}</td>
+                          <td className="py-3 px-3">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 font-mono text-[10px] text-slate-700">
+                              {exp.paymentMode}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-500">{exp.notes || '—'}</td>
+                          <td className="py-3 px-4 text-right font-black text-rose-600">
+                            {formatINR(exp.amount)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
+          </>
+        )}
         </main>
       </div>
 
@@ -435,7 +473,6 @@ export default function BankingPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
-        onInvoiceCreated={(newInv) => addInvoice(newInv)}
       />
     </div>
   );

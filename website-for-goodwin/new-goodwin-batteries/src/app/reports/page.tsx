@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import CreateInvoiceModal from '@/components/CreateInvoiceModal';
+import AccessRestrictedCard from '@/components/AccessRestrictedCard';
 import { useApp } from '@/context/AppContext';
 import { formatINR } from '@/lib/utils';
 import {
@@ -21,10 +23,67 @@ import {
 } from 'lucide-react';
 
 export default function ReportsPage() {
-  const { invoices, items, expenses, business, addInvoice } = useApp();
+  const { invoices, items, expenses, business, addInvoice, selectedCompany, selectCompany, isEmployee } = useApp();
 
   const [activeReportTab, setActiveReportTab] = useState<'GSTR1' | 'GSTR3B' | 'PNL' | 'TALLY'>('GSTR1');
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
+
+  // If role is employee (restricted)
+  if (isEmployee) {
+    return (
+      <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800">
+        <Sidebar onOpenQuickBill={() => setIsBillingModalOpen(true)} />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <Header onOpenQuickBill={() => setIsBillingModalOpen(true)} />
+          <main className="flex-1 overflow-y-auto p-6">
+            <AccessRestrictedCard
+              moduleName="GST Reports & Tax Summaries"
+              description="Access to Government GST filing summaries, tax liabilities, and Profit & Loss balance sheets is restricted to company Administrators."
+            />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // If GST Reports is removed for active company (Goodwin Batteries 2)
+  if (!selectedCompany.hasGstReports) {
+    return (
+      <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800">
+        <Sidebar onOpenQuickBill={() => setIsBillingModalOpen(true)} />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <Header onOpenQuickBill={() => setIsBillingModalOpen(true)} />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full shadow-lg text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                <FileSpreadsheet size={28} />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">
+                GST Reports Removed
+              </h2>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                GST Reports are disabled for <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>. Switch to Goodwin Batteries to view GSTR-1, GSTR-3B &amp; Tally reports.
+              </p>
+              <div className="flex flex-col gap-2 pt-2">
+                <Link
+                  href="/"
+                  className="w-full py-2.5 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all"
+                >
+                  Back to Dashboard
+                </Link>
+                <button
+                  onClick={() => selectCompany('goodwin-1')}
+                  className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all"
+                >
+                  Switch to Goodwin Batteries
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   // Financial Calculations for P&L
   const totalSalesRevenue = invoices.reduce((acc, inv) => acc + inv.subtotal, 0);
@@ -597,7 +656,6 @@ export default function ReportsPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
-        onInvoiceCreated={(newInv) => addInvoice(newInv)}
       />
     </div>
   );

@@ -176,7 +176,7 @@ export default function AddPartyModal({ isOpen, onClose, editParty }: AddPartyMo
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Apex Electricals"
+                placeholder="Enter party / company name"
                 className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-[#4c3cce]"
               />
             </div>
@@ -204,7 +204,7 @@ export default function AddPartyModal({ isOpen, onClose, editParty }: AddPartyMo
                 type="text"
                 value={gstin}
                 onChange={(e) => handleGstinChange(e.target.value)}
-                placeholder="e.g. 27ABCDE1234F1Z5"
+                placeholder="e.g. 23ABCDE1234F1Z5"
                 className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none focus:border-[#4c3cce]"
               />
             </div>

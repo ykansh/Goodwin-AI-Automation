@@ -1,16 +1,42 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
-  INITIAL_ITEMS,
-  INITIAL_PARTIES,
-  INITIAL_INVOICES,
-  INITIAL_BUSINESS,
   MockItem,
   MockParty,
   MockInvoice,
   BusinessProfile,
+  INITIAL_BUSINESS,
 } from '@/lib/mockData';
+import {
+  COMPANIES,
+  CompanyConfig,
+  companyToBusinessProfile,
+  fetchProductsFromSupabase,
+  insertProductToSupabase,
+  updateProductInSupabase,
+  deleteProductInSupabase,
+  fetchPartiesFromSupabase,
+  insertCustomerToSupabase,
+  updateCustomerInSupabase,
+  deleteCustomerInSupabase,
+  fetchInvoicesFromSupabase,
+  insertInvoiceToSupabase,
+  deleteInvoiceInSupabase,
+  fetchPaymentsFromSupabase,
+  insertPaymentToSupabase,
+  fetchCompanyFromSupabase,
+  supabase,
+} from '@/lib/supabase';
+import {
+  AppUserRecord,
+  fetchAllUsers,
+  createUserAccount,
+  authenticateCredentials,
+  toggleUserStatus,
+  deleteUserAccount,
+  SESSION_KEY,
+} from '@/lib/authService';
 
 export interface StockAdjustmentLog {
   id: string;
@@ -51,11 +77,78 @@ export interface ExpenseRecord {
   amount: number;
   paymentMode: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE';
   date: string;
-  paidFrom: string; // 'Cash in Hand' or Bank Account Name
+  paidFrom: string;
   notes?: string;
 }
 
+export type UserRole = 'ADMIN' | 'EMPLOYEE';
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  designation?: string;
+}
+
+export const DEFAULT_ADMIN: AuthUser = {
+  id: 'usr-admin-1',
+  name: 'Ansh Chourasiya',
+  email: 'admin@goodwinbatteries.com',
+  phone: '+91 96855 79269',
+  role: 'ADMIN',
+  designation: 'Owner / Administrator',
+};
+
+export const DEFAULT_EMPLOYEE: AuthUser = {
+  id: 'usr-emp-1',
+  name: 'Rahul Sharma',
+  email: 'employee@goodwinbatteries.com',
+  phone: '+91 98260 55443',
+  role: 'EMPLOYEE',
+  designation: 'Sales & Billing Staff',
+};
+
 interface AppContextType {
+  // Auth & RBAC
+  currentUser: AuthUser;
+  simulatedRole: UserRole | null;
+  effectiveRole: UserRole;
+  isAdmin: boolean;
+  isEmployee: boolean;
+  isTestMode: boolean;
+  toggleTestMode: () => void;
+  switchRole: (role: UserRole) => void;
+  loginUser: (email: string, role: UserRole, name?: string) => void;
+  logoutUser: () => void;
+
+  // Real User Authentication & Staff Management
+  systemUsers: AppUserRecord[];
+  refreshSystemUsers: () => Promise<void>;
+  createSystemUser: (params: {
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    phone?: string;
+    designation?: string;
+  }) => Promise<{ success: boolean; user?: AppUserRecord; error?: string }>;
+  loginWithCredentials: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  toggleSystemUserActive: (id: string, isActive: boolean) => Promise<void>;
+  deleteSystemUser: (id: string) => Promise<void>;
+
+  // Company Switcher & Config
+  companies: CompanyConfig[];
+  selectedCompany: CompanyConfig;
+  selectCompany: (codeOrId: string) => void;
+  isLoading: boolean;
+  refreshData: () => Promise<void>;
+
+  // Business Profile & Core Entities
   business: BusinessProfile;
   items: MockItem[];
   parties: MockParty[];
@@ -65,15 +158,18 @@ interface AppContextType {
   bankAccounts: BankAccount[];
   expenses: ExpenseRecord[];
   cashInHand: number;
-  addItem: (item: Omit<MockItem, 'id'>) => MockItem;
-  updateItem: (id: string, updated: Partial<MockItem>) => void;
-  adjustStock: (itemId: string, newStock: number, reason: string) => void;
-  deleteItem: (id: string) => void;
-  addParty: (party: Omit<MockParty, 'id'>) => MockParty;
-  updateParty: (id: string, updated: Partial<MockParty>) => void;
-  deleteParty: (id: string) => void;
-  addInvoice: (invoice: MockInvoice) => void;
-  recordPayment: (payment: Omit<PaymentRecord, 'id'>) => void;
+
+  // Actions
+  addItem: (item: Omit<MockItem, 'id'>) => Promise<MockItem>;
+  updateItem: (id: string, updated: Partial<MockItem>) => Promise<void>;
+  adjustStock: (itemId: string, newStock: number, reason: string) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
+  addParty: (party: Omit<MockParty, 'id'>) => Promise<MockParty>;
+  updateParty: (id: string, updated: Partial<MockParty>) => Promise<void>;
+  deleteParty: (id: string) => Promise<void>;
+  addInvoice: (invoice: MockInvoice) => Promise<MockInvoice>;
+  deleteInvoice: (id: string) => Promise<void>;
+  recordPayment: (payment: Omit<PaymentRecord, 'id'>) => Promise<void>;
   addBankAccount: (bank: Omit<BankAccount, 'id'>) => void;
   addExpense: (expense: Omit<ExpenseRecord, 'id'>) => void;
   transferFunds: (from: string, to: string, amount: number, notes?: string) => void;
@@ -83,129 +179,274 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [business, setBusiness] = useState<BusinessProfile>(INITIAL_BUSINESS);
-  const [items, setItems] = useState<MockItem[]>(INITIAL_ITEMS);
-  const [parties, setParties] = useState<MockParty[]>(INITIAL_PARTIES);
-  const [invoices, setInvoices] = useState<MockInvoice[]>(INITIAL_INVOICES);
-  const [cashInHand, setCashInHand] = useState<number>(48500);
+  // Authentication & RBAC State
+  const [currentUser, setCurrentUser] = useState<AuthUser>(DEFAULT_ADMIN);
+  const [simulatedRole, setSimulatedRole] = useState<UserRole | null>(null);
 
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([
-    {
-      id: 'bank-1',
-      bankName: 'HDFC Bank',
-      accountName: 'Goodwin Batteries Current A/c',
-      accountNumber: '50200012345678',
-      ifsc: 'HDFC0000123',
-      balance: 185400,
-      isDefault: true,
-    },
-    {
-      id: 'bank-2',
-      bankName: 'ICICI Bank',
-      accountName: 'Goodwin Power Solutions',
-      accountNumber: '001105009988',
-      ifsc: 'ICIC0000011',
-      balance: 92000,
-      isDefault: false,
-    },
-  ]);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyConfig>(COMPANIES[0]);
+  const [business, setBusiness] = useState<BusinessProfile>(companyToBusinessProfile(COMPANIES[0]));
+  const [items, setItems] = useState<MockItem[]>([]);
+  const [parties, setParties] = useState<MockParty[]>([]);
+  const [invoices, setInvoices] = useState<MockInvoice[]>([]);
+  const [stockLogs, setStockLogs] = useState<StockAdjustmentLog[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
+  const [cashInHand, setCashInHand] = useState<number>(COMPANIES[0].cashBalance);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [expenses, setExpenses] = useState<ExpenseRecord[]>([
-    {
-      id: 'exp-1',
-      category: 'Shop / Warehouse Rent',
-      amount: 25000,
-      paymentMode: 'BANK_TRANSFER',
-      date: '2026-10-01',
-      paidFrom: 'HDFC Bank',
-      notes: 'October month rent for Andheri warehouse',
-    },
-    {
-      id: 'exp-2',
-      category: 'Electricity & Utilities',
-      amount: 4200,
-      paymentMode: 'UPI',
-      date: '2026-10-02',
-      paidFrom: 'HDFC Bank',
-      notes: 'Adani Electricity bill payment',
-    },
-    {
-      id: 'exp-3',
-      category: 'Logistics & Battery Freight',
-      amount: 3500,
-      paymentMode: 'CASH',
-      date: '2026-10-02',
-      paidFrom: 'Cash in Hand',
-      notes: 'Tempo transport charges for solar panels',
-    },
-    {
-      id: 'exp-4',
-      category: 'Tea & Refreshments',
-      amount: 1200,
-      paymentMode: 'CASH',
-      date: '2026-10-03',
-      paidFrom: 'Cash in Hand',
-      notes: 'Weekly pantry refreshments',
-    },
-  ]);
+  // Derived Effective Permissions
+  const effectiveRole: UserRole = simulatedRole || currentUser.role;
+  const isAdmin = effectiveRole === 'ADMIN';
+  const isEmployee = effectiveRole === 'EMPLOYEE';
+  const isTestMode = Boolean(simulatedRole && currentUser.role === 'ADMIN');
 
-  const [stockLogs, setStockLogs] = useState<StockAdjustmentLog[]>([
-    {
-      id: 'log-1',
-      itemId: 'item-2',
-      itemName: '12V 100Ah Short Tubular Solar Battery',
-      previousStock: 15,
-      newStock: 5,
-      difference: -10,
-      reason: 'Physical Audit Count',
-      date: '2026-10-02',
-    },
-  ]);
+  // Initialize Auth & Company from localStorage on client
+  useEffect(() => {
+    try {
+      const savedUserStr = localStorage.getItem('gb_auth_user');
+      if (savedUserStr) {
+        setCurrentUser(JSON.parse(savedUserStr));
+      }
+      const savedSimRole = localStorage.getItem('gb_simulated_role') as UserRole | null;
+      if (savedSimRole === 'EMPLOYEE' || savedSimRole === 'ADMIN') {
+        setSimulatedRole(savedSimRole);
+      }
 
-  const [payments, setPayments] = useState<PaymentRecord[]>([
-    {
-      id: 'pay-1',
-      partyId: 'party-1',
-      partyName: 'Apex Electricals & Power Care',
-      type: 'PAYMENT_IN',
-      amount: 20000,
-      paymentMode: 'UPI',
-      referenceNumber: 'UPI/261001/983742',
-      date: '2026-10-01',
-      notes: 'Advance for Battery delivery',
-    },
-    {
-      id: 'pay-2',
-      partyId: 'party-3',
-      partyName: 'Exide Lead & Alloys Corp',
-      type: 'PAYMENT_OUT',
-      amount: 50000,
-      paymentMode: 'BANK_TRANSFER',
-      referenceNumber: 'NEFT-HDFC-998811',
-      date: '2026-09-28',
-      notes: 'Raw material procurement partial payout',
-    },
-  ]);
+      const savedCompanyCode = localStorage.getItem('gb_active_company');
+      if (savedCompanyCode) {
+        const found = COMPANIES.find(
+          (c) => c.code === savedCompanyCode || c.id === savedCompanyCode
+        );
+        if (found) {
+          setSelectedCompany(found);
+          setBusiness(companyToBusinessProfile(found));
+        }
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
 
-  // Add Item
-  const addItem = (itemData: Omit<MockItem, 'id'>): MockItem => {
-    const newItem: MockItem = {
+  // Toggle Admin Test Mode (Simulating Employee View)
+  const toggleTestMode = useCallback(() => {
+    setSimulatedRole((prev) => {
+      const nextRole = prev === 'EMPLOYEE' ? null : 'EMPLOYEE';
+      try {
+        if (nextRole) {
+          localStorage.setItem('gb_simulated_role', nextRole);
+        } else {
+          localStorage.removeItem('gb_simulated_role');
+        }
+      } catch {}
+      return nextRole;
+    });
+  }, []);
+
+  // Explicit Switch Role
+  const switchRole = useCallback((role: UserRole) => {
+    if (role === 'EMPLOYEE') {
+      setSimulatedRole('EMPLOYEE');
+      try {
+        localStorage.setItem('gb_simulated_role', 'EMPLOYEE');
+      } catch {}
+    } else {
+      setSimulatedRole(null);
+      setCurrentUser(DEFAULT_ADMIN);
+      try {
+        localStorage.removeItem('gb_simulated_role');
+        localStorage.setItem('gb_auth_user', JSON.stringify(DEFAULT_ADMIN));
+      } catch {}
+    }
+  }, []);
+
+  // Login as User
+  const loginUser = useCallback((email: string, role: UserRole, name?: string) => {
+    const newUser: AuthUser = {
+      id: `usr-${Date.now()}`,
+      name: name || (role === 'ADMIN' ? 'Ansh (Admin)' : 'Staff Biller (Employee)'),
+      email,
+      role,
+      designation: role === 'ADMIN' ? 'Owner / Administrator' : 'Sales & Counter Biller',
+    };
+    setCurrentUser(newUser);
+    setSimulatedRole(null);
+    try {
+      localStorage.setItem('gb_auth_user', JSON.stringify(newUser));
+      localStorage.removeItem('gb_simulated_role');
+    } catch {}
+  }, []);
+
+  // Logout and redirect to login portal
+  const logoutUser = useCallback(() => {
+    try {
+      localStorage.removeItem('gb_auth_user');
+      localStorage.removeItem('gb_simulated_role');
+      localStorage.removeItem(SESSION_KEY);
+    } catch {}
+    setSimulatedRole(null);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }, []);
+
+  // System Users Management & Real Credentials Authentication
+  const [systemUsers, setSystemUsers] = useState<AppUserRecord[]>([]);
+
+  const refreshSystemUsers = useCallback(async () => {
+    try {
+      const list = await fetchAllUsers();
+      setSystemUsers(list);
+    } catch (err) {
+      console.warn('Failed to load system users:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshSystemUsers();
+  }, [refreshSystemUsers]);
+
+  const createSystemUser = useCallback(
+    async (params: {
+      name: string;
+      email: string;
+      password: string;
+      role: UserRole;
+      phone?: string;
+      designation?: string;
+    }) => {
+      const result = await createUserAccount({
+        ...params,
+        createdBy: currentUser.name || 'Admin',
+      });
+      if (result.success && result.user) {
+        setSystemUsers((prev) => [result.user!, ...prev.filter((u) => u.id !== result.user!.id)]);
+      }
+      return result;
+    },
+    [currentUser.name]
+  );
+
+  const loginWithCredentials = useCallback(async (email: string, password: string) => {
+    const result = await authenticateCredentials(email, password);
+    if (!result.success || !result.user) {
+      return { success: false, error: result.error || 'Authentication failed' };
+    }
+    const u = result.user;
+    const authUser: AuthUser = {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      role: u.role,
+      designation: u.designation,
+    };
+    setCurrentUser(authUser);
+    setSimulatedRole(null);
+    try {
+      localStorage.setItem('gb_auth_user', JSON.stringify(authUser));
+      localStorage.setItem(SESSION_KEY, JSON.stringify(authUser));
+      localStorage.removeItem('gb_simulated_role');
+    } catch {}
+    return { success: true };
+  }, []);
+
+  const toggleSystemUserActive = useCallback(async (id: string, isActive: boolean) => {
+    await toggleUserStatus(id, isActive);
+    setSystemUsers((prev) => prev.map((u) => (u.id === id ? { ...u, is_active: isActive } : u)));
+  }, []);
+
+  const deleteSystemUser = useCallback(async (id: string) => {
+    await deleteUserAccount(id);
+    setSystemUsers((prev) => prev.filter((u) => u.id !== id));
+  }, []);
+
+  // Fetch all live data from Supabase whenever active company changes
+  const loadCompanyData = useCallback(async (company: CompanyConfig) => {
+    setIsLoading(true);
+    try {
+      // 1. Try to fetch live company settings from Supabase
+      const remoteCompany = await fetchCompanyFromSupabase(company.id);
+      const activeComp = remoteCompany || company;
+      setBusiness(companyToBusinessProfile(activeComp));
+
+      // 2. Fetch products, parties, invoices, payments in parallel from Supabase
+      const [fetchedItems, fetchedParties, fetchedInvoices, fetchedPayments] = await Promise.all([
+        fetchProductsFromSupabase(company.code),
+        fetchPartiesFromSupabase(company.code),
+        fetchInvoicesFromSupabase(company.code),
+        fetchPaymentsFromSupabase(company.code),
+      ]);
+
+      setItems(fetchedItems);
+      setParties(fetchedParties);
+      setInvoices(fetchedInvoices);
+      setPayments(fetchedPayments);
+      setCashInHand(activeComp.cashBalance);
+      if (activeComp.bankName && activeComp.accountNumber) {
+        setBankAccounts([
+          {
+            id: `bank-${company.code}`,
+            bankName: activeComp.bankName,
+            accountName: `${activeComp.displayName} Current A/c`,
+            accountNumber: activeComp.accountNumber,
+            ifsc: activeComp.ifsc,
+            balance: activeComp.bankBalance,
+            isDefault: true,
+          },
+        ]);
+      } else {
+        setBankAccounts([]);
+      }
+    } catch (err) {
+      console.error('[Supabase] Failed to load data for company:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCompanyData(selectedCompany);
+  }, [selectedCompany, loadCompanyData]);
+
+  // Company Switch Handler
+  const selectCompany = useCallback((codeOrId: string) => {
+    const target = COMPANIES.find((c) => c.code === codeOrId || c.id === codeOrId);
+    if (!target) return;
+
+    setSelectedCompany(target);
+    try {
+      localStorage.setItem('gb_active_company', target.code);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const refreshData = useCallback(async () => {
+    await loadCompanyData(selectedCompany);
+  }, [selectedCompany, loadCompanyData]);
+
+  // Add Item (Syncs to Supabase)
+  const addItem = async (itemData: Omit<MockItem, 'id'>): Promise<MockItem> => {
+    const created = await insertProductToSupabase(itemData, selectedCompany.code);
+    const resultItem: MockItem = created || {
       ...itemData,
       id: `item-${Date.now()}`,
     };
-    setItems((prev) => [newItem, ...prev]);
-    return newItem;
+    setItems((prev) => [resultItem, ...prev]);
+    return resultItem;
   };
 
-  // Update Item
-  const updateItem = (id: string, updated: Partial<MockItem>) => {
+  // Update Item (Syncs to Supabase)
+  const updateItem = async (id: string, updated: Partial<MockItem>) => {
     setItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
     );
+    await updateProductInSupabase(id, updated);
   };
 
   // Stock Adjustment
-  const adjustStock = (itemId: string, newStock: number, reason: string) => {
+  const adjustStock = async (itemId: string, newStock: number, reason: string) => {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
 
@@ -222,95 +463,105 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
 
     setStockLogs((prev) => [log, ...prev]);
-    updateItem(itemId, { stock: newStock });
+    await updateItem(itemId, { stock: newStock });
   };
 
-  // Delete Item
-  const deleteItem = (id: string) => {
+  // Delete Item (Syncs to Supabase)
+  const deleteItem = async (id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
+    await deleteProductInSupabase(id);
   };
 
-  // Add Party
-  const addParty = (partyData: Omit<MockParty, 'id'>): MockParty => {
-    const newParty: MockParty = {
+  // Add Party (Syncs to Supabase)
+  const addParty = async (partyData: Omit<MockParty, 'id'>): Promise<MockParty> => {
+    const created = await insertCustomerToSupabase(partyData, selectedCompany.code);
+    const resultParty: MockParty = created || {
       ...partyData,
       id: `party-${Date.now()}`,
     };
-    setParties((prev) => [newParty, ...prev]);
-    return newParty;
+    setParties((prev) => [resultParty, ...prev]);
+    return resultParty;
   };
 
-  // Update Party
-  const updateParty = (id: string, updated: Partial<MockParty>) => {
+  // Update Party (Syncs to Supabase)
+  const updateParty = async (id: string, updated: Partial<MockParty>) => {
     setParties((prev) =>
       prev.map((party) => (party.id === id ? { ...party, ...updated } : party))
     );
+    await updateCustomerInSupabase(id, updated);
   };
 
-  // Delete Party
-  const deleteParty = (id: string) => {
+  // Delete Party (Syncs to Supabase)
+  const deleteParty = async (id: string) => {
     setParties((prev) => prev.filter((p) => p.id !== id));
+    await deleteCustomerInSupabase(id);
   };
 
-  // Add Bank Account
-  const addBankAccount = (bankData: Omit<BankAccount, 'id'>) => {
-    const newBank: BankAccount = {
-      ...bankData,
-      id: `bank-${Date.now()}`,
-    };
-    setBankAccounts((prev) => [...prev, newBank]);
-  };
+  // Add Invoice (Syncs to Supabase & decrements item stock)
+  const addInvoice = async (invoice: MockInvoice): Promise<MockInvoice> => {
+    // Insert into Supabase
+    const saved = await insertInvoiceToSupabase(invoice, selectedCompany.code);
+    const finalInvoice = saved || invoice;
 
-  // Add Expense
-  const addExpense = (expenseData: Omit<ExpenseRecord, 'id'>) => {
-    const newExp: ExpenseRecord = {
-      ...expenseData,
-      id: `exp-${Date.now()}`,
-    };
-    setExpenses((prev) => [newExp, ...prev]);
+    setInvoices((prev) => [
+      finalInvoice,
+      ...prev.filter(
+        (i) => i.id !== finalInvoice.id && i.invoiceNumber !== finalInvoice.invoiceNumber
+      ),
+    ]);
 
-    // Deduct from paid source
-    if (expenseData.paidFrom === 'Cash in Hand') {
-      setCashInHand((prev) => Math.max(0, prev - expenseData.amount));
-    } else {
-      setBankAccounts((prev) =>
-        prev.map((b) =>
-          b.bankName === expenseData.paidFrom
-            ? { ...b, balance: Math.max(0, b.balance - expenseData.amount) }
-            : b
-        )
-      );
-    }
-  };
-
-  // Transfer Funds (Contra Entry: Cash to Bank, Bank to Cash, Bank to Bank)
-  const transferFunds = (from: string, to: string, amount: number, notes?: string) => {
-    // Deduct from source
-    if (from === 'CASH') {
-      setCashInHand((prev) => Math.max(0, prev - amount));
-    } else {
-      setBankAccounts((prev) =>
-        prev.map((b) => (b.id === from ? { ...b, balance: Math.max(0, b.balance - amount) } : b))
-      );
+    // Update Cash balance if paid
+    if (finalInvoice.paidAmount > 0) {
+      setCashInHand((prev) => prev + finalInvoice.paidAmount);
     }
 
-    // Add to destination
-    if (to === 'CASH') {
-      setCashInHand((prev) => prev + amount);
-    } else {
-      setBankAccounts((prev) =>
-        prev.map((b) => (b.id === to ? { ...b, balance: b.balance + amount } : b))
+    // Decrement item inventory in state & Supabase
+    finalInvoice.items.forEach((line) => {
+      setItems((prev) =>
+        prev.map((item) => {
+          if (item.id === line.itemId) {
+            const nextStock = Math.max(0, item.stock - line.quantity);
+            updateProductInSupabase(item.id, { stock: nextStock });
+            return { ...item, stock: nextStock };
+          }
+          return item;
+        })
+      );
+    });
+
+    // If unpaid balance, update matching party's balance
+    if (finalInvoice.balanceAmount > 0) {
+      setParties((prev) =>
+        prev.map((party) => {
+          if (party.name.toLowerCase() === finalInvoice.partyName.toLowerCase()) {
+            const nextBalance = party.currentBalance + finalInvoice.balanceAmount;
+            updateCustomerInSupabase(party.id, { currentBalance: nextBalance });
+            return { ...party, currentBalance: nextBalance };
+          }
+          return party;
+        })
       );
     }
+
+    return finalInvoice;
   };
 
-  // Record Payment
-  const recordPayment = (paymentData: Omit<PaymentRecord, 'id'>) => {
+  // Delete Invoice (Syncs to Supabase)
+  const deleteInvoice = async (id: string) => {
+    setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+    await deleteInvoiceInSupabase(id);
+  };
+
+  // Record Payment (Syncs to Supabase)
+  const recordPayment = async (paymentData: Omit<PaymentRecord, 'id'>) => {
     const newPayment: PaymentRecord = {
       ...paymentData,
       id: `pay-${Date.now()}`,
     };
     setPayments((prev) => [newPayment, ...prev]);
+
+    // Sync to Supabase
+    await insertPaymentToSupabase(paymentData, selectedCompany.code);
 
     // Update Cash or Bank balance
     if (paymentData.paymentMode === 'CASH') {
@@ -320,7 +571,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setCashInHand((prev) => Math.max(0, prev - paymentData.amount));
       }
     } else {
-      // Direct into default bank
       setBankAccounts((prev) =>
         prev.map((b) => {
           if (b.isDefault) {
@@ -341,59 +591,61 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setParties((prev) =>
       prev.map((party) => {
         if (party.id === paymentData.partyId) {
-          if (paymentData.type === 'PAYMENT_IN') {
-            return {
-              ...party,
-              currentBalance: party.currentBalance - paymentData.amount,
-            };
-          } else {
-            return {
-              ...party,
-              currentBalance: party.currentBalance + paymentData.amount,
-            };
-          }
+          const delta = paymentData.type === 'PAYMENT_IN' ? -paymentData.amount : paymentData.amount;
+          const nextBal = party.currentBalance + delta;
+          updateCustomerInSupabase(party.id, { currentBalance: nextBal });
+          return { ...party, currentBalance: nextBal };
         }
         return party;
       })
     );
   };
 
-  // Add Invoice (Decrements stock automatically & updates party balance)
-  const addInvoice = (invoice: MockInvoice) => {
-    setInvoices((prev) => [invoice, ...prev]);
+  // Add Bank Account
+  const addBankAccount = (bankData: Omit<BankAccount, 'id'>) => {
+    const newBank: BankAccount = {
+      ...bankData,
+      id: `bank-${Date.now()}`,
+    };
+    setBankAccounts((prev) => [...prev, newBank]);
+  };
 
-    // If paid at checkout, increment cash/bank
-    if (invoice.paidAmount > 0) {
-      setCashInHand((prev) => prev + invoice.paidAmount);
+  // Add Expense
+  const addExpense = (expenseData: Omit<ExpenseRecord, 'id'>) => {
+    const newExp: ExpenseRecord = {
+      ...expenseData,
+      id: `exp-${Date.now()}`,
+    };
+    setExpenses((prev) => [newExp, ...prev]);
+
+    if (expenseData.paidFrom === 'Cash in Hand') {
+      setCashInHand((prev) => Math.max(0, prev - expenseData.amount));
+    } else {
+      setBankAccounts((prev) =>
+        prev.map((b) =>
+          b.bankName === expenseData.paidFrom
+            ? { ...b, balance: Math.max(0, b.balance - expenseData.amount) }
+            : b
+        )
+      );
+    }
+  };
+
+  // Transfer Funds
+  const transferFunds = (from: string, to: string, amount: number) => {
+    if (from === 'CASH') {
+      setCashInHand((prev) => Math.max(0, prev - amount));
+    } else {
+      setBankAccounts((prev) =>
+        prev.map((b) => (b.id === from ? { ...b, balance: Math.max(0, b.balance - amount) } : b))
+      );
     }
 
-    // Decrement item inventory in real time
-    invoice.items.forEach((line) => {
-      setItems((prev) =>
-        prev.map((item) => {
-          if (item.id === line.itemId) {
-            return {
-              ...item,
-              stock: Math.max(0, item.stock - line.quantity),
-            };
-          }
-          return item;
-        })
-      );
-    });
-
-    // If unpaid balance, update matching party's receivable balance
-    if (invoice.balanceAmount > 0) {
-      setParties((prev) =>
-        prev.map((party) => {
-          if (party.name.toLowerCase() === invoice.partyName.toLowerCase()) {
-            return {
-              ...party,
-              currentBalance: party.currentBalance + invoice.balanceAmount,
-            };
-          }
-          return party;
-        })
+    if (to === 'CASH') {
+      setCashInHand((prev) => prev + amount);
+    } else {
+      setBankAccounts((prev) =>
+        prev.map((b) => (b.id === to ? { ...b, balance: b.balance + amount } : b))
       );
     }
   };
@@ -401,11 +653,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Update Business Settings
   const updateBusiness = (updated: Partial<BusinessProfile>) => {
     setBusiness((prev) => ({ ...prev, ...updated }));
+    // Also sync to Supabase company_settings
+    supabase
+      .from('company_settings')
+      .update({
+        company_name: updated.businessName,
+        gstin: updated.gstin,
+        address: updated.address,
+        phone: updated.phone,
+        email: updated.email,
+        invoice_prefix: updated.invoicePrefix,
+      })
+      .eq('id', selectedCompany.id)
+      .then();
   };
 
   return (
     <AppContext.Provider
       value={{
+        currentUser,
+        simulatedRole,
+        effectiveRole,
+        isAdmin,
+        isEmployee,
+        isTestMode,
+        toggleTestMode,
+        switchRole,
+        loginUser,
+        logoutUser,
+        systemUsers,
+        refreshSystemUsers,
+        createSystemUser,
+        loginWithCredentials,
+        toggleSystemUserActive,
+        deleteSystemUser,
+        companies: COMPANIES,
+        selectedCompany,
+        selectCompany,
+        isLoading,
+        refreshData,
         business,
         items,
         parties,
@@ -423,6 +709,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateParty,
         deleteParty,
         addInvoice,
+        deleteInvoice,
         recordPayment,
         addBankAccount,
         addExpense,

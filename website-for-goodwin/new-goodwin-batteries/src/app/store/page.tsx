@@ -43,7 +43,40 @@ interface CartItem {
 }
 
 export default function OnlineStorePage() {
-  const { business, items, addInvoice } = useApp();
+  const { business, items, addInvoice, selectedCompany, selectCompany } = useApp();
+
+  // If Online store is removed for active company (Goodwin Batteries 2)
+  if (!selectedCompany.hasOnlineStore) {
+    return (
+      <div className="flex h-screen bg-[#f8fafc] items-center justify-center p-6 text-slate-800">
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full shadow-lg text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+            <ShoppingBag size={28} />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">
+            Online Store Removed
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            The customer-facing Online Store is not enabled for <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>. Switch to Goodwin Batteries to access the online catalog.
+          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            <Link
+              href="/"
+              className="w-full py-2.5 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all"
+            >
+              Back to Dashboard
+            </Link>
+            <button
+              onClick={() => selectCompany('goodwin-1')}
+              className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all"
+            >
+              Switch to Goodwin Batteries
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +92,7 @@ export default function OnlineStorePage() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
-  const [customerPincode, setCustomerPincode] = useState('400050');
+  const [customerPincode, setCustomerPincode] = useState('452012');
   const [deliveryNotes, setDeliveryNotes] = useState('');
 
   // Order Placement Modal
@@ -260,7 +293,7 @@ Please confirm my order and share estimated delivery time!`;
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span className="font-semibold text-slate-200">Merchant Storefront Preview:</span>
           <span className="text-slate-400 font-mono hidden sm:inline">
-            goodwinpower.mybillbook.in/store
+            store.goodwinbatteries.com
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -817,7 +850,7 @@ Please confirm my order and share estimated delivery time!`;
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. Rajesh Kumar"
+                        placeholder="Enter full name"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#4c3cce]"
@@ -830,7 +863,7 @@ Please confirm my order and share estimated delivery time!`;
                       </label>
                       <input
                         type="tel"
-                        placeholder="e.g. 9820112345"
+                        placeholder="10-digit mobile number"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#4c3cce]"
@@ -857,7 +890,7 @@ Please confirm my order and share estimated delivery time!`;
                         </label>
                         <input
                           type="text"
-                          placeholder="e.g. 400050"
+                          placeholder="e.g. 452012"
                           value={customerPincode}
                           onChange={(e) => setCustomerPincode(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#4c3cce]"
@@ -869,7 +902,7 @@ Please confirm my order and share estimated delivery time!`;
                         </label>
                         <input
                           type="text"
-                          placeholder="e.g. Urgent morning"
+                          placeholder="Optional delivery instructions"
                           value={deliveryNotes}
                           onChange={(e) => setDeliveryNotes(e.target.value)}
                           className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#4c3cce]"

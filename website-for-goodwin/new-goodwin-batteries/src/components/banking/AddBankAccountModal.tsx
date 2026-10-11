@@ -112,7 +112,7 @@ export default function AddBankAccountModal({ isOpen, onClose }: AddBankAccountM
                 required
                 value={ifsc}
                 onChange={(e) => setIfsc(e.target.value.toUpperCase())}
-                placeholder="e.g. HDFC0000123"
+                placeholder="e.g. SBIN0001234"
                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono uppercase text-slate-800 focus:outline-none focus:border-[#4c3cce]"
               />
             </div>
