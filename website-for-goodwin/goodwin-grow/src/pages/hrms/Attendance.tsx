@@ -30,6 +30,7 @@ import {
   isSameMonth, 
   isSameDay, 
   addDays,
+  subDays,
   getDay
 } from 'date-fns';
 import {
@@ -40,7 +41,11 @@ import {
   openReceiptPrintWindow,
   printReceiptDirectly,
   triggerDownload,
-  type EmployeeAttendanceStats
+  calculateCustomRangeAttendanceStats,
+  generateCustomRangeReceiptHTML,
+  downloadCustomRangeCSV,
+  type EmployeeAttendanceStats,
+  type CustomRangeAttendanceStats
 } from '../../lib/attendanceReceipt';
 
 export const Attendance = () => {
@@ -50,9 +55,19 @@ export const Attendance = () => {
   const clockOut = useStore((state) => state.clockOut);
   const markAbsences = useStore((state) => state.markAbsences);
   const employees = useStore((state) => state.employees);
+  const leaves = useStore((state) => state.leaves);
 
   const { isAdmin, isEmployee, employeeName, employee: currentEmpObj } = useCurrentUser();
   
+  // Main Tab View: 'roster' | 'range'
+  const [activeTab, setActiveTab] = useState<'roster' | 'range'>('roster');
+
+  // Custom Date Range State
+  const [rangeEmployeeId, setRangeEmployeeId] = useState<string>('');
+  const [rangeStartDate, setRangeStartDate] = useState<string>(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [rangeEndDate, setRangeEndDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [isRangeReceiptModalOpen, setIsRangeReceiptModalOpen] = useState(false);
+
   // Selection & Modal States
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
@@ -86,13 +101,13 @@ export const Attendance = () => {
 
   const myStats = useMemo(() => {
     if (!myEmployeeObj) return null;
-    return calculateEmployeeAttendanceStats(myEmployeeObj, attendance);
-  }, [myEmployeeObj, attendance]);
+    return calculateEmployeeAttendanceStats(myEmployeeObj, attendance, leaves);
+  }, [myEmployeeObj, attendance, leaves]);
 
   // Calculate stats for all employees
   const allEmployeeStats = useMemo(() => {
-    return employees.map(emp => calculateEmployeeAttendanceStats(emp, attendance));
-  }, [employees, attendance]);
+    return employees.map(emp => calculateEmployeeAttendanceStats(emp, attendance, leaves));
+  }, [employees, attendance, leaves]);
 
   // Selected employee object & stats for admin calendar modal
   const selectedEmpObj = useMemo(() => {
@@ -104,8 +119,28 @@ export const Attendance = () => {
 
   const selectedStats = useMemo(() => {
     if (!selectedEmpObj) return null;
-    return calculateEmployeeAttendanceStats(selectedEmpObj, attendance);
-  }, [selectedEmpObj, attendance]);
+    return calculateEmployeeAttendanceStats(selectedEmpObj, attendance, leaves);
+  }, [selectedEmpObj, attendance, leaves]);
+
+  // Selected employee for custom date range
+  const rangeEmployee = useMemo(() => {
+    if (isEmployee) return myEmployeeObj;
+    if (rangeEmployeeId) {
+      return employees.find(e => e.id === rangeEmployeeId) || employees[0] || null;
+    }
+    return myEmployeeObj || employees[0] || null;
+  }, [employees, rangeEmployeeId, isEmployee, myEmployeeObj]);
+
+  const customRangeStats = useMemo(() => {
+    if (!rangeEmployee || !rangeStartDate || !rangeEndDate) return null;
+    return calculateCustomRangeAttendanceStats(
+      rangeEmployee,
+      attendance,
+      leaves,
+      rangeStartDate,
+      rangeEndDate
+    );
+  }, [rangeEmployee, attendance, leaves, rangeStartDate, rangeEndDate]);
 
   // Helper to match employee attendance with whitespace-trimmed fallback
   const getEmployeeAttendance = (dateKey: string, empName: string | null) => {
@@ -216,7 +251,7 @@ export const Attendance = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {employees.map((emp) => {
-          const stats = calculateEmployeeAttendanceStats(emp, attendance);
+          const stats = calculateEmployeeAttendanceStats(emp, attendance, leaves);
           const isCurrentUserCard = isSameEmployee(emp.name, employeeName);
           return (
             <div 
@@ -271,11 +306,19 @@ export const Attendance = () => {
                     </span>
                   </div>
                   <div>
-                    <span className="text-secondary-light block text-[10px] uppercase font-semibold">All Time So Far</span>
-                    <span className="font-bold text-primary">
-                      {stats.allTime.attendanceRatio}
-                      <span className="text-[10px] font-normal text-secondary-light ml-1">({stats.allTime.attendanceRate})</span>
+                    <span className="text-secondary-light block text-[10px] uppercase font-semibold">
+                      {stats.sundayExtraDaysCount > 0 ? 'Extra Days (Sunday)' : 'All Time Ratio'}
                     </span>
+                    {stats.sundayExtraDaysCount > 0 ? (
+                      <span className="font-bold text-amber-700 flex items-center gap-0.5">
+                        ⭐ {stats.sundayExtraDaysCount} Sun Extra Day{stats.sundayExtraDaysCount > 1 ? 's' : ''}
+                      </span>
+                    ) : (
+                      <span className="font-bold text-primary">
+                        {stats.allTime.attendanceRatio}
+                        <span className="text-[10px] font-normal text-secondary-light ml-1">({stats.allTime.attendanceRate})</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -342,20 +385,33 @@ export const Attendance = () => {
         const dateKey = format(cloneDay, 'yyyy-MM-dd');
         
         const record = getEmployeeAttendance(dateKey, empToUse);
+
+        const isSanctionedLeave = (leaves || []).some((l: any) => {
+          const empMatch = isSameEmployee(l.name, empToUse || '') || 
+                           (employees && employees.some((e: any) => e.id === l.employeeId && isSameEmployee(e.name, empToUse || '')));
+          return empMatch && (l.status === 'Approved' || l.status === 'Sanctioned') && dateKey >= l.startDate && dateKey <= l.endDate;
+        });
+
+        const isSundayExtraDay = isSunday && (record?.status === 'Present' || record?.status === 'Half-Day');
         
         let bgColorClass = "";
         let dateColorClass = "text-secondary-dark";
 
-        if (isSunday) {
+        if (isSundayExtraDay) {
+          // Sunday worked counted as Extra Day Worked
+          bgColorClass = "bg-neutral-900 text-amber-100 hover:bg-neutral-850 border-amber-500/50 shadow-inner";
+          dateColorClass = "text-amber-300 font-extrabold";
+        } else if (isSunday) {
           bgColorClass = "bg-neutral-950 text-white hover:bg-neutral-900 border-neutral-800";
           dateColorClass = "text-white font-bold";
+        } else if (isSanctionedLeave || record?.status === 'Absent') {
+          // Sanctioned leave reflects as Absent
+          bgColorClass = "bg-danger/15 text-danger border-danger/30 hover:bg-danger/25";
+          dateColorClass = "text-danger font-bold";
         } else if (record) {
           if (record.status === 'Present') {
             bgColorClass = "bg-green-500/10 text-green-800 hover:bg-green-500/20";
             dateColorClass = "text-green-700 font-bold";
-          } else if (record.status === 'Absent') {
-            bgColorClass = "bg-danger/15 text-danger border-danger/30 hover:bg-danger/25";
-            dateColorClass = "text-danger font-bold";
           } else if (record.status === 'Half-Day') {
             bgColorClass = "bg-warning/10 text-warning border-warning/30 hover:bg-warning/20";
             dateColorClass = "text-warning font-bold";
@@ -379,7 +435,15 @@ export const Attendance = () => {
               <span className={`text-xs font-semibold ${isToday ? 'bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-sm' : dateColorClass}`}>
                 {formattedDate}
               </span>
-              {record && (
+              {isSundayExtraDay ? (
+                <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border bg-amber-400 text-amber-950 border-amber-500 shadow-sm">
+                  ⭐ Extra Day
+                </span>
+              ) : isSanctionedLeave ? (
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border bg-red-100 text-red-700 border-red-200 dark:bg-red-950/70">
+                  Leave
+                </span>
+              ) : record ? (
                 <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
                   record.status === 'Present' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950/70' :
                   record.status === 'Absent' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/70' :
@@ -387,14 +451,14 @@ export const Attendance = () => {
                 }`}>
                   {record.status}
                 </span>
-              )}
+              ) : null}
             </div>
             
-            {record && record.status !== 'Absent' && (
+            {(isSundayExtraDay || (record && record.status !== 'Absent' && !isSanctionedLeave)) && (
               <div className="mt-auto pt-1">
-                <div className={`text-[10px] flex items-center ${isSunday ? 'text-neutral-300' : 'text-secondary-dark'}`}>
+                <div className={`text-[10px] flex items-center ${isSunday ? 'text-amber-300 font-medium' : 'text-secondary-dark'}`}>
                   <Clock className="w-3 h-3 mr-1 inline opacity-70" />
-                  {record.arrival || '--'} - {record.departure || '--'}
+                  {record?.arrival || '--'} - {record?.departure || '--'}
                 </div>
               </div>
             )}
@@ -581,6 +645,335 @@ export const Attendance = () => {
     );
   };
 
+  // Dedicated Date Range & Receipt Generator Section (Requirement 3 & 4)
+  const renderDateRangeSection = () => {
+    return (
+      <div className="space-y-6">
+        {/* Date Range Filter Bar */}
+        <div className="bg-canvas-surface p-5 rounded-2xl border border-canvas-variant shadow-sm space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-secondary-dark flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5 text-primary" />
+                Custom Attendance Range & Receipt Generator
+              </h3>
+              <p className="text-xs text-secondary-light mt-0.5">
+                Examine attendance records from any date to date, track extra days worked on Sundays, and generate digitally authenticated receipts.
+              </p>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-secondary-light mr-1">Presets:</span>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs h-7 px-2.5"
+                onClick={() => {
+                  setRangeStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+                  setRangeEndDate(format(new Date(), 'yyyy-MM-dd'));
+                }}
+              >
+                This Month
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs h-7 px-2.5"
+                onClick={() => {
+                  const prevM = subMonths(new Date(), 1);
+                  setRangeStartDate(format(startOfMonth(prevM), 'yyyy-MM-dd'));
+                  setRangeEndDate(format(endOfMonth(prevM), 'yyyy-MM-dd'));
+                }}
+              >
+                Last Month
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs h-7 px-2.5"
+                onClick={() => {
+                  setRangeStartDate(format(subDays(new Date(), 29), 'yyyy-MM-dd'));
+                  setRangeEndDate(format(new Date(), 'yyyy-MM-dd'));
+                }}
+              >
+                Last 30 Days
+              </Button>
+              {rangeEmployee?.joinDate && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-xs h-7 px-2.5"
+                  onClick={() => {
+                    setRangeStartDate(rangeEmployee.joinDate);
+                    setRangeEndDate(format(new Date(), 'yyyy-MM-dd'));
+                  }}
+                >
+                  Since Join Date
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-canvas-variant">
+            {/* Employee Selector (Admin only or display name for employee) */}
+            <div>
+              <label className="enterprise-label">Employee</label>
+              {isEmployee ? (
+                <Input value={myEmployeeObj?.name || employeeName} disabled className="bg-canvas/50 cursor-not-allowed" />
+              ) : (
+                <Select
+                  value={rangeEmployeeId || employees[0]?.id || ''}
+                  onChange={(e) => setRangeEmployeeId(e.target.value)}
+                  options={employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.role})` }))}
+                />
+              )}
+            </div>
+
+            {/* From Date */}
+            <div>
+              <label className="enterprise-label">From Date</label>
+              <Input
+                type="date"
+                value={rangeStartDate}
+                onChange={(e) => setRangeStartDate(e.target.value)}
+                max={rangeEndDate}
+              />
+            </div>
+
+            {/* To Date */}
+            <div>
+              <label className="enterprise-label">To Date</label>
+              <Input
+                type="date"
+                value={rangeEndDate}
+                onChange={(e) => setRangeEndDate(e.target.value)}
+                min={rangeStartDate}
+              />
+            </div>
+
+            {/* Generate Receipt Action Buttons */}
+            <div className="flex items-end gap-2">
+              <Button
+                className="w-full font-semibold shadow-sm"
+                onClick={() => setIsRangeReceiptModalOpen(true)}
+                disabled={!customRangeStats}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Generate Receipt Slip
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Metrics for the Selected Range */}
+        {customRangeStats && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
+              <span className="text-[10px] uppercase font-bold text-secondary-light block">Period Days</span>
+              <span className="text-xl font-extrabold text-secondary-dark mt-1 block">
+                {customRangeStats.totalPeriodDays}
+              </span>
+              <span className="text-[11px] text-secondary-light mt-0.5 block">Total Calendar Days</span>
+            </div>
+
+            <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20 shadow-sm">
+              <span className="text-[10px] uppercase font-bold text-green-700 block">Workdays Present</span>
+              <span className="text-xl font-extrabold text-green-800 mt-1 block">
+                {customRangeStats.presentCount}
+              </span>
+              <span className="text-[11px] text-green-700 mt-0.5 block font-medium">Regular Workdays</span>
+            </div>
+
+            {/* Requirement 4: Sunday Extra Days Worked */}
+            <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/30 shadow-sm">
+              <span className="text-[10px] uppercase font-extrabold text-amber-900 block flex items-center gap-1">
+                ⭐ Extra Days (Sunday)
+              </span>
+              <span className="text-xl font-extrabold text-amber-950 mt-1 block">
+                {customRangeStats.sundayExtraDaysCount} <span className="text-xs font-semibold text-amber-800">Days</span>
+              </span>
+              <span className="text-[11px] text-amber-800 mt-0.5 block font-medium">Sunday Overtime</span>
+            </div>
+
+            <div className="p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
+              <span className="text-[10px] uppercase font-bold text-secondary-light block">Half Days</span>
+              <span className="text-xl font-extrabold text-secondary-dark mt-1 block">
+                {customRangeStats.halfDaysCount}
+              </span>
+              <span className="text-[11px] text-secondary-light mt-0.5 block">0.5 credit each</span>
+            </div>
+
+            <div className="p-4 bg-red-500/5 rounded-xl border border-red-500/20 shadow-sm">
+              <span className="text-[10px] uppercase font-bold text-danger block">Absents & Leaves</span>
+              <span className="text-xl font-extrabold text-danger mt-1 block">
+                {customRangeStats.absentCount}
+              </span>
+              <span className="text-[11px] text-danger/80 mt-0.5 block font-medium">
+                {customRangeStats.sanctionedLeavesCount} Sanctioned
+              </span>
+            </div>
+
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 shadow-sm">
+              <span className="text-[10px] uppercase font-bold text-primary block">Presence Ratio</span>
+              <span className="text-xl font-extrabold text-primary-dark mt-1 block">
+                {customRangeStats.attendanceRate}
+              </span>
+              <span className="text-[11px] text-primary/80 mt-0.5 block font-medium">
+                {customRangeStats.effectiveAttendanceCount}d Effective
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Header for Receipt & Exports */}
+        {customRangeStats && (
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
+            <div>
+              <h4 className="font-bold text-secondary-dark text-sm">
+                Attendance Period: {customRangeStats.startDate} to {customRangeStats.endDate}
+              </h4>
+              <p className="text-xs text-secondary-light">
+                {customRangeStats.dailyRecords.length} recorded daily logs for {customRangeStats.employeeName}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsRangeReceiptModalOpen(true)}
+                className="font-semibold shadow-sm"
+              >
+                <Eye className="w-4 h-4 mr-1.5" />
+                Preview Receipt Slip
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const html = generateCustomRangeReceiptHTML(customRangeStats);
+                  printReceiptDirectly(html);
+                }}
+              >
+                <Printer className="w-4 h-4 mr-1.5" />
+                Print / Save PDF
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const html = generateCustomRangeReceiptHTML(customRangeStats);
+                  triggerDownload(
+                    html,
+                    `Attendance_Receipt_${customRangeStats.employeeName.replace(/\s+/g, '_')}_${customRangeStats.startDate}_to_${customRangeStats.endDate}.html`,
+                    'text/html;charset=utf-8;'
+                  );
+                }}
+              >
+                <Download className="w-4 h-4 mr-1.5" />
+                Download HTML
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => downloadCustomRangeCSV(customRangeStats)}
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-1.5" />
+                Download CSV
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Detailed Daily Breakdown Table */}
+        {customRangeStats && (
+          <div className="bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm overflow-hidden">
+            <div className="px-5 py-3.5 bg-canvas border-b border-canvas-variant flex justify-between items-center">
+              <h5 className="font-bold text-secondary-dark text-sm">Daily Attendance Breakdown</h5>
+              <span className="text-xs text-secondary-light">{customRangeStats.dailyRecords.length} dates listed</span>
+            </div>
+            <div className="max-h-96 overflow-y-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-canvas/50 text-secondary-light uppercase font-semibold sticky top-0 border-b border-canvas-variant">
+                  <tr>
+                    <th className="py-2.5 px-4">Date</th>
+                    <th className="py-2.5 px-4">Day</th>
+                    <th className="py-2.5 px-4">Day Classification</th>
+                    <th className="py-2.5 px-4">Status</th>
+                    <th className="py-2.5 px-4">Check-In</th>
+                    <th className="py-2.5 px-4">Check-Out</th>
+                    <th className="py-2.5 px-4 text-right">Credit</th>
+                    <th className="py-2.5 px-4">Remarks / Overtime</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-canvas-variant/60 font-medium">
+                  {customRangeStats.dailyRecords.map((r, i) => (
+                    <tr 
+                      key={i} 
+                      className={`hover:bg-canvas/40 transition-colors ${
+                        r.isExtraDayWorked ? 'bg-amber-500/5' :
+                        r.isSanctionedLeave ? 'bg-red-500/5' : ''
+                      }`}
+                    >
+                      <td className="py-2.5 px-4 font-semibold text-secondary-dark">{r.date}</td>
+                      <td className="py-2.5 px-4 text-secondary-light">{r.dayOfWeek}</td>
+                      <td className="py-2.5 px-4">
+                        {r.isSunday ? (
+                          r.isExtraDayWorked ? (
+                            <span className="text-amber-800 font-extrabold flex items-center gap-1">
+                              ⭐ Sunday Overtime
+                            </span>
+                          ) : (
+                            <span className="text-secondary-light font-medium">Sunday Off</span>
+                          )
+                        ) : (
+                          <span className="text-secondary-dark font-medium">Regular Workday</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        {r.isExtraDayWorked ? (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-400 text-amber-950 border border-amber-500 shadow-sm">
+                            ⭐ Extra Day Worked
+                          </span>
+                        ) : r.isSanctionedLeave ? (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
+                            Absent (Sanctioned Leave)
+                          </span>
+                        ) : (
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                            r.status === 'Present' ? 'bg-green-100 text-green-700' :
+                            r.status === 'Absent' ? 'bg-red-100 text-red-700' :
+                            r.status === 'Half-Day' ? 'bg-amber-100 text-amber-700' :
+                            r.status === 'Sunday Off' ? 'bg-neutral-900 text-white' :
+                            'bg-canvas-variant text-secondary-light'
+                          }`}>
+                            {r.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-4 text-secondary-dark">{r.arrival || '--'}</td>
+                      <td className="py-2.5 px-4 text-secondary-dark">{r.departure || '--'}</td>
+                      <td className="py-2.5 px-4 text-right font-bold text-secondary-dark">{r.credit}d</td>
+                      <td className="py-2.5 px-4">
+                        {r.isExtraDayWorked ? (
+                          <span className="text-amber-800 font-bold text-[11px]">⭐ Sunday Extra Day Worked</span>
+                        ) : r.notes ? (
+                          <span className="text-secondary-light text-[11px]">{r.notes}</span>
+                        ) : (
+                          <span className="text-secondary-light/60">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Header */}
@@ -626,8 +1019,40 @@ export const Attendance = () => {
         )}
       </div>
 
-      {/* Main Content: Personal Hub for Employee, Team Grid for Admin */}
-      {isEmployee ? renderPersonalAttendanceHub() : renderEmployeeGrid()}
+      {/* View Switcher: Roster & Calendar vs Date Range & Receipt Generator */}
+      <div className="flex border-b border-canvas-variant gap-6 pt-2">
+        <button
+          onClick={() => setActiveTab('roster')}
+          className={`pb-3 text-sm font-semibold transition-colors flex items-center gap-2 border-b-2 -mb-px ${
+            activeTab === 'roster'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-secondary-light hover:text-secondary-dark'
+          }`}
+        >
+          <CalendarIcon className="w-4 h-4" />
+          {isEmployee ? 'My Attendance Calendar' : 'Monthly Roster & Calendar'}
+        </button>
+        <button
+          onClick={() => setActiveTab('range')}
+          className={`pb-3 text-sm font-semibold transition-colors flex items-center gap-2 border-b-2 -mb-px ${
+            activeTab === 'range'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-secondary-light hover:text-secondary-dark'
+          }`}
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          Date Range & Receipt Generator
+        </button>
+      </div>
+
+      {/* Main Content: Personal Hub / Team Grid OR Date Range Section */}
+      {activeTab === 'range' ? (
+        renderDateRangeSection()
+      ) : isEmployee ? (
+        renderPersonalAttendanceHub()
+      ) : (
+        renderEmployeeGrid()
+      )}
 
       {/* Main Calendar Modal for Selected Employee (Admin only) */}
       <Modal 
@@ -1113,6 +1538,81 @@ export const Attendance = () => {
             <Button onClick={handleSaveAttendance}>Save Record</Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Modal for Generated Date Range Receipt Preview (Requirement 3) */}
+      <Modal
+        isOpen={isRangeReceiptModalOpen}
+        onClose={() => setIsRangeReceiptModalOpen(false)}
+        title={`Official Attendance Receipt: ${customRangeStats?.employeeName || ''}`}
+        className="max-w-5xl"
+      >
+        {customRangeStats && (
+          <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-1 pb-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <div>
+                <h4 className="font-bold text-secondary-dark text-base">Verified Period Attendance Slip</h4>
+                <p className="text-xs text-secondary-light">
+                  Period: <strong>{customRangeStats.startDate}</strong> to <strong>{customRangeStats.endDate}</strong> ({customRangeStats.totalPeriodDays} days) • Extra Sunday Days: <strong>{customRangeStats.sundayExtraDaysCount}</strong>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button 
+                  variant="primary" 
+                  size="sm"
+                  onClick={() => {
+                    const html = generateCustomRangeReceiptHTML(customRangeStats);
+                    printReceiptDirectly(html);
+                  }}
+                  className="font-semibold shadow-sm"
+                >
+                  <Printer className="w-4 h-4 mr-1.5" />
+                  Print / Save PDF
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => {
+                    const html = generateCustomRangeReceiptHTML(customRangeStats);
+                    triggerDownload(
+                      html,
+                      `Attendance_Receipt_${customRangeStats.employeeName.replace(/\s+/g, '_')}_${customRangeStats.startDate}_to_${customRangeStats.endDate}.html`,
+                      'text/html;charset=utf-8;'
+                    );
+                  }}
+                  className="font-semibold"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Download HTML Slip
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => downloadCustomRangeCSV(customRangeStats)}
+                  className="font-semibold"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-1.5" />
+                  Download CSV
+                </Button>
+              </div>
+            </div>
+
+            {/* Embedded Live Slip Preview */}
+            <div className="border border-canvas-variant rounded-xl overflow-hidden bg-white shadow-inner">
+              <iframe
+                title="Attendance Receipt Preview"
+                srcDoc={generateCustomRangeReceiptHTML(customRangeStats)}
+                className="w-full h-[600px] border-none"
+              />
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-canvas-variant">
+              <Button variant="secondary" onClick={() => setIsRangeReceiptModalOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

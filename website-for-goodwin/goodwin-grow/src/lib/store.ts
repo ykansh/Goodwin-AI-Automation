@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from './supabase';
+import { format, parseISO, startOfMonth, endOfMonth, addMonths, addDays, getDay, isValid } from 'date-fns';
 
 export interface Employee {
   id: string;
@@ -45,6 +46,9 @@ export interface PayrollRecord {
   deductions: number;
   net: number;
   status: string;
+  joinDate?: string;
+  sundayExtraDays?: number;
+  sundayOvertimeBonus?: number;
 }
 
 export interface Candidate {
@@ -98,6 +102,7 @@ export interface GlobalState {
   // HRMS - Payroll
   payroll: PayrollRecord[];
   runPayroll: () => Promise<void>;
+  syncPayrollsFromJoiningDate: () => Promise<{ generatedCount: number }>;
   updatePayroll: (id: string, record: Partial<PayrollRecord>) => Promise<void>;
   deletePayroll: (id: string) => Promise<void>;
 
@@ -214,7 +219,8 @@ export const useStore = create<GlobalState>((set, get) => ({
           allowances: p.allowances,
           deductions: p.deductions,
           net: p.net_salary,
-          status: p.status
+          status: p.status,
+          joinDate: emp?.joinDate
         };
       });
 
@@ -302,6 +308,13 @@ export const useStore = create<GlobalState>((set, get) => ({
         revenue: metData?.revenue || 142300,
         isLoading: false
       });
+
+      // Automatically sync and generate monthly payrolls according to joining dates
+      try {
+        await get().syncPayrollsFromJoiningDate();
+      } catch (pErr) {
+        console.warn('Auto-sync payroll during initial data load:', pErr);
+      }
     } catch (err: any) {
       console.error('Failed to fetch data:', err);
       set({ error: err.message, isLoading: false });
@@ -318,7 +331,8 @@ export const useStore = create<GlobalState>((set, get) => ({
       phone: emp.phone,
       email: emp.email,
       skills: emp.skills,
-      notes: emp.notes
+      notes: emp.notes,
+      join_date: (emp as any).joinDate || format(new Date(), 'yyyy-MM-dd')
     }]).select().single();
     
     if (error) {
@@ -341,6 +355,12 @@ export const useStore = create<GlobalState>((set, get) => ({
     };
     
     set(state => ({ employees: [...state.employees, newEmp] }));
+
+    try {
+      await get().syncPayrollsFromJoiningDate();
+    } catch (err) {
+      console.warn('Failed to auto-generate payroll for newly added employee:', err);
+    }
   },
 
   updateEmployee: async (id, updatedFields) => {
@@ -493,6 +513,34 @@ export const useStore = create<GlobalState>((set, get) => ({
     const { error } = await supabase.from('leaves').update(dbUpdates).eq('id', id);
     if (error) throw error;
     
+    // If leave is sanctioned/approved, reflect as Absent in attendance
+    const state = get();
+    const existingLeave = state.leaves.find(l => l.id === id);
+    const targetStatus = updatedFields.status || existingLeave?.status;
+    const sDate = updatedFields.startDate || existingLeave?.startDate;
+    const eDate = updatedFields.endDate || existingLeave?.endDate;
+    const empId = updatedFields.employeeId || existingLeave?.employeeId;
+    const emp = state.employees.find(e => e.id === empId);
+
+    if (emp && sDate && eDate && (targetStatus === 'Approved' || targetStatus === 'Sanctioned')) {
+      try {
+        const start = parseISO(sDate);
+        const end = parseISO(eDate);
+        let cur = start;
+        while (cur <= end) {
+          const dStr = format(cur, 'yyyy-MM-dd');
+          await get().updateAttendance(dStr, emp.name, {
+            status: 'Absent',
+            arrival: '',
+            departure: ''
+          });
+          cur = addDays(cur, 1);
+        }
+      } catch (attErr) {
+        console.warn('Failed to auto-mark attendance for sanctioned leave:', attErr);
+      }
+    }
+
     set(state => ({
       leaves: state.leaves.map(l => l.id === id ? { ...l, ...updatedFields } : l)
     }));
@@ -504,41 +552,94 @@ export const useStore = create<GlobalState>((set, get) => ({
     set(state => ({ leaves: state.leaves.filter(l => l.id !== id) }));
   },
 
-  runPayroll: async () => {
+  syncPayrollsFromJoiningDate: async () => {
     const state = get();
-    const currentDate = new Date();
-    const month = currentDate.toLocaleString('default', { month: 'short' }) + ' ' + currentDate.getFullYear();
-    
-    if (state.payroll.some(p => p.month === month)) {
-      throw new Error(`Payroll already run for ${month}`);
-    }
-    
     const activeEmployees = state.employees.filter(e => e.status === 'active');
-    if (activeEmployees.length === 0) throw new Error('No active employees to run payroll for.');
-    
-    const payrollInserts = activeEmployees.map(emp => {
-      const basic = emp.salary || 0;
-      const allowances = basic * 0.1;
-      const deductions = basic * 0.05;
-      const net = basic + allowances - deductions;
-      return {
-        employee_id: emp.id,
-        month,
-        basic_salary: basic,
-        allowances,
-        deductions,
-        net_salary: net,
-        status: 'Pending'
-      };
+    if (activeEmployees.length === 0) return { generatedCount: 0 };
+
+    const today = new Date();
+    const currentMonthDate = startOfMonth(today);
+    const payrollInserts: any[] = [];
+    const existingPayroll = state.payroll;
+
+    activeEmployees.forEach(emp => {
+      let joinMonthDate: Date;
+      if (emp.joinDate && isValid(parseISO(emp.joinDate))) {
+        joinMonthDate = startOfMonth(parseISO(emp.joinDate));
+      } else {
+        joinMonthDate = currentMonthDate;
+      }
+
+      if (joinMonthDate > currentMonthDate) {
+        joinMonthDate = currentMonthDate;
+      }
+
+      let mCursor = new Date(joinMonthDate);
+      while (mCursor <= currentMonthDate) {
+        const monthLabel = format(mCursor, 'MMM yyyy');
+
+        const alreadyExists = existingPayroll.some(p => 
+          (p.employeeId === emp.id || (p as any).employee_id === emp.id) && 
+          p.month === monthLabel
+        );
+
+        if (!alreadyExists) {
+          const basic = emp.salary && emp.salary > 0 ? emp.salary : 15000;
+
+          // Count Extra Days worked on Sunday in this month
+          let sundayExtraDays = 0;
+          const mStart = startOfMonth(mCursor);
+          const mEnd = endOfMonth(mCursor);
+          let dCursor = new Date(mStart);
+          while (dCursor <= mEnd && dCursor <= today) {
+            if (getDay(dCursor) === 0) {
+              const dStr = format(dCursor, 'yyyy-MM-dd');
+              const dayRec = state.attendance[dStr];
+              if (dayRec) {
+                const rec = dayRec[emp.name] || Object.entries(dayRec).find(([k]) => k.trim().toLowerCase() === emp.name.trim().toLowerCase())?.[1];
+                if (rec?.status === 'Present') {
+                  sundayExtraDays += 1;
+                } else if (rec?.status === 'Half-Day') {
+                  sundayExtraDays += 0.5;
+                }
+              }
+            }
+            dCursor = addDays(dCursor, 1);
+          }
+
+          const sundayOvertimeBonus = Math.round(sundayExtraDays * (basic / 30));
+          const standardAllowances = Math.round(basic * 0.1);
+          const allowances = standardAllowances + sundayOvertimeBonus;
+          const deductions = Math.round(basic * 0.05);
+          const net = basic + allowances - deductions;
+          const status = mCursor < currentMonthDate ? 'Paid' : 'Pending';
+
+          payrollInserts.push({
+            employee_id: emp.id,
+            month: monthLabel,
+            basic_salary: basic,
+            allowances,
+            deductions,
+            net_salary: net,
+            status
+          });
+        }
+
+        mCursor = addMonths(mCursor, 1);
+      }
     });
-    
+
+    if (payrollInserts.length === 0) {
+      return { generatedCount: 0 };
+    }
+
     const { data, error } = await supabase.from('payroll').insert(payrollInserts).select();
     if (error) {
-      console.error(error);
+      console.error('Failed to insert auto-generated payrolls:', error);
       throw error;
     }
-    
-    const newRecords: PayrollRecord[] = data.map(p => {
+
+    const newRecords: PayrollRecord[] = (data || []).map(p => {
       const emp = state.employees.find(e => e.id === p.employee_id);
       return {
         id: p.id,
@@ -549,11 +650,20 @@ export const useStore = create<GlobalState>((set, get) => ({
         allowances: p.allowances,
         deductions: p.deductions,
         net: p.net_salary,
-        status: p.status
+        status: p.status,
+        joinDate: emp?.joinDate
       };
     });
-    
+
     set(state => ({ payroll: [...state.payroll, ...newRecords] }));
+    return { generatedCount: newRecords.length };
+  },
+
+  runPayroll: async () => {
+    const result = await get().syncPayrollsFromJoiningDate();
+    if (result.generatedCount === 0) {
+      console.log('All monthly payrolls from employee joining dates are already up to date.');
+    }
   },
 
   updatePayroll: async (id, updatedFields) => {

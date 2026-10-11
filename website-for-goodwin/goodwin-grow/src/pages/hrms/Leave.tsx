@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Filter, Plus, Pencil, Trash2, Check, X } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
@@ -88,9 +88,28 @@ export const Leave = () => {
     }
   };
 
+  const handleSanctionLeave = async (id: string) => {
+    try {
+      await updateLeave(id, { status: 'Approved' });
+      alert('Leave sanctioned! Dates are now marked as Absent in the employee calendar.');
+    } catch (err: any) {
+      alert('Failed to sanction leave: ' + err.message);
+    }
+  };
+
+  const handleRejectLeave = async (id: string) => {
+    try {
+      await updateLeave(id, { status: 'Rejected' });
+    } catch (err: any) {
+      alert('Failed to reject leave: ' + err.message);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Approved': return 'success';
+      case 'Approved':
+      case 'Sanctioned':
+        return 'success';
       case 'Pending': return 'warning';
       case 'Rejected': return 'destructive';
       default: return 'default';
@@ -178,7 +197,30 @@ export const Leave = () => {
                       {leave.status}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4 text-right flex justify-end space-x-2">
+                  <td className="px-6 py-4 text-right flex justify-end items-center space-x-2">
+                    {isAdmin && leave.status === 'Pending' && (
+                      <>
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="h-8 px-2.5 text-xs text-green-700 hover:text-green-800 bg-green-500/10 hover:bg-green-500/20 border-green-500/30 font-semibold"
+                          onClick={() => handleSanctionLeave(leave.id)}
+                          title="Sanction Leave (Reflects as Absent in Calendar)"
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" />
+                          Sanction
+                        </Button>
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="h-8 px-2 text-xs text-danger hover:text-red-700 bg-red-500/10 hover:bg-red-500/20 border-red-500/30"
+                          onClick={() => handleRejectLeave(leave.id)}
+                          title="Reject Leave"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    )}
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-secondary-light hover:text-primary" onClick={() => handleEdit(leave)}>
                       <Pencil className="h-4 w-4" />
                     </Button>

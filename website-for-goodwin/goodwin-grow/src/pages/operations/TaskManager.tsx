@@ -213,23 +213,29 @@ export const TaskManager = () => {
         const allCompleted = hasTasks && dayTasks.every((t: any) => t.status === 'completed');
         const isPastAndNotCompleted = hasTasks && !allCompleted && isBefore(cloneDay, startOfToday());
         
-        // Requirement 4: Days when employee was absent appear red
+        // Requirement 2 & 4: Days when employee was absent appear red
         const attRecord = getEmployeeAttendance(dateKey, selectedEmployee);
         const isAbsent = attRecord?.status === 'Absent';
         const isHalfDay = attRecord?.status === 'Half-Day';
         
         const isApprovedLeave = (leaves || []).some((l: any) => {
-          const empMatch = l.name === selectedEmployee || l.name?.trim() === selectedEmployee?.trim();
-          return empMatch && l.status === 'Approved' && dateKey >= l.startDate && dateKey <= l.endDate;
+          const empMatch = isSameEmployee(l.name, selectedEmployee) || 
+                           (employees && employees.some((e: any) => e.id === l.employeeId && isSameEmployee(e.name, selectedEmployee)));
+          return empMatch && (l.status === 'Approved' || l.status === 'Sanctioned') && dateKey >= l.startDate && dateKey <= l.endDate;
         });
 
         const isMarkedAbsent = isAbsent || isApprovedLeave;
+        const isSundayExtraDay = isSunday && (attRecord?.status === 'Present' || attRecord?.status === 'Half-Day');
 
         // Styling hierarchy
         let bgColorClass = "";
         let dateColorClass = "text-secondary-dark";
 
-        if (isSunday) {
+        if (isSundayExtraDay) {
+          // Requirement 4: Sunday worked counted as Extra Day Worked
+          bgColorClass = "bg-neutral-900 text-amber-100 hover:bg-neutral-850 border-amber-500/50 shadow-inner";
+          dateColorClass = "text-amber-300 font-extrabold";
+        } else if (isSunday) {
           // Requirement 5: Sundays appear black
           bgColorClass = "bg-neutral-950 text-white hover:bg-neutral-900 border-neutral-800";
           dateColorClass = "text-white font-bold";
@@ -265,12 +271,17 @@ export const TaskManager = () => {
                 {formattedDate}
               </span>
               <div className="flex items-center gap-1">
-                {isMarkedAbsent && (
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-red-600 bg-red-100 dark:bg-red-950/70 px-1 py-0.5 rounded border border-red-200">
-                    Absent
+                {isSundayExtraDay && (
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-amber-950 bg-amber-400 px-1 py-0.5 rounded shadow-sm border border-amber-500 flex items-center">
+                    ⭐ Extra Day
                   </span>
                 )}
-                {isHalfDay && (
+                {isMarkedAbsent && !isSundayExtraDay && (
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-red-600 bg-red-100 dark:bg-red-950/70 px-1 py-0.5 rounded border border-red-200">
+                    {isApprovedLeave ? 'Leave' : 'Absent'}
+                  </span>
+                )}
+                {isHalfDay && !isSundayExtraDay && (
                   <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 bg-amber-100 dark:bg-amber-950/70 px-1 py-0.5 rounded border border-amber-200">
                     Half-Day
                   </span>
@@ -420,46 +431,70 @@ export const TaskManager = () => {
           {selectedDate && selectedEmployee && (() => {
             const dateKey = format(selectedDate, 'yyyy-MM-dd');
             const att = getEmployeeAttendance(dateKey, selectedEmployee);
+            const isSunday = getDay(selectedDate) === 0;
             const currentStatus = att?.status || 'Not Marked';
 
+            const isApprovedLeave = (leaves || []).some((l: any) => {
+              const empMatch = isSameEmployee(l.name, selectedEmployee) || 
+                               (employees && employees.some((e: any) => e.id === l.employeeId && isSameEmployee(e.name, selectedEmployee)));
+              return empMatch && (l.status === 'Approved' || l.status === 'Sanctioned') && dateKey >= l.startDate && dateKey <= l.endDate;
+            });
+
             return (
-              <div className="flex items-center justify-between p-3.5 bg-canvas/40 rounded-lg border border-canvas-variant">
-                <div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-secondary-light block">Attendance Status</span>
-                  <span className="text-sm font-semibold text-secondary-dark flex items-center gap-1.5 mt-0.5">
-                    <span className={`w-2 h-2 rounded-full ${
-                      currentStatus === 'Absent' ? 'bg-red-500' :
-                      currentStatus === 'Present' ? 'bg-green-500' :
-                      currentStatus === 'Half-Day' ? 'bg-amber-500' : 'bg-secondary-light/40'
-                    }`} />
-                    {currentStatus}
-                  </span>
-                </div>
-                <div className="flex gap-1.5">
-                  <Button
-                    size="sm"
-                    variant={currentStatus === 'Present' ? 'primary' : 'secondary'}
-                    className="text-xs h-7 px-2.5"
-                    onClick={() => handleSetAttendance('Present')}
-                  >
-                    Present
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={currentStatus === 'Absent' ? 'destructive' : 'secondary'}
-                    className="text-xs h-7 px-2.5"
-                    onClick={() => handleSetAttendance('Absent')}
-                  >
-                    Absent
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={currentStatus === 'Half-Day' ? 'primary' : 'secondary'}
-                    className="text-xs h-7 px-2.5"
-                    onClick={() => handleSetAttendance('Half-Day')}
-                  >
-                    Half-Day
-                  </Button>
+              <div className="space-y-2">
+                {isApprovedLeave && (
+                  <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-700 text-xs font-semibold flex items-center gap-1.5">
+                    <span>ℹ️ Sanctioned Leave in HRMS — Automatically reflected as Absent in employee roster.</span>
+                  </div>
+                )}
+                {isSunday && (currentStatus === 'Present' || currentStatus === 'Half-Day') && (
+                  <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 text-xs font-semibold flex items-center gap-1.5">
+                    <span>⭐ Sunday Overtime — Counted as Extra Day Worked in HRMS attendance & payroll.</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between p-3.5 bg-canvas/40 rounded-lg border border-canvas-variant">
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-secondary-light block">Attendance Status</span>
+                    <span className="text-sm font-semibold text-secondary-dark flex items-center gap-1.5 mt-0.5">
+                      <span className={`w-2 h-2 rounded-full ${
+                        currentStatus === 'Absent' || isApprovedLeave ? 'bg-red-500' :
+                        currentStatus === 'Present' ? 'bg-green-500' :
+                        currentStatus === 'Half-Day' ? 'bg-amber-500' : 'bg-secondary-light/40'
+                      }`} />
+                      {isApprovedLeave ? 'Absent (Sanctioned Leave)' : currentStatus}
+                      {isSunday && (currentStatus === 'Present' || currentStatus === 'Half-Day') && (
+                        <span className="text-[10px] text-amber-700 bg-amber-100 font-bold px-1.5 py-0.5 rounded ml-1">
+                          Extra Day
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant={currentStatus === 'Present' ? 'primary' : 'secondary'}
+                      className="text-xs h-7 px-2.5"
+                      onClick={() => handleSetAttendance('Present')}
+                    >
+                      Present
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentStatus === 'Absent' ? 'destructive' : 'secondary'}
+                      className="text-xs h-7 px-2.5"
+                      onClick={() => handleSetAttendance('Absent')}
+                    >
+                      Absent
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentStatus === 'Half-Day' ? 'primary' : 'secondary'}
+                      className="text-xs h-7 px-2.5"
+                      onClick={() => handleSetAttendance('Half-Day')}
+                    >
+                      Half-Day
+                    </Button>
+                  </div>
                 </div>
               </div>
             );

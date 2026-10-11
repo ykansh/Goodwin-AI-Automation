@@ -34,14 +34,15 @@ export const Employees = () => {
     phone: '',
     email: '',
     skills: '',
-    notes: ''
+    notes: '',
+    joinDate: new Date().toISOString().split('T')[0]
   });
 
   const handleAddEmployee = async () => {
     if (!newEmployee.name) return;
-    await addEmployee(newEmployee);
+    await addEmployee(newEmployee as any);
     setIsAddModalOpen(false);
-    setNewEmployee({ name: '', role: '', type: 'Full-time', salary: 0, status: 'active', phone: '', email: '', skills: '', notes: '' });
+    setNewEmployee({ name: '', role: '', type: 'Full-time', salary: 0, status: 'active', phone: '', email: '', skills: '', notes: '', joinDate: new Date().toISOString().split('T')[0] });
   };
 
   const filteredEmployees = employees.filter(emp => 
@@ -166,6 +167,14 @@ export const Employees = () => {
               type="number"
               value={newEmployee.salary.toString()} 
               onChange={(e) => setNewEmployee({...newEmployee, salary: Number(e.target.value)})}
+            />
+          </div>
+          <div>
+            <label className="enterprise-label">Date of Joining</label>
+            <Input 
+              type="date"
+              value={newEmployee.joinDate} 
+              onChange={(e) => setNewEmployee({...newEmployee, joinDate: e.target.value})}
             />
           </div>
           <div className="flex justify-end space-x-2 pt-4 border-t border-canvas-variant mt-6">
