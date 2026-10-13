@@ -21,6 +21,7 @@ export const Employees = () => {
   const employees = useStore((state) => state.employees);
   const deleteEmployee = useStore((state) => state.deleteEmployee);
   const addEmployee = useStore((state) => state.addEmployee);
+  const updateEmployee = useStore((state) => state.updateEmployee);
 
   const { isAdmin, employeeName } = useCurrentUser();
   
@@ -38,11 +39,54 @@ export const Employees = () => {
     joinDate: new Date().toISOString().split('T')[0]
   });
 
+  // Edit Employee State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+
   const handleAddEmployee = async () => {
     if (!newEmployee.name) return;
     await addEmployee(newEmployee as any);
     setIsAddModalOpen(false);
     setNewEmployee({ name: '', role: '', type: 'Full-time', salary: 0, status: 'active', phone: '', email: '', skills: '', notes: '', joinDate: new Date().toISOString().split('T')[0] });
+  };
+
+  const handleOpenEdit = (emp: any) => {
+    setEditingEmployee({
+      id: emp.id,
+      name: emp.name,
+      role: emp.role,
+      type: emp.type || 'Full-time',
+      salary: emp.salary || 0,
+      joinDate: emp.joinDate || new Date().toISOString().split('T')[0],
+      status: emp.status || 'active',
+      phone: emp.phone || '',
+      email: emp.email || '',
+      skills: emp.skills || '',
+      notes: emp.notes || ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingEmployee || !editingEmployee.id) return;
+    try {
+      await updateEmployee(editingEmployee.id, {
+        name: editingEmployee.name,
+        role: editingEmployee.role,
+        type: editingEmployee.type,
+        salary: Number(editingEmployee.salary),
+        joinDate: editingEmployee.joinDate,
+        status: editingEmployee.status,
+        phone: editingEmployee.phone,
+        email: editingEmployee.email,
+        skills: editingEmployee.skills,
+        notes: editingEmployee.notes
+      });
+      setIsEditModalOpen(false);
+      setEditingEmployee(null);
+    } catch (err: any) {
+      alert('Failed to update employee: ' + err.message);
+    }
   };
 
   const filteredEmployees = employees.filter(emp => 
@@ -87,7 +131,7 @@ export const Employees = () => {
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead className="text-right">Salary</TableHead>
+              <TableHead className="text-right">Salary / Stipend</TableHead>
               <TableHead>Join Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Contact</TableHead>
@@ -100,7 +144,15 @@ export const Employees = () => {
               <TableRow key={emp.id}>
                 <TableCell className="font-medium text-secondary-dark">{emp.name}</TableCell>
                 <TableCell>{emp.role}</TableCell>
-                <TableCell>{emp.type}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    emp.type === 'Intern' 
+                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20' 
+                      : 'bg-canvas text-secondary-light'
+                  }`}>
+                    {emp.type}
+                  </span>
+                </TableCell>
                 <TableCell className="text-right">
                   {isAdmin || isSameEmployee(emp.name, employeeName)
                     ? `₹${emp.salary.toLocaleString()}`
@@ -120,10 +172,22 @@ export const Employees = () => {
                 {isAdmin && (
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-secondary-light hover:text-primary"
+                        onClick={() => handleOpenEdit(emp)}
+                        title="Edit Employee & Join Date"
+                      >
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-danger hover:text-danger" onClick={() => deleteEmployee(emp.id)}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-danger hover:text-danger" 
+                        onClick={() => deleteEmployee(emp.id)}
+                        title="Delete Employee"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -135,6 +199,7 @@ export const Employees = () => {
         </Table>
       </div>
 
+      {/* Add Employee Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add New Employee">
         <div className="space-y-4 mt-4">
           <div>
@@ -150,7 +215,7 @@ export const Employees = () => {
             <Input 
               value={newEmployee.role} 
               onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})}
-              placeholder="e.g. Software Engineer"
+              placeholder="e.g. Automation Intern"
             />
           </div>
           <div>
@@ -158,11 +223,16 @@ export const Employees = () => {
             <Select 
               value={newEmployee.type} 
               onChange={(e) => setNewEmployee({...newEmployee, type: e.target.value})}
-              options={[{value: 'Full-time', label: 'Full-time'}, {value: 'Part-time', label: 'Part-time'}, {value: 'Contractor', label: 'Contractor'}]}
+              options={[
+                { value: 'Full-time', label: 'Full-time' },
+                { value: 'Intern', label: 'Intern (Stipend)' },
+                { value: 'Part-time', label: 'Part-time' },
+                { value: 'Contractor', label: 'Contractor' }
+              ]}
             />
           </div>
           <div>
-            <label className="enterprise-label">Salary (₹)</label>
+            <label className="enterprise-label">Salary / Stipend (₹)</label>
             <Input 
               type="number"
               value={newEmployee.salary.toString()} 
@@ -183,6 +253,93 @@ export const Employees = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Edit Employee Modal */}
+      {editingEmployee && (
+        <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title={`Edit Employee: ${editingEmployee.name}`}>
+          <div className="space-y-4 mt-4">
+            <div>
+              <label className="enterprise-label">Full Name</label>
+              <Input 
+                value={editingEmployee.name} 
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="enterprise-label">Role / Designation</label>
+              <Input 
+                value={editingEmployee.role} 
+                onChange={(e) => setEditingEmployee({ ...editingEmployee, role: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="enterprise-label">Employment Type</label>
+                <Select 
+                  value={editingEmployee.type} 
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, type: e.target.value })}
+                  options={[
+                    { value: 'Full-time', label: 'Full-time' },
+                    { value: 'Intern', label: 'Intern (Stipend)' },
+                    { value: 'Part-time', label: 'Part-time' },
+                    { value: 'Contractor', label: 'Contractor' }
+                  ]}
+                />
+              </div>
+              <div>
+                <label className="enterprise-label">Status</label>
+                <Select 
+                  value={editingEmployee.status} 
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, status: e.target.value })}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'on_leave', label: 'On Leave' },
+                    { value: 'inactive', label: 'Inactive' }
+                  ]}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="enterprise-label">Monthly Salary / Stipend (₹)</label>
+                <Input 
+                  type="number"
+                  value={editingEmployee.salary.toString()} 
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, salary: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <label className="enterprise-label">Date of Joining</label>
+                <Input 
+                  type="date"
+                  value={editingEmployee.joinDate} 
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, joinDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="enterprise-label">Email</label>
+                <Input 
+                  value={editingEmployee.email} 
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="enterprise-label">Phone</label>
+                <Input 
+                  value={editingEmployee.phone} 
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-4 border-t border-canvas-variant mt-6">
+              <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+              <Button onClick={handleSaveEdit}>Save Changes</Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

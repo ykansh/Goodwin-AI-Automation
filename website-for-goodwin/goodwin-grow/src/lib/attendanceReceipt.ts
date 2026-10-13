@@ -4,7 +4,12 @@ import {
   subDays, 
   getDay, 
   differenceInCalendarDays,
-  isValid
+  isValid,
+  parse,
+  startOfMonth,
+  endOfMonth,
+  getDaysInMonth,
+  addDays
 } from 'date-fns';
 import type { Employee, AttendanceRecord } from './store';
 
@@ -2050,6 +2055,11 @@ export interface PayslipData {
   joinDate?: string;
   month: string;
   basicSalary: number;
+  totalDaysInMonth?: number;
+  perDaySalary?: number;
+  presentDays?: number;
+  absentDays?: number;
+  attendanceDeduction?: number;
   allowances: number;
   deductions: number;
   netSalary: number;
@@ -2057,20 +2067,164 @@ export interface PayslipData {
   sundayExtraDays?: number;
   sundayOvertimeBonus?: number;
   sundayDates?: string[];
+  salaryType?: 'Salary' | 'Stipend';
 }
 
 /**
  * Generate a standalone, printable, authentic HTML payslip for an employee.
  */
+export interface MonthAttendancePayroll {
+  totalDaysInMonth: number;
+  perDaySalary: number;
+  presentDays: number;
+  absentDays: number;
+  sundayExtraDays: number;
+  sundayDates: string[];
+  attendanceDeduction: number;
+  sundayBonus: number;
+  grossEarnings: number;
+  totalDeductions: number;
+  netSalary: number;
+}
+
+/**
+ * Calculate dynamic monthly payroll & attendance breakdown based on employee records
+ */
+export const calculateMonthAttendancePayroll = (
+  employeeName: string,
+  monthStr: string,
+  basicSalary: number,
+  attendance: Record<string, Record<string, AttendanceRecord>>,
+  options?: {
+    allowances?: number;
+    otherDeductions?: number;
+    overrideAbsentDays?: number;
+    overrideSundayExtraDays?: number;
+    joinDate?: string;
+    leaves?: any[];
+  }
+): MonthAttendancePayroll => {
+  let parsedMonth: Date;
+  try {
+    parsedMonth = parse(monthStr, 'MMM yyyy', new Date());
+    if (!isValid(parsedMonth)) parsedMonth = new Date();
+  } catch {
+    parsedMonth = new Date();
+  }
+
+  const mStart = startOfMonth(parsedMonth);
+  const mEnd = endOfMonth(parsedMonth);
+  const totalDaysInMonth = getDaysInMonth(parsedMonth) || 30;
+
+  // Per day salary rate based on calendar days in month
+  const perDaySalary = totalDaysInMonth > 0 ? Math.round((basicSalary / totalDaysInMonth) * 100) / 100 : 0;
+
+  let autoPresentDays = 0;
+  let autoAbsentDays = 0;
+  let autoSundayExtraDays = 0;
+  const sundayDates: string[] = [];
+
+  const trimmedEmpName = (employeeName || '').trim().toLowerCase();
+
+  let cur = new Date(mStart);
+  while (cur <= mEnd) {
+    const dStr = format(cur, 'yyyy-MM-dd');
+    const isSunday = getDay(cur) === 0;
+
+    const dayRec = attendance[dStr];
+    let empRec: AttendanceRecord | null = null;
+    if (dayRec) {
+      if (dayRec[employeeName]) {
+        empRec = dayRec[employeeName];
+      } else {
+        const found = Object.entries(dayRec).find(([k]) => k.trim().toLowerCase() === trimmedEmpName);
+        if (found) empRec = found[1];
+      }
+    }
+
+    if (isSunday) {
+      if (empRec && (empRec.status === 'Present' || empRec.status === 'Half-Day')) {
+        const extra = empRec.status === 'Present' ? 1.0 : 0.5;
+        autoSundayExtraDays += extra;
+        sundayDates.push(format(cur, 'd MMM') + (extra === 0.5 ? ' (Half-Day)' : ''));
+      }
+    } else {
+      if (empRec) {
+        if (empRec.status === 'Present') {
+          autoPresentDays += 1;
+        } else if (empRec.status === 'Half-Day') {
+          autoPresentDays += 0.5;
+          autoAbsentDays += 0.5;
+        } else if (empRec.status === 'Absent') {
+          autoAbsentDays += 1;
+        }
+      }
+    }
+
+    cur = addDays(cur, 1);
+  }
+
+  const finalAbsentDays = options?.overrideAbsentDays !== undefined 
+    ? options.overrideAbsentDays 
+    : autoAbsentDays;
+
+  const finalSundayExtraDays = options?.overrideSundayExtraDays !== undefined 
+    ? options.overrideSundayExtraDays 
+    : autoSundayExtraDays;
+
+  const finalPresentDays = autoPresentDays;
+
+  // Deductions due to attendance: absentDays * perDaySalary
+  const attendanceDeduction = Math.round(finalAbsentDays * perDaySalary);
+
+  // Bonus due to extra Sundays: sundayExtraDays * perDaySalary
+  const sundayBonus = Math.round(finalSundayExtraDays * perDaySalary);
+
+  const allowances = options?.allowances !== undefined 
+    ? options.allowances 
+    : 0;
+
+  const otherDeductions = options?.otherDeductions !== undefined 
+    ? options.otherDeductions 
+    : 0;
+
+  const grossEarnings = Math.round(basicSalary + allowances + sundayBonus);
+  const totalDeductions = Math.round(otherDeductions + attendanceDeduction);
+  const netSalary = Math.max(0, grossEarnings - totalDeductions);
+
+  return {
+    totalDaysInMonth,
+    perDaySalary,
+    presentDays: finalPresentDays,
+    absentDays: finalAbsentDays,
+    sundayExtraDays: finalSundayExtraDays,
+    sundayDates,
+    attendanceDeduction,
+    sundayBonus,
+    grossEarnings,
+    totalDeductions,
+    netSalary
+  };
+};
+
 export const generatePayslipHTML = (data: PayslipData): string => {
   const formatCur = (val: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
   const issueDate = format(new Date(), 'dd MMMM yyyy');
+  const salaryTypeLabel = data.salaryType || 'Salary / Stipend';
+  const totalDaysInMonth = data.totalDaysInMonth || 30;
+  const perDaySalary = data.perDaySalary || (totalDaysInMonth > 0 ? Math.round((data.basicSalary / totalDaysInMonth) * 100) / 100 : 0);
   const sundayExtraDays = data.sundayExtraDays || 0;
   const sundayBonus = data.sundayOvertimeBonus || 0;
   const standardAllowances = Math.max(0, data.allowances - sundayBonus);
   const grossSalary = data.basicSalary + data.allowances;
+  const attendanceDeduction = data.attendanceDeduction !== undefined 
+    ? data.attendanceDeduction 
+    : Math.round((data.absentDays || 0) * perDaySalary);
+  const otherDeductions = Math.max(0, data.deductions - attendanceDeduction);
+  const totalDeductions = attendanceDeduction + otherDeductions;
+  
   const joinDateDisplay = data.joinDate && isValid(parseISO(data.joinDate))
     ? format(parseISO(data.joinDate), 'dd MMM yyyy')
     : (data.joinDate || 'N/A');
@@ -2151,7 +2305,7 @@ export const generatePayslipHTML = (data: PayslipData): string => {
       border: 1px solid #e2e8f0;
       border-radius: 8px;
       padding: 16px 20px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       font-size: 13px;
     }
     .info-row {
@@ -2167,6 +2321,44 @@ export const generatePayslipHTML = (data: PayslipData): string => {
       color: #0f172a;
       font-weight: 600;
       text-align: right;
+    }
+    .att-summary-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+    .att-summary-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #166534;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .att-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+    .att-card {
+      background: #ffffff;
+      border: 1px solid #dcfce7;
+      border-radius: 6px;
+      padding: 8px 4px;
+    }
+    .att-num {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .att-label {
+      font-size: 10px;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 2px;
     }
     .salary-tables {
       display: grid;
@@ -2211,6 +2403,14 @@ export const generatePayslipHTML = (data: PayslipData): string => {
     }
     .sunday-highlight td {
       color: #854d0e;
+      font-weight: 600;
+    }
+    .deduct-highlight {
+      background: #fef2f2;
+      border-left: 3px solid #ef4444;
+    }
+    .deduct-highlight td {
+      color: #991b1b;
       font-weight: 600;
     }
     .net-box {
@@ -2296,7 +2496,7 @@ export const generatePayslipHTML = (data: PayslipData): string => {
         <div class="company-sub">HRMS & Payroll System • Enterprise Operations</div>
       </div>
       <div class="payslip-badge">
-        <h2>Salary Slip</h2>
+        <h2>${salaryTypeLabel} Slip</h2>
         <span>${data.month}</span>
       </div>
     </div>
@@ -2308,9 +2508,36 @@ export const generatePayslipHTML = (data: PayslipData): string => {
         <div class="info-row"><span class="info-label">Employee ID:</span><span class="info-val">${data.employeeId ? data.employeeId.slice(0, 8).toUpperCase() : 'EMP-AUT'}</span></div>
       </div>
       <div>
-        <div class="info-row"><span class="info-label">Date of Joining:</span><span class="info-val">${joinDateDisplay}</span></div>
-        <div class="info-row"><span class="info-label">Payment Status:</span><span class="info-val" style="color: ${data.status === 'Paid' ? '#16a34a' : '#d97706'}">${data.status}</span></div>
-        <div class="info-row"><span class="info-label">Issue Date:</span><span class="info-val">${issueDate}</span></div>
+        <div class="info-row"><span class="info-label">Date of Joining:</span><span class="info-val" style="color:#2563eb;">${joinDateDisplay}</span></div>
+        <div class="info-row"><span class="info-label">Disbursement Status:</span><span class="info-val" style="color: ${data.status === 'Paid' ? '#16a34a' : '#d97706'}">${data.status}</span></div>
+        <div class="info-row"><span class="info-label">Statement Date:</span><span class="info-val">${issueDate}</span></div>
+      </div>
+    </div>
+
+    <!-- Attendance Section Link & Summary -->
+    <div class="att-summary-box">
+      <div class="att-summary-title">📊 Attendance Summary (${data.month})</div>
+      <div class="att-grid">
+        <div class="att-card">
+          <div class="att-num">${totalDaysInMonth}</div>
+          <div class="att-label">Month Days</div>
+        </div>
+        <div class="att-card">
+          <div class="att-num" style="color:#16a34a;">${data.presentDays ?? '—'}</div>
+          <div class="att-label">Days Present</div>
+        </div>
+        <div class="att-card">
+          <div class="att-num" style="color:${(data.absentDays || 0) > 0 ? '#dc2626' : '#475569'};">${data.absentDays ?? 0}</div>
+          <div class="att-label">Days Absent / Off</div>
+        </div>
+        <div class="att-card">
+          <div class="att-num" style="color:#d97706;">${sundayExtraDays}</div>
+          <div class="att-label">⭐ Extra Sun Worked</div>
+        </div>
+        <div class="att-card">
+          <div class="att-num" style="color:#2563eb;">${formatCur(perDaySalary)}</div>
+          <div class="att-label">Per-Day Rate</div>
+        </div>
       </div>
     </div>
 
@@ -2325,7 +2552,7 @@ export const generatePayslipHTML = (data: PayslipData): string => {
           </thead>
           <tbody>
             <tr>
-              <td>Basic Salary</td>
+              <td>Basic ${salaryTypeLabel}</td>
               <td class="amount">${formatCur(data.basicSalary)}</td>
             </tr>
             <tr>
@@ -2337,7 +2564,7 @@ export const generatePayslipHTML = (data: PayslipData): string => {
               <td>
                 ⭐ Sunday Extra Days Worked
                 <div style="font-size:11px; color:#a16207; font-weight:normal;">
-                  ${sundayExtraDays} Sunday(s) worked @ overtime rate
+                  ${sundayExtraDays} Sunday(s) worked @ ${formatCur(perDaySalary)}/day
                   ${data.sundayDates && data.sundayDates.length > 0 ? `(${data.sundayDates.join(', ')})` : ''}
                 </div>
               </td>
@@ -2366,21 +2593,33 @@ export const generatePayslipHTML = (data: PayslipData): string => {
             </tr>
           </thead>
           <tbody>
+            ${attendanceDeduction > 0 ? `
+            <tr class="deduct-highlight">
+              <td>
+                Attendance Deduction (Leaves / Off)
+                <div style="font-size:11px; color:#b91c1c; font-weight:normal;">
+                  ${data.absentDays || 0} day(s) absent @ ${formatCur(perDaySalary)}/day
+                </div>
+              </td>
+              <td class="amount" style="color:#b91c1c;">-${formatCur(attendanceDeduction)}</td>
+            </tr>
+            ` : `
             <tr>
-              <td>PF & Statutory Deductions (5%)</td>
-              <td class="amount">${formatCur(data.deductions)}</td>
+              <td>Attendance Deduction</td>
+              <td class="amount" style="color:#94a3b8;">₹0 (Full Attendance)</td>
+            </tr>
+            `}
+            <tr>
+              <td>Statutory & Other Deductions</td>
+              <td class="amount">${formatCur(otherDeductions)}</td>
             </tr>
             <tr>
               <td>TDS / Income Tax</td>
               <td class="amount">₹0</td>
             </tr>
-            <tr>
-              <td>Other Deductions</td>
-              <td class="amount">₹0</td>
-            </tr>
             <tr class="total-row">
               <td>Total Deductions</td>
-              <td class="amount">${formatCur(data.deductions)}</td>
+              <td class="amount">${formatCur(totalDeductions)}</td>
             </tr>
           </tbody>
         </table>
@@ -2389,17 +2628,19 @@ export const generatePayslipHTML = (data: PayslipData): string => {
 
     <div class="net-box">
       <div>
-        <div class="net-label">NET TAKE-HOME SALARY</div>
+        <div class="net-label">NET TAKE-HOME ${data.salaryType ? data.salaryType.toUpperCase() : 'SALARY / STIPEND'}</div>
         <div style="font-size:12px; color:#15803d; margin-top:2px;">Disbursed via Direct Bank Transfer</div>
       </div>
       <div class="net-amount">${formatCur(data.netSalary)}</div>
     </div>
 
     <div class="notes-box">
-      <strong>HRMS Payroll Notes:</strong><br>
-      • Monthly payroll automatically calculated starting from Date of Joining (<strong>${joinDateDisplay}</strong>).<br>
-      ${sundayExtraDays > 0 ? `• <strong>⭐ Sunday Extra Days Worked:</strong> Employee attended on Sunday (${sundayExtraDays} day(s)), recorded as extra days worked in attendance and credited with bonus.<br>` : ''}
-      • System-generated electronic payslip verified and stored in Supabase HRMS database.
+      <strong>HRMS Payroll Calculation Notes:</strong><br>
+      • Verified Date of Joining: <strong>${joinDateDisplay}</strong>.<br>
+      • Daily Rate Formula: <strong>Basic ${formatCur(data.basicSalary)} ÷ ${totalDaysInMonth} days = ${formatCur(perDaySalary)} / day</strong>.<br>
+      ${attendanceDeduction > 0 ? `• Attendance Deduction: ${data.absentDays} day(s) absent deducted (- ${formatCur(attendanceDeduction)}).<br>` : '• Attendance: Perfect attendance recorded during this period.<br>'}
+      ${sundayExtraDays > 0 ? `• <strong>⭐ Sunday Extra Days Worked:</strong> Employee clocked ${sundayExtraDays} Sunday(s), credited with overtime bonus (+ ${formatCur(sundayBonus)}).<br>` : ''}
+      • Net Salary / Stipend dynamically calculated: Basic (${formatCur(data.basicSalary)}) + Allowances (${formatCur(standardAllowances)}) + Sunday Bonus (${formatCur(sundayBonus)}) - Attendance Deduction (${formatCur(attendanceDeduction)}) - Other Deductions (${formatCur(otherDeductions)}) = <strong>${formatCur(data.netSalary)}</strong>.
     </div>
 
     <div class="signatures">

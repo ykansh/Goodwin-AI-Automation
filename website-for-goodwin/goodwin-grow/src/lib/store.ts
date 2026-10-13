@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from './supabase';
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, addDays, getDay, isValid } from 'date-fns';
+import { calculateMonthAttendancePayroll } from './attendanceReceipt';
 
 export interface Employee {
   id: string;
@@ -47,8 +48,15 @@ export interface PayrollRecord {
   net: number;
   status: string;
   joinDate?: string;
+  totalDaysInMonth?: number;
+  perDaySalary?: number;
+  presentDays?: number;
+  absentDays?: number;
+  attendanceDeduction?: number;
   sundayExtraDays?: number;
   sundayOvertimeBonus?: number;
+  sundayDates?: string[];
+  salaryType?: 'Salary' | 'Stipend';
 }
 
 export interface Candidate {
@@ -82,7 +90,7 @@ export interface GlobalState {
 
   // HRMS - Employees
   employees: Employee[];
-  addEmployee: (employee: Omit<Employee, 'id' | 'joinDate'>) => Promise<void>;
+  addEmployee: (employee: Omit<Employee, 'id' | 'joinDate'> & { joinDate?: string }) => Promise<void>;
   updateEmployee: (id: string, employee: Partial<Employee>) => Promise<void>;
   deleteEmployee: (id: string) => Promise<void>;
 
@@ -103,7 +111,7 @@ export interface GlobalState {
   payroll: PayrollRecord[];
   runPayroll: () => Promise<void>;
   syncPayrollsFromJoiningDate: () => Promise<{ generatedCount: number }>;
-  updatePayroll: (id: string, record: Partial<PayrollRecord>) => Promise<void>;
+  updatePayroll: (id: string, record: Partial<PayrollRecord>, updateEmployeeMaster?: { salary?: number; joinDate?: string }) => Promise<void>;
   deletePayroll: (id: string) => Promise<void>;
 
   // HRMS - Recruitment & Onboarding
@@ -131,6 +139,9 @@ export interface GlobalState {
   
   fetchInitialData: () => Promise<void>;
 }
+
+// In-flight mutex promise to prevent concurrent duplicate generation runs
+let syncPayrollsInFlightPromise: Promise<{ generatedCount: number }> | null = null;
 
 export const useStore = create<GlobalState>((set, get) => ({
   isLoading: false,
@@ -208,20 +219,56 @@ export const useStore = create<GlobalState>((set, get) => ({
       const { data: payrollData, error: payrollError } = await supabase.from('payroll').select('*');
       if (payrollError && payrollError.code !== '42P01') throw payrollError;
       
-      const payroll = (payrollData || []).map(p => {
-        const emp = employees.find(e => e.id === p.employee_id);
-        return {
+      const seenPayroll = new Set<string>();
+      const payroll: PayrollRecord[] = [];
+      (payrollData || []).forEach(p => {
+        const key = `${p.employee_id}_${p.month}`;
+        if (seenPayroll.has(key)) return; // Skip any duplicate rows in DB
+        seenPayroll.add(key);
+
+        const emp = employees.find(e => e.id === p.employee_id || e.name.trim().toLowerCase() === (p.employee_name || '').trim().toLowerCase());
+        const basic = (p.basic_salary !== undefined && p.basic_salary !== null && p.basic_salary > 0)
+          ? p.basic_salary 
+          : (emp && emp.salary > 0 ? emp.salary : 10000);
+
+        const isIntern = emp?.type === 'Intern' || (emp?.role && emp.role.toLowerCase().includes('intern'));
+
+        const attStats = calculateMonthAttendancePayroll(
+          emp ? emp.name : 'Unknown',
+          p.month,
+          basic,
+          attendanceObj,
+          {
+            allowances: p.allowances !== undefined && p.allowances !== null ? p.allowances : undefined,
+            otherDeductions: p.deductions !== undefined && p.deductions !== null ? p.deductions : undefined
+          }
+        );
+
+        const allowances = p.allowances !== undefined && p.allowances !== null ? p.allowances : attStats.sundayBonus;
+        const deductions = p.deductions !== undefined && p.deductions !== null ? p.deductions : attStats.attendanceDeduction;
+        const net = p.net_salary !== undefined && p.net_salary !== null ? p.net_salary : Math.max(0, basic + allowances - deductions);
+
+        payroll.push({
           id: p.id,
           employeeId: p.employee_id,
           name: emp ? emp.name : 'Unknown',
           month: p.month,
-          basic: p.basic_salary,
-          allowances: p.allowances,
-          deductions: p.deductions,
-          net: p.net_salary,
+          basic,
+          allowances,
+          deductions,
+          net,
           status: p.status,
-          joinDate: emp?.joinDate
-        };
+          joinDate: emp?.joinDate || p.joinDate,
+          totalDaysInMonth: attStats.totalDaysInMonth,
+          perDaySalary: attStats.perDaySalary,
+          presentDays: attStats.presentDays,
+          absentDays: attStats.absentDays,
+          attendanceDeduction: attStats.attendanceDeduction,
+          sundayExtraDays: attStats.sundayExtraDays,
+          sundayOvertimeBonus: attStats.sundayBonus,
+          sundayDates: attStats.sundayDates,
+          salaryType: isIntern ? 'Stipend' : 'Salary'
+        });
       });
 
       // Fetch Candidates
@@ -323,7 +370,7 @@ export const useStore = create<GlobalState>((set, get) => ({
 
   addEmployee: async (emp) => {
     const { data, error } = await supabase.from('employees').insert([{
-      name: emp.name,
+      name: emp.name.trim(),
       role: emp.role,
       type: emp.type,
       salary: emp.salary,
@@ -364,11 +411,13 @@ export const useStore = create<GlobalState>((set, get) => ({
   },
 
   updateEmployee: async (id, updatedFields) => {
-    // Map camelCase back to snake_case if needed
     const dbUpdates: any = { ...updatedFields };
     if (updatedFields.joinDate) {
       dbUpdates.join_date = updatedFields.joinDate;
       delete dbUpdates.joinDate;
+    }
+    if (updatedFields.name) {
+      dbUpdates.name = updatedFields.name.trim();
     }
     
     const { error } = await supabase.from('employees').update(dbUpdates).eq('id', id);
@@ -378,7 +427,22 @@ export const useStore = create<GlobalState>((set, get) => ({
     }
     
     set(state => ({
-      employees: state.employees.map(emp => emp.id === id ? { ...emp, ...updatedFields } : emp)
+      employees: state.employees.map(emp => emp.id === id ? { 
+        ...emp, 
+        ...updatedFields,
+        joinDate: updatedFields.joinDate || emp.joinDate,
+        name: updatedFields.name ? updatedFields.name.trim() : emp.name
+      } : emp),
+      payroll: state.payroll.map(p => {
+        if (p.employeeId === id) {
+          return {
+            ...p,
+            name: updatedFields.name ? updatedFields.name.trim() : p.name,
+            joinDate: updatedFields.joinDate || p.joinDate
+          };
+        }
+        return p;
+      })
     }));
   },
 
@@ -553,110 +617,134 @@ export const useStore = create<GlobalState>((set, get) => ({
   },
 
   syncPayrollsFromJoiningDate: async () => {
-    const state = get();
-    const activeEmployees = state.employees.filter(e => e.status === 'active');
-    if (activeEmployees.length === 0) return { generatedCount: 0 };
+    // If a sync is already running in flight, wait for it instead of spawning a duplicate
+    if (syncPayrollsInFlightPromise) {
+      return syncPayrollsInFlightPromise;
+    }
 
-    const today = new Date();
-    const currentMonthDate = startOfMonth(today);
-    const payrollInserts: any[] = [];
-    const existingPayroll = state.payroll;
+    syncPayrollsInFlightPromise = (async () => {
+      try {
+        const state = get();
+        const activeEmployees = state.employees.filter(e => e.status === 'active');
+        if (activeEmployees.length === 0) return { generatedCount: 0 };
 
-    activeEmployees.forEach(emp => {
-      let joinMonthDate: Date;
-      if (emp.joinDate && isValid(parseISO(emp.joinDate))) {
-        joinMonthDate = startOfMonth(parseISO(emp.joinDate));
-      } else {
-        joinMonthDate = currentMonthDate;
-      }
+        // 1. Fetch live DB payroll records directly from Supabase to prevent race conditions
+        const { data: dbPayroll } = await supabase.from('payroll').select('employee_id, month');
+        const existingKeys = new Set<string>();
+        (dbPayroll || []).forEach(r => existingKeys.add(`${r.employee_id}_${r.month}`));
+        state.payroll.forEach(p => existingKeys.add(`${p.employeeId || (p as any).employee_id}_${p.month}`));
 
-      if (joinMonthDate > currentMonthDate) {
-        joinMonthDate = currentMonthDate;
-      }
+        const today = new Date();
+        const currentMonthDate = startOfMonth(today);
+        const payrollInserts: any[] = [];
 
-      let mCursor = new Date(joinMonthDate);
-      while (mCursor <= currentMonthDate) {
-        const monthLabel = format(mCursor, 'MMM yyyy');
-
-        const alreadyExists = existingPayroll.some(p => 
-          (p.employeeId === emp.id || (p as any).employee_id === emp.id) && 
-          p.month === monthLabel
-        );
-
-        if (!alreadyExists) {
-          const basic = emp.salary && emp.salary > 0 ? emp.salary : 15000;
-
-          // Count Extra Days worked on Sunday in this month
-          let sundayExtraDays = 0;
-          const mStart = startOfMonth(mCursor);
-          const mEnd = endOfMonth(mCursor);
-          let dCursor = new Date(mStart);
-          while (dCursor <= mEnd && dCursor <= today) {
-            if (getDay(dCursor) === 0) {
-              const dStr = format(dCursor, 'yyyy-MM-dd');
-              const dayRec = state.attendance[dStr];
-              if (dayRec) {
-                const rec = dayRec[emp.name] || Object.entries(dayRec).find(([k]) => k.trim().toLowerCase() === emp.name.trim().toLowerCase())?.[1];
-                if (rec?.status === 'Present') {
-                  sundayExtraDays += 1;
-                } else if (rec?.status === 'Half-Day') {
-                  sundayExtraDays += 0.5;
-                }
-              }
-            }
-            dCursor = addDays(dCursor, 1);
+        activeEmployees.forEach(emp => {
+          let joinMonthDate: Date;
+          if (emp.joinDate && isValid(parseISO(emp.joinDate))) {
+            joinMonthDate = startOfMonth(parseISO(emp.joinDate));
+          } else {
+            joinMonthDate = currentMonthDate;
           }
 
-          const sundayOvertimeBonus = Math.round(sundayExtraDays * (basic / 30));
-          const standardAllowances = Math.round(basic * 0.1);
-          const allowances = standardAllowances + sundayOvertimeBonus;
-          const deductions = Math.round(basic * 0.05);
-          const net = basic + allowances - deductions;
-          const status = mCursor < currentMonthDate ? 'Paid' : 'Pending';
+          if (joinMonthDate > currentMonthDate) {
+            joinMonthDate = currentMonthDate;
+          }
 
-          payrollInserts.push({
-            employee_id: emp.id,
-            month: monthLabel,
-            basic_salary: basic,
-            allowances,
-            deductions,
-            net_salary: net,
-            status
-          });
+          let mCursor = new Date(joinMonthDate);
+          while (mCursor <= currentMonthDate) {
+            const monthLabel = format(mCursor, 'MMM yyyy');
+            const key = `${emp.id}_${monthLabel}`;
+
+            if (!existingKeys.has(key)) {
+              existingKeys.add(key); // Mark as pending insertion in this batch
+
+              const basic = emp.salary && emp.salary > 0 ? emp.salary : 10000;
+
+              const attStats = calculateMonthAttendancePayroll(
+                emp.name,
+                monthLabel,
+                basic,
+                state.attendance
+              );
+
+              const allowances = attStats.sundayBonus;
+              const deductions = attStats.attendanceDeduction;
+              const net = Math.max(0, basic + allowances - deductions);
+              const status = mCursor < currentMonthDate ? 'Paid' : 'Pending';
+
+              payrollInserts.push({
+                employee_id: emp.id,
+                month: monthLabel,
+                basic_salary: basic,
+                allowances,
+                deductions,
+                net_salary: net,
+                status
+              });
+            }
+
+            mCursor = addMonths(mCursor, 1);
+          }
+        });
+
+        if (payrollInserts.length === 0) {
+          return { generatedCount: 0 };
         }
 
-        mCursor = addMonths(mCursor, 1);
+        const { data, error } = await supabase.from('payroll').insert(payrollInserts).select();
+        if (error) {
+          console.error('Failed to insert auto-generated payrolls:', error);
+          throw error;
+        }
+
+        const newRecords: PayrollRecord[] = (data || []).map(p => {
+          const emp = state.employees.find(e => e.id === p.employee_id);
+          const basic = p.basic_salary;
+          const attStats = calculateMonthAttendancePayroll(
+            emp ? emp.name : 'Unknown',
+            p.month,
+            basic,
+            state.attendance
+          );
+          const isIntern = emp?.type === 'Intern' || (emp?.role && emp.role.toLowerCase().includes('intern'));
+
+          return {
+            id: p.id,
+            employeeId: p.employee_id,
+            name: emp ? emp.name : 'Unknown',
+            month: p.month,
+            basic: p.basic_salary,
+            allowances: p.allowances,
+            deductions: p.deductions,
+            net: p.net_salary,
+            status: p.status,
+            joinDate: emp?.joinDate,
+            totalDaysInMonth: attStats.totalDaysInMonth,
+            perDaySalary: attStats.perDaySalary,
+            presentDays: attStats.presentDays,
+            absentDays: attStats.absentDays,
+            attendanceDeduction: attStats.attendanceDeduction,
+            sundayExtraDays: attStats.sundayExtraDays,
+            sundayOvertimeBonus: attStats.sundayBonus,
+            sundayDates: attStats.sundayDates,
+            salaryType: isIntern ? 'Stipend' : 'Salary'
+          };
+        });
+
+        set(state => {
+          const map = new Map<string, PayrollRecord>();
+          state.payroll.forEach(p => map.set(`${p.employeeId}_${p.month}`, p));
+          newRecords.forEach(p => map.set(`${p.employeeId}_${p.month}`, p));
+          return { payroll: Array.from(map.values()) };
+        });
+
+        return { generatedCount: newRecords.length };
+      } finally {
+        syncPayrollsInFlightPromise = null;
       }
-    });
+    })();
 
-    if (payrollInserts.length === 0) {
-      return { generatedCount: 0 };
-    }
-
-    const { data, error } = await supabase.from('payroll').insert(payrollInserts).select();
-    if (error) {
-      console.error('Failed to insert auto-generated payrolls:', error);
-      throw error;
-    }
-
-    const newRecords: PayrollRecord[] = (data || []).map(p => {
-      const emp = state.employees.find(e => e.id === p.employee_id);
-      return {
-        id: p.id,
-        employeeId: p.employee_id,
-        name: emp ? emp.name : 'Unknown',
-        month: p.month,
-        basic: p.basic_salary,
-        allowances: p.allowances,
-        deductions: p.deductions,
-        net: p.net_salary,
-        status: p.status,
-        joinDate: emp?.joinDate
-      };
-    });
-
-    set(state => ({ payroll: [...state.payroll, ...newRecords] }));
-    return { generatedCount: newRecords.length };
+    return syncPayrollsInFlightPromise;
   },
 
   runPayroll: async () => {
@@ -666,7 +754,7 @@ export const useStore = create<GlobalState>((set, get) => ({
     }
   },
 
-  updatePayroll: async (id, updatedFields) => {
+  updatePayroll: async (id, updatedFields, updateEmployeeMaster) => {
     const dbUpdates: any = {};
     if (updatedFields.month !== undefined) dbUpdates.month = updatedFields.month;
     if (updatedFields.basic !== undefined) dbUpdates.basic_salary = updatedFields.basic;
@@ -677,9 +765,58 @@ export const useStore = create<GlobalState>((set, get) => ({
 
     const { error } = await supabase.from('payroll').update(dbUpdates).eq('id', id);
     if (error) throw error;
+
+    // Optional sync to Employee Master (salary or joinDate)
+    const existingRec = get().payroll.find(p => p.id === id);
+    const empId = existingRec?.employeeId;
+
+    if (empId && updateEmployeeMaster) {
+      const empDbUpdates: any = {};
+      if (updateEmployeeMaster.salary !== undefined) empDbUpdates.salary = updateEmployeeMaster.salary;
+      if (updateEmployeeMaster.joinDate !== undefined) empDbUpdates.join_date = updateEmployeeMaster.joinDate;
+
+      if (Object.keys(empDbUpdates).length > 0) {
+        await supabase.from('employees').update(empDbUpdates).eq('id', empId);
+        set(state => ({
+          employees: state.employees.map(e => e.id === empId ? {
+            ...e,
+            salary: updateEmployeeMaster.salary !== undefined ? updateEmployeeMaster.salary : e.salary,
+            joinDate: updateEmployeeMaster.joinDate !== undefined ? updateEmployeeMaster.joinDate : e.joinDate
+          } : e)
+        }));
+      }
+    }
     
     set(state => ({
-      payroll: state.payroll.map(p => p.id === id ? { ...p, ...updatedFields } : p)
+      payroll: state.payroll.map(p => {
+        if (p.id === id) {
+          const updatedBasic = updatedFields.basic !== undefined ? updatedFields.basic : p.basic;
+          const attStats = calculateMonthAttendancePayroll(
+            p.name,
+            updatedFields.month || p.month,
+            updatedBasic,
+            state.attendance,
+            {
+              allowances: updatedFields.allowances,
+              otherDeductions: updatedFields.deductions
+            }
+          );
+          return { 
+            ...p, 
+            ...updatedFields,
+            joinDate: updateEmployeeMaster?.joinDate || p.joinDate,
+            totalDaysInMonth: attStats.totalDaysInMonth,
+            perDaySalary: attStats.perDaySalary,
+            presentDays: attStats.presentDays,
+            absentDays: attStats.absentDays,
+            attendanceDeduction: attStats.attendanceDeduction,
+            sundayExtraDays: attStats.sundayExtraDays,
+            sundayOvertimeBonus: attStats.sundayBonus,
+            sundayDates: attStats.sundayDates
+          };
+        }
+        return p;
+      })
     }));
   },
 
