@@ -23,10 +23,21 @@ import {
   TrendingUp,
   Trash2,
   Download,
+  Sparkles,
+  FileText,
 } from 'lucide-react';
 
 export default function SalesPage() {
-  const { invoices, addInvoice, deleteInvoice, business, selectedCompany, isAdmin, isEmployee } = useApp();
+  const {
+    invoices,
+    addInvoice,
+    deleteInvoice,
+    convertQuotationToInvoice,
+    business,
+    selectedCompany,
+    isAdmin,
+    isEmployee,
+  } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('ALL');
@@ -34,6 +45,7 @@ export default function SalesPage() {
 
   // Modals
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
+  const [billingModalType, setBillingModalType] = useState<'TAX_INVOICE' | 'QUOTATION'>('TAX_INVOICE');
   const [viewingInvoice, setViewingInvoice] = useState<MockInvoice | null>(null);
 
   // Financial Metrics
@@ -101,7 +113,21 @@ export default function SalesPage() {
               </button>
 
               <button
-                onClick={() => setIsBillingModalOpen(true)}
+                onClick={() => {
+                  setBillingModalType('QUOTATION');
+                  setIsBillingModalOpen(true);
+                }}
+                className="h-9 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all active:scale-[0.98]"
+              >
+                <FileText size={15} className="text-amber-700" />
+                <span>+ Quotation / Estimate</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setBillingModalType('TAX_INVOICE');
+                  setIsBillingModalOpen(true);
+                }}
                 className="h-9 px-4 rounded-xl bg-[#db631a] hover:bg-[#c45312] text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-[0.98]"
               >
                 <Plus size={16} />
@@ -274,8 +300,16 @@ export default function SalesPage() {
 
                         {/* Type Badge */}
                         <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
-                            {inv.invoiceType}
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              inv.invoiceType === 'QUOTATION'
+                                ? 'bg-amber-100 text-amber-800'
+                                : inv.invoiceType === 'BILL_OF_SUPPLY'
+                                ? 'bg-slate-200 text-slate-800'
+                                : 'bg-indigo-50 text-[#4c3cce]'
+                            }`}
+                          >
+                            {inv.invoiceType === 'QUOTATION' ? 'Quotation' : inv.invoiceType}
                           </span>
                         </td>
 
@@ -286,27 +320,57 @@ export default function SalesPage() {
 
                         {/* Balance Due */}
                         <td className="py-3 px-3 text-right font-semibold text-rose-600">
-                          {inv.balanceAmount > 0 ? formatINR(inv.balanceAmount) : '—'}
+                          {inv.invoiceType === 'QUOTATION'
+                            ? '—'
+                            : inv.balanceAmount > 0
+                            ? formatINR(inv.balanceAmount)
+                            : '—'}
                         </td>
 
                         {/* Status */}
                         <td className="py-3 px-3 text-center">
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              inv.paymentStatus === 'PAID'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : inv.paymentStatus === 'PARTIAL'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-rose-100 text-rose-800'
-                            }`}
-                          >
-                            {inv.paymentStatus}
-                          </span>
+                          {inv.invoiceType === 'QUOTATION' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              Estimate
+                            </span>
+                          ) : (
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                inv.paymentStatus === 'PAID'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : inv.paymentStatus === 'PARTIAL'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-rose-100 text-rose-800'
+                              }`}
+                            >
+                              {inv.paymentStatus}
+                            </span>
+                          )}
                         </td>
 
                         {/* Actions */}
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center gap-1.5">
+                            {/* Convert Quotation to Invoice Button */}
+                            {inv.invoiceType === 'QUOTATION' && (
+                              <button
+                                onClick={async () => {
+                                  if (
+                                    confirm(
+                                      `Convert quotation ${inv.invoiceNumber} to an active Tax Invoice? Stock and Khata will be updated.`
+                                    )
+                                  ) {
+                                    await convertQuotationToInvoice(inv.id);
+                                    alert('Quotation converted to Tax Invoice successfully!');
+                                  }
+                                }}
+                                title="Convert to Tax Invoice"
+                                className="p-1.5 rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50 transition-colors"
+                              >
+                                <Sparkles size={15} />
+                              </button>
+                            )}
+
                             {/* View & Print Modal */}
                             <button
                               onClick={() => setViewingInvoice(inv)}
@@ -373,6 +437,7 @@ export default function SalesPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
+        initialType={billingModalType}
       />
     </div>
   );

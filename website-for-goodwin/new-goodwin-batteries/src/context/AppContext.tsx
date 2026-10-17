@@ -22,6 +22,7 @@ import {
   deleteCustomerInSupabase,
   fetchInvoicesFromSupabase,
   insertInvoiceToSupabase,
+  updateInvoiceInSupabase,
   deleteInvoiceInSupabase,
   fetchPaymentsFromSupabase,
   insertPaymentToSupabase,
@@ -168,6 +169,14 @@ interface AppContextType {
   updateParty: (id: string, updated: Partial<MockParty>) => Promise<void>;
   deleteParty: (id: string) => Promise<void>;
   addInvoice: (invoice: MockInvoice) => Promise<MockInvoice>;
+  convertQuotationToInvoice: (
+    quotationId: string,
+    params?: {
+      paymentStatus?: 'PAID' | 'PARTIAL' | 'UNPAID';
+      paymentMode?: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE';
+      paidAmount?: number;
+    }
+  ) => Promise<MockInvoice | null>;
   deleteInvoice: (id: string) => Promise<void>;
   recordPayment: (payment: Omit<PaymentRecord, 'id'>) => Promise<void>;
   addBankAccount: (bank: Omit<BankAccount, 'id'>) => void;
@@ -497,7 +506,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await deleteCustomerInSupabase(id);
   };
 
-  // Add Invoice (Syncs to Supabase & decrements item stock)
+  // Add Invoice (Syncs to Supabase & decrements item stock if not quotation)
   const addInvoice = async (invoice: MockInvoice): Promise<MockInvoice> => {
     // Insert into Supabase
     const saved = await insertInvoiceToSupabase(invoice, selectedCompany.code);
@@ -510,9 +519,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ),
     ]);
 
-    // Update Cash balance if paid
+    // If it's a Quotation, it is just an estimate - do not deduct inventory, balance, or cash
+    if (finalInvoice.invoiceType === 'QUOTATION') {
+      return finalInvoice;
+    }
+
+    // Update Cash / Bank balance if paid
     if (finalInvoice.paidAmount > 0) {
-      setCashInHand((prev) => prev + finalInvoice.paidAmount);
+      if (finalInvoice.paymentMode === 'CASH') {
+        setCashInHand((prev) => prev + finalInvoice.paidAmount);
+      } else {
+        setBankAccounts((prev) =>
+          prev.map((b) =>
+            b.isDefault ? { ...b, balance: b.balance + finalInvoice.paidAmount } : b
+          )
+        );
+      }
+
+      // Record a PAYMENT_IN receipt into payments list and Supabase
+      const matchingParty = parties.find(
+        (p) => p.name.toLowerCase() === finalInvoice.partyName.toLowerCase()
+      );
+      if (matchingParty) {
+        const receiptPayment: Omit<PaymentRecord, 'id'> = {
+          partyId: matchingParty.id,
+          partyName: matchingParty.name,
+          type: 'PAYMENT_IN',
+          amount: finalInvoice.paidAmount,
+          paymentMode: finalInvoice.paymentMode || 'UPI',
+          referenceNumber: `INV-${finalInvoice.invoiceNumber}`,
+          date: finalInvoice.invoiceDate,
+          notes: `Receipt for invoice ${finalInvoice.invoiceNumber}`,
+        };
+        const newPaymentRecord: PaymentRecord = {
+          ...receiptPayment,
+          id: `pay-${Date.now()}`,
+        };
+        setPayments((prev) => [newPaymentRecord, ...prev]);
+        insertPaymentToSupabase(receiptPayment, selectedCompany.code);
+      }
     }
 
     // Decrement item inventory in state & Supabase
@@ -544,6 +589,117 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     return finalInvoice;
+  };
+
+  // Convert Quotation to Confirmed Tax Invoice
+  const convertQuotationToInvoice = async (
+    quotationId: string,
+    params?: {
+      paymentStatus?: 'PAID' | 'PARTIAL' | 'UNPAID';
+      paymentMode?: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE';
+      paidAmount?: number;
+    }
+  ): Promise<MockInvoice | null> => {
+    const target = invoices.find((inv) => inv.id === quotationId);
+    if (!target) return null;
+
+    const prefix = selectedCompany?.code === 'goodwin-2' ? 'GB2-INV' : 'GW-INV';
+    const randNum = Math.floor(100000 + Math.random() * 900000);
+    const newInvoiceNumber = `${prefix}-${randNum}`;
+
+    const paymentStatus = params?.paymentStatus || 'PAID';
+    const paymentMode = params?.paymentMode || 'UPI';
+    const paidAmount =
+      paymentStatus === 'PAID'
+        ? target.totalAmount
+        : paymentStatus === 'PARTIAL'
+        ? Number(params?.paidAmount) || 0
+        : 0;
+    const balanceAmount = Math.max(0, target.totalAmount - paidAmount);
+
+    const converted: MockInvoice = {
+      ...target,
+      invoiceNumber: newInvoiceNumber,
+      invoiceType: 'TAX_INVOICE',
+      paymentStatus,
+      paymentMode,
+      paidAmount,
+      balanceAmount,
+    };
+
+    // Update in Supabase
+    await updateInvoiceInSupabase(target.id, {
+      invoiceNumber: newInvoiceNumber,
+      invoiceType: 'TAX_INVOICE',
+      paymentStatus,
+      paymentMode,
+      balanceAmount,
+    });
+
+    // Update invoices state
+    setInvoices((prev) => prev.map((inv) => (inv.id === target.id ? converted : inv)));
+
+    // Adjust item stock
+    converted.items.forEach((line) => {
+      setItems((prev) =>
+        prev.map((item) => {
+          if (item.id === line.itemId) {
+            const nextStock = Math.max(0, item.stock - line.quantity);
+            updateProductInSupabase(item.id, { stock: nextStock });
+            return { ...item, stock: nextStock };
+          }
+          return item;
+        })
+      );
+    });
+
+    // Update cash/bank & party balance
+    if (paidAmount > 0) {
+      if (paymentMode === 'CASH') {
+        setCashInHand((prev) => prev + paidAmount);
+      } else {
+        setBankAccounts((prev) =>
+          prev.map((b) => (b.isDefault ? { ...b, balance: b.balance + paidAmount } : b))
+        );
+      }
+
+      const matchingParty = parties.find(
+        (p) => p.name.toLowerCase() === converted.partyName.toLowerCase()
+      );
+      if (matchingParty) {
+        const receiptPayment: Omit<PaymentRecord, 'id'> = {
+          partyId: matchingParty.id,
+          partyName: matchingParty.name,
+          type: 'PAYMENT_IN',
+          amount: paidAmount,
+          paymentMode,
+          referenceNumber: `INV-${newInvoiceNumber}`,
+          date: converted.invoiceDate,
+          notes: `Receipt for invoice ${newInvoiceNumber}`,
+        };
+        const newPaymentRecord: PaymentRecord = {
+          ...receiptPayment,
+          id: `pay-${Date.now()}`,
+        };
+        setPayments((prev) => [newPaymentRecord, ...prev]);
+        insertPaymentToSupabase(receiptPayment, selectedCompany.code);
+      }
+    }
+
+    if (balanceAmount > 0) {
+      setParties((prev) =>
+        prev.map((party) => {
+          if (party.name.toLowerCase() === converted.partyName.toLowerCase()) {
+            const nextBalance = party.currentBalance + balanceAmount;
+            updateCustomerInSupabase(party.id, { currentBalance: nextBalance });
+            return { ...party, currentBalance: nextBalance };
+          }
+          return party;
+        })
+      );
+    }
+
+    return converted;
   };
 
   // Delete Invoice (Syncs to Supabase)
@@ -709,6 +865,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateParty,
         deleteParty,
         addInvoice,
+        convertQuotationToInvoice,
         deleteInvoice,
         recordPayment,
         addBankAccount,

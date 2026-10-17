@@ -533,6 +533,18 @@ export async function fetchInvoicesFromSupabase(companyCode: 'goodwin-1' | 'good
       const gstin = inv.customer_gstin || '';
       const stateCode = gstin.length >= 2 && !isNaN(Number(gstin.slice(0, 2))) ? gstin.slice(0, 2) : '23';
 
+      let meta: any = {};
+      if (inv.notes && inv.notes.includes('[META:')) {
+        try {
+          const match = inv.notes.match(/\[META:(.*?)\]/);
+          if (match && match[1]) {
+            meta = JSON.parse(match[1]);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       let items: MockInvoiceItem[] = [];
       if (Array.isArray(inv.items)) {
         items = inv.items.map((i: any) => ({
@@ -554,14 +566,29 @@ export async function fetchInvoicesFromSupabase(companyCode: 'goodwin-1' | 'good
       const grandTotal = Number(inv.grand_total) || 0;
       const outstanding = Number(inv.outstanding) || 0;
       const isPaid = inv.status === 'paid' || outstanding === 0;
+      const isQuotation = (inv.invoice_type || '').toLowerCase().includes('quotation');
 
       return {
         id: inv.id,
         invoiceNumber: inv.invoice_number,
-        invoiceType: 'TAX_INVOICE',
+        invoiceType: isQuotation ? 'QUOTATION' : 'TAX_INVOICE',
+        orderNumber: inv.order_number || meta.orderNumber || '',
+        orderDate: inv.order_date || meta.orderDate || '',
         partyName: inv.customer_name || 'Cash Customer',
-        partyPhone: inv.transport_contact_number || '',
+        partyPhone: inv.transport_contact_number || meta.customerPhone || '',
         partyGstin: inv.customer_gstin || '',
+        billingName: inv.billing_name || meta.billingName || inv.customer_name || '',
+        billingAddress: inv.billing_address || meta.billingAddress || '',
+        billingState: inv.billing_state_ut || meta.billingState || 'Madhya Pradesh',
+        shippingAddress: inv.shipping_address || meta.shippingAddress || '',
+        shippingState: inv.shipping_state_ut || meta.shippingState || 'Madhya Pradesh',
+        transportAddress: inv.transport_address || meta.transportAddress || '',
+        transportContactNumber: inv.transport_contact_number || meta.transportContactNumber || '',
+        transportGstin: inv.transport_gstin || meta.transportGstin || '',
+        placeOfSupply: inv.place_of_supply || meta.placeOfSupply || 'Madhya Pradesh',
+        placeOfDelivery: inv.place_of_delivery || meta.placeOfDelivery || 'Madhya Pradesh',
+        referenceName: inv.reference_name || meta.referenceName || '',
+        pvtMarka: inv.pvt_marka || meta.pvtMarka || '',
         partyStateCode: stateCode,
         invoiceDate: inv.date || new Date().toISOString().split('T')[0],
         dueDate: inv.date || new Date().toISOString().split('T')[0],
@@ -576,6 +603,8 @@ export async function fetchInvoicesFromSupabase(companyCode: 'goodwin-1' | 'good
         paidAmount: isPaid ? grandTotal : Math.max(0, grandTotal - outstanding),
         balanceAmount: isPaid ? 0 : outstanding,
         paymentStatus: isPaid ? 'PAID' : (outstanding < grandTotal ? 'PARTIAL' : 'UNPAID'),
+        paymentMode: (meta.paymentMode || (inv.payment_mode ? inv.payment_mode.toUpperCase() : 'UPI')) as any,
+        paymentReference: meta.paymentReference || '',
         items,
       };
     });
@@ -594,13 +623,35 @@ export async function insertInvoiceToSupabase(
 ): Promise<MockInvoice | null> {
   try {
     let invNum = invoice.invoiceNumber;
-    // Ensure invoice number has no trailing or leading whitespace
     invNum = invNum.trim();
+
+    const extraMeta = {
+      orderNumber: invoice.orderNumber || '',
+      orderDate: invoice.orderDate || '',
+      customerPhone: invoice.partyPhone || '',
+      billingName: invoice.billingName || invoice.partyName || '',
+      billingAddress: invoice.billingAddress || '',
+      billingState: invoice.billingState || 'Madhya Pradesh',
+      shippingAddress: invoice.shippingAddress || '',
+      shippingState: invoice.shippingState || 'Madhya Pradesh',
+      transportAddress: invoice.transportAddress || '',
+      transportContactNumber: invoice.transportContactNumber || '',
+      transportGstin: invoice.transportGstin || '',
+      placeOfSupply: invoice.placeOfSupply || 'Madhya Pradesh',
+      placeOfDelivery: invoice.placeOfDelivery || invoice.placeOfSupply || 'Madhya Pradesh',
+      referenceName: invoice.referenceName || '',
+      pvtMarka: invoice.pvtMarka || '',
+      paymentMode: invoice.paymentMode || 'UPI',
+      paymentReference: invoice.paymentReference || '',
+      paymentStatus: invoice.paymentStatus,
+    };
+    const prefixTag = companyCode === 'goodwin-2' ? '[GB2]' : '';
+    const notesStr = `${prefixTag} [META:${JSON.stringify(extraMeta)}]`.trim();
 
     const payload = {
       invoice_number: invNum,
       date: invoice.invoiceDate || new Date().toISOString().split('T')[0],
-      invoice_type: 'GST Tax Invoice',
+      invoice_type: invoice.invoiceType === 'QUOTATION' ? 'Quotation' : 'GST Tax Invoice',
       customer_name: invoice.partyName || 'Cash Sale',
       customer_gstin: invoice.partyGstin || null,
       taxable_amount: invoice.subtotal,
@@ -608,16 +659,23 @@ export async function insertInvoiceToSupabase(
       gst_amount: invoice.taxTotal,
       grand_total: invoice.totalAmount,
       status: invoice.paymentStatus.toLowerCase(),
-      payment_status: invoice.paymentStatus === 'PAID' ? 'Paid' : 'Unpaid',
+      payment_status: invoice.paymentStatus === 'PAID' ? 'Paid' : invoice.paymentStatus === 'PARTIAL' ? 'Partial' : 'Unpaid',
+      payment_mode: (invoice.paymentMode || 'cash').toLowerCase(),
       outstanding: invoice.balanceAmount,
       items: invoice.items,
-      notes: companyCode === 'goodwin-2' ? '[GB2]' : '',
-      transport_contact_number: invoice.partyPhone || null,
-      place_of_supply: 'Madhya Pradesh',
-      billing_state_ut: 'Madhya Pradesh',
+      notes: notesStr,
+      transport_address: invoice.transportAddress || null,
+      transport_contact_number: invoice.transportContactNumber || invoice.partyPhone || null,
+      transport_gstin: invoice.transportGstin || null,
+      place_of_supply: invoice.placeOfSupply || 'Madhya Pradesh',
+      place_of_delivery: invoice.placeOfDelivery || invoice.placeOfSupply || 'Madhya Pradesh',
+      reference_name: invoice.referenceName || null,
+      pvt_marka: invoice.pvtMarka || null,
+      billing_state_ut: invoice.billingState || 'Madhya Pradesh',
+      shipping_state_ut: invoice.shippingState || 'Madhya Pradesh',
       dispatch_status: 'Not Delivered',
-      order_type: 'New Order',
-      lifecycle_status: invoice.paymentStatus === 'PAID' ? 'Confirmed' : 'Quotation',
+      order_type: invoice.orderNumber ? `Order #${invoice.orderNumber}` : 'New Order',
+      lifecycle_status: invoice.invoiceType === 'QUOTATION' ? 'Quotation' : 'Confirmed',
     };
 
     const { data, error } = await supabase
@@ -655,6 +713,46 @@ export async function insertInvoiceToSupabase(
   } catch (err) {
     console.error('[Supabase] Error inserting invoice:', err);
     return null;
+  }
+}
+
+/**
+ * Update invoice in Supabase
+ */
+export async function updateInvoiceInSupabase(
+  id: string,
+  updated: Partial<MockInvoice>
+): Promise<boolean> {
+  try {
+    const payload: any = {};
+    if (updated.invoiceType) {
+      payload.invoice_type = updated.invoiceType === 'QUOTATION' ? 'Quotation' : 'GST Tax Invoice';
+      payload.lifecycle_status = updated.invoiceType === 'QUOTATION' ? 'Quotation' : 'Confirmed';
+    }
+    if (updated.invoiceNumber) payload.invoice_number = updated.invoiceNumber;
+    if (updated.paymentStatus) {
+      payload.status = updated.paymentStatus.toLowerCase();
+      payload.payment_status =
+        updated.paymentStatus === 'PAID'
+          ? 'Paid'
+          : updated.paymentStatus === 'PARTIAL'
+          ? 'Partial'
+          : 'Unpaid';
+    }
+    if (updated.balanceAmount !== undefined) {
+      payload.outstanding = updated.balanceAmount;
+    }
+    if (updated.paymentMode) payload.payment_mode = updated.paymentMode.toLowerCase();
+
+    const { error } = await supabase.from('sales_invoices').update(payload).eq('id', id);
+    if (error) {
+      console.error('[Supabase] Error updating invoice:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[Supabase] Error updating invoice:', err);
+    return false;
   }
 }
 

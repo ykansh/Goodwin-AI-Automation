@@ -12,6 +12,8 @@ import {
   FileText,
   Receipt as ReceiptIcon,
   Trash2,
+  Sparkles,
+  Truck,
 } from 'lucide-react';
 import { MockInvoice } from '@/lib/mockData';
 import { useApp } from '@/context/AppContext';
@@ -29,7 +31,7 @@ export default function InvoiceDetailModal({
   onClose,
   invoice,
 }: InvoiceDetailModalProps) {
-  const { business, deleteInvoice, isAdmin } = useApp();
+  const { business, deleteInvoice, convertQuotationToInvoice, isAdmin } = useApp();
   const [printFormat, setPrintFormat] = useState<'A4' | 'THERMAL'>('A4');
 
   if (!isOpen || !invoice) return null;
@@ -85,6 +87,26 @@ export default function InvoiceDetailModal({
           </div>
 
           <div className="flex items-center gap-2">
+            {invoice.invoiceType === 'QUOTATION' && (
+              <button
+                onClick={async () => {
+                  if (
+                    confirm(
+                      `Convert quotation ${invoice.invoiceNumber} to an active Sale Tax Invoice? Stock and Khata will be updated.`
+                    )
+                  ) {
+                    await convertQuotationToInvoice(invoice.id);
+                    alert('Quotation converted to Tax Invoice successfully!');
+                    onClose();
+                  }
+                }}
+                className="h-8 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold flex items-center gap-1.5 shadow-2xs transition-colors"
+              >
+                <Sparkles size={13} />
+                <span>Convert to Invoice</span>
+              </button>
+            )}
+
             <button
               onClick={handleWhatsApp}
               className="h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-1.5 transition-colors"
@@ -98,7 +120,9 @@ export default function InvoiceDetailModal({
               className="h-8 px-3.5 rounded-lg bg-[#4c3cce] hover:bg-[#3d2eb5] text-white font-semibold flex items-center gap-1.5 shadow-2xs transition-colors"
             >
               <Printer size={13} />
-              <span>Print {printFormat === 'A4' ? 'Invoice' : 'Receipt'}</span>
+              <span>
+                Print {invoice.invoiceType === 'QUOTATION' ? 'Quotation' : printFormat === 'A4' ? 'Invoice' : 'Receipt'}
+              </span>
             </button>
 
             {isAdmin && (
@@ -132,59 +156,123 @@ export default function InvoiceDetailModal({
             /* A4 Standard Invoice Template */
             <div
               id="printable-invoice"
-              className="w-full max-w-[800px] bg-white border border-slate-300 p-8 shadow-sm space-y-6 text-slate-800"
+              className="w-full max-w-[800px] bg-white border border-slate-300 p-8 shadow-sm space-y-5 text-slate-800"
             >
               {/* Header: Company & Tax Invoice Badge */}
-              <div className="flex justify-between items-start border-b border-slate-300 pb-5">
+              <div className="flex justify-between items-start border-b border-slate-300 pb-4">
                 <div>
                   <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
                     {business.businessName}
                   </h1>
-                  <p className="text-[11px] text-slate-600 max-w-sm mt-0.5">{business.address}, {business.city}, {business.state} - {business.pincode}</p>
+                  <p className="text-[11px] text-slate-600 max-w-sm mt-0.5">
+                    {business.address}, {business.city}, {business.state} - {business.pincode}
+                  </p>
                   <p className="text-[11px] text-slate-600 font-mono mt-0.5">
-                    <strong className="text-slate-800">GSTIN:</strong> {business.gstin} | <strong className="text-slate-800">Phone:</strong> {business.phone}
+                    <strong className="text-slate-800">GSTIN:</strong> {business.gstin} |{' '}
+                    <strong className="text-slate-800">Phone:</strong> {business.phone}
                   </p>
                 </div>
 
                 <div className="text-right space-y-1">
-                  <span className="inline-block px-3 py-1 rounded bg-[#4c3cce] text-white font-extrabold text-xs tracking-wider uppercase">
-                    Tax Invoice
+                  <span
+                    className={`inline-block px-3 py-1 rounded text-white font-extrabold text-xs tracking-wider uppercase ${
+                      invoice.invoiceType === 'QUOTATION'
+                        ? 'bg-amber-600'
+                        : invoice.invoiceType === 'BILL_OF_SUPPLY'
+                        ? 'bg-slate-800'
+                        : 'bg-[#4c3cce]'
+                    }`}
+                  >
+                    {invoice.invoiceType === 'QUOTATION'
+                      ? 'Quotation / Estimate'
+                      : invoice.invoiceType === 'BILL_OF_SUPPLY'
+                      ? 'Bill of Supply'
+                      : 'Tax Invoice'}
                   </span>
                   <p className="font-mono font-bold text-slate-900 text-sm mt-1">
                     #{invoice.invoiceNumber}
                   </p>
-                  <p className="text-[11px] text-slate-500">Date: {invoice.invoiceDate}</p>
-                  <p className="text-[11px] text-slate-500">Due: {invoice.dueDate}</p>
+                  <p className="text-[11px] text-slate-500">Invoice Date: {invoice.invoiceDate}</p>
+                  {invoice.orderNumber && (
+                    <p className="text-[11px] text-slate-700 font-medium font-mono">
+                      Order #: {invoice.orderNumber} ({invoice.orderDate || invoice.invoiceDate})
+                    </p>
+                  )}
+                  {invoice.referenceName && (
+                    <p className="text-[11px] text-slate-500">Ref: {invoice.referenceName}</p>
+                  )}
                 </div>
               </div>
 
-              {/* Bill To & Dispatch Details */}
-              <div className="grid grid-cols-2 gap-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div>
+              {/* Bill To & Dispatch & Transport Details */}
+              <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                {/* Column 1: Billed To Details */}
+                <div className="space-y-1">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
                     Billed To (Customer Details)
                   </span>
                   <p className="font-bold text-slate-900 text-sm leading-tight">
                     {invoice.partyName}
                   </p>
-                  <p className="text-[11px] text-slate-600 font-mono mt-0.5">
+                  {invoice.billingName && invoice.billingName !== invoice.partyName && (
+                    <p className="text-[11px] text-slate-700 font-semibold">
+                      Billing Name: {invoice.billingName}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-slate-600 font-mono">
                     Phone: +91 {invoice.partyPhone}
                   </p>
                   <p className="text-[11px] text-slate-600 font-mono">
-                    GSTIN: {invoice.partyGstin || 'Unregistered Consumer'}
+                    Customer GSTIN: <strong className="text-slate-800">{invoice.partyGstin || 'Unregistered'}</strong>
+                  </p>
+                  {invoice.billingAddress && (
+                    <p className="text-[11px] text-slate-600 leading-tight">
+                      Address: {invoice.billingAddress}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-slate-600">
+                    State / UT: {invoice.billingState || stateObj?.name || 'Madhya Pradesh'} (Code: {invoice.partyStateCode})
                   </p>
                 </div>
 
-                <div className="text-right">
+                {/* Column 2: Shipped To & Transport Details */}
+                <div className="space-y-1 border-l border-slate-200 pl-4">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                    Place of Supply
+                    Shipping &amp; Transport Details
                   </span>
-                  <p className="font-bold text-slate-800">
-                    {stateObj?.name || 'Maharashtra'} (Code: {invoice.partyStateCode})
+                  {invoice.shippingAddress && (
+                    <p className="text-[11px] text-slate-700">
+                      <strong>Shipping Address:</strong> {invoice.shippingAddress} ({invoice.shippingState || invoice.billingState})
+                    </p>
+                  )}
+                  {invoice.transportAddress && (
+                    <p className="text-[11px] text-slate-700">
+                      <strong>Transport Name/Address:</strong> {invoice.transportAddress}
+                    </p>
+                  )}
+                  {invoice.transportContactNumber && (
+                    <p className="text-[11px] text-slate-700 font-mono">
+                      <strong>Transport Contact:</strong> {invoice.transportContactNumber}
+                    </p>
+                  )}
+                  {invoice.transportGstin && (
+                    <p className="text-[11px] text-slate-700 font-mono">
+                      <strong>Transport GSTIN:</strong> {invoice.transportGstin}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-slate-600">
+                    <strong>Place of Supply:</strong> {invoice.placeOfSupply || stateObj?.name || 'Madhya Pradesh'}
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Tax Type: {isInterState ? 'IGST (Inter-State)' : 'CGST + SGST (Intra-State)'}
-                  </p>
+                  {invoice.placeOfDelivery && (
+                    <p className="text-[11px] text-slate-600">
+                      <strong>Place of Delivery:</strong> {invoice.placeOfDelivery}
+                    </p>
+                  )}
+                  {invoice.pvtMarka && (
+                    <p className="text-[11px] text-slate-700">
+                      <strong>Pvt Marka:</strong> {invoice.pvtMarka}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -303,21 +391,53 @@ export default function InvoiceDetailModal({
                   )}
 
                   <div className="pt-2 border-t border-slate-300 flex justify-between items-baseline">
-                    <span className="font-bold text-slate-900 text-sm">Invoice Total:</span>
+                    <span className="font-bold text-slate-900 text-sm">
+                      {invoice.invoiceType === 'QUOTATION' ? 'Quotation Total:' : 'Invoice Total:'}
+                    </span>
                     <span className="font-black text-lg text-[#4c3cce]">
                       {formatINR(invoice.totalAmount)}
                     </span>
                   </div>
 
-                  <div className="pt-1 flex justify-between text-emerald-700 font-semibold text-[11px]">
-                    <span>Paid Amount:</span>
-                    <span>{formatINR(invoice.paidAmount)}</span>
-                  </div>
+                  {invoice.invoiceType !== 'QUOTATION' ? (
+                    <>
+                      <div className="pt-1 flex justify-between text-slate-700 font-semibold text-[11px]">
+                        <span>Settlement Status:</span>
+                        <span
+                          className={`uppercase font-bold px-1.5 py-0.2 rounded ${
+                            invoice.paymentStatus === 'PAID'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : invoice.paymentStatus === 'PARTIAL'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {invoice.paymentStatus === 'PAID'
+                            ? `Paid (${invoice.paymentMode || 'UPI'})`
+                            : invoice.paymentStatus === 'PARTIAL'
+                            ? `Partial (${invoice.paymentMode || 'UPI'})`
+                            : 'Unpaid / Khata'}
+                        </span>
+                      </div>
 
-                  {invoice.balanceAmount > 0 && (
-                    <div className="flex justify-between text-rose-600 font-bold text-[11px]">
-                      <span>Balance Due:</span>
-                      <span>{formatINR(invoice.balanceAmount)}</span>
+                      <div className="flex justify-between text-emerald-700 font-semibold text-[11px]">
+                        <span>Amount Paid:</span>
+                        <span>{formatINR(invoice.paidAmount)}</span>
+                      </div>
+
+                      {invoice.balanceAmount > 0 && (
+                        <div className="flex justify-between text-rose-600 font-bold text-[11px]">
+                          <span>Balance Due:</span>
+                          <span>{formatINR(invoice.balanceAmount)}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="pt-1 flex justify-between text-amber-700 font-semibold text-[11px]">
+                      <span>Document Status:</span>
+                      <span className="uppercase font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded">
+                        Estimate / Quotation
+                      </span>
                     </div>
                   )}
                 </div>

@@ -33,9 +33,11 @@ export default function PartyStatementModal({
 
   if (!isOpen || !party) return null;
 
-  // Filter transactions for this party
+  // Filter transactions for this party (excluding quotations which are estimates)
   const partyInvoices = invoices.filter(
-    (inv) => inv.partyName.toLowerCase() === party.name.toLowerCase()
+    (inv) =>
+      inv.partyName.toLowerCase() === party.name.toLowerCase() &&
+      inv.invoiceType !== 'QUOTATION'
   );
   const partyPayments = payments.filter((p) => p.partyId === party.id);
 
@@ -57,7 +59,7 @@ export default function PartyStatementModal({
       id: inv.id,
       date: inv.invoiceDate,
       type: 'INVOICE',
-      title: `Sale Bill (${inv.invoiceType})`,
+      title: `Sale Bill (${inv.invoiceType === 'TAX_INVOICE' ? 'Tax Invoice' : inv.invoiceType})`,
       refNo: inv.invoiceNumber,
       debit: inv.totalAmount, // Increases receivable
       credit: 0,
@@ -65,14 +67,18 @@ export default function PartyStatementModal({
   });
 
   partyPayments.forEach((pay) => {
+    const isPaymentIn = pay.type === 'PAYMENT_IN';
     rows.push({
       id: pay.id,
       date: pay.date,
       type: 'PAYMENT',
-      title: pay.type === 'PAYMENT_IN' ? `Payment Received (${pay.paymentMode})` : `Payment Out (${pay.paymentMode})`,
+      title: isPaymentIn
+        ? `Payment Received (${pay.paymentMode})`
+        : `Payment Out (${pay.paymentMode})`,
       refNo: pay.referenceNumber,
-      debit: 0,
-      credit: pay.amount, // Decreases receivable
+      // Payment In reduces receivable (Credit -), Payment Out gives cash to customer / increases receivable (Debit +)
+      debit: isPaymentIn ? 0 : pay.amount,
+      credit: isPaymentIn ? pay.amount : 0,
     });
   });
 
@@ -207,6 +213,8 @@ export default function PartyStatementModal({
                       <td className="py-3 px-4 font-semibold text-slate-800 flex items-center gap-2">
                         {row.type === 'INVOICE' ? (
                           <Receipt size={14} className="text-[#4c3cce]" />
+                        ) : row.debit > 0 ? (
+                          <ArrowUpRight size={14} className="text-rose-600" />
                         ) : (
                           <ArrowDownLeft size={14} className="text-emerald-600" />
                         )}

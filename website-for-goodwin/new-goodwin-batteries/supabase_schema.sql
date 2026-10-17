@@ -112,12 +112,31 @@ CREATE TABLE IF NOT EXISTS public.sales_invoices (
     reference_name TEXT,
     pvt_marka TEXT,
     transport_gstin TEXT,
+    order_number TEXT,
+    order_date DATE,
+    billing_name TEXT,
+    billing_address TEXT,
+    shipping_address TEXT,
     dispatch_status TEXT DEFAULT 'Not Delivered',
     order_type TEXT DEFAULT 'New Order',
     initial_payment NUMERIC DEFAULT 0,
     lifecycle_status TEXT DEFAULT 'Confirmed',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration safety for existing sales_invoices tables
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS order_number TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS order_date DATE;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS billing_name TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS billing_address TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS shipping_address TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS transport_address TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS transport_contact_number TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS transport_gstin TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS reference_name TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS pvt_marka TEXT;
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS place_of_supply TEXT DEFAULT 'Madhya Pradesh';
+ALTER TABLE public.sales_invoices ADD COLUMN IF NOT EXISTS place_of_delivery TEXT;
 
 -- 5. Payments & Receipts
 CREATE TABLE IF NOT EXISTS public.payments (

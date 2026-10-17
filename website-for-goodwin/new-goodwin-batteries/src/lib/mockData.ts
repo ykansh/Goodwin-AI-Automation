@@ -73,9 +73,23 @@ export interface MockInvoice {
   id: string;
   invoiceNumber: string;
   invoiceType: 'TAX_INVOICE' | 'BILL_OF_SUPPLY' | 'QUOTATION' | 'DELIVERY_CHALLAN';
-  partyName: string;
+  orderNumber?: string;
+  orderDate?: string;
+  partyName: string; // Customer Contact Name
   partyPhone: string;
-  partyGstin?: string;
+  partyGstin?: string; // Customer GSTIN
+  billingName?: string; // Billing Name / Firm Name
+  billingAddress?: string;
+  billingState?: string;
+  shippingAddress?: string;
+  shippingState?: string;
+  transportAddress?: string; // Transport Name & Address
+  transportContactNumber?: string;
+  transportGstin?: string; // Transporter GSTIN
+  placeOfSupply?: string;
+  placeOfDelivery?: string;
+  referenceName?: string;
+  pvtMarka?: string;
   partyStateCode: string;
   invoiceDate: string;
   dueDate: string;
@@ -90,8 +104,11 @@ export interface MockInvoice {
   paidAmount: number;
   balanceAmount: number;
   paymentStatus: 'PAID' | 'PARTIAL' | 'UNPAID';
+  paymentMode?: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CHEQUE';
+  paymentReference?: string;
   items: MockInvoiceItem[];
   upiQrUrl?: string;
+  notes?: string;
 }
 
 // Initial Clean Default Business Profile (Real Goodwin Data - No Dummies)
