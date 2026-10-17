@@ -438,6 +438,7 @@ export default function SalesPage() {
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
         initialType={billingModalType}
+        onInvoiceCreated={(newInv) => setViewingInvoice(newInv)}
       />
     </div>
   );

@@ -113,11 +113,11 @@ export interface MockInvoice {
 
 // Initial Clean Default Business Profile (Real Goodwin Data - No Dummies)
 export const INITIAL_BUSINESS: BusinessProfile = {
-  businessName: 'Goodwin Batteries',
+  businessName: 'Goodwin Batteries Pvt. Ltd.',
   gstin: '23AABCG1234F1Z5',
-  phone: '+91 96855 79269',
+  phone: '+91 9667724411',
   email: 'info@goodwinbatteries.com',
-  address: '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road',
+  address: '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012, Indore, Madhya Pradesh - 452012',
   city: 'Indore',
   state: 'Madhya Pradesh',
   stateCode: '23',

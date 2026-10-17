@@ -411,7 +411,7 @@ export function parseImportedParties(csvText: string): {
     parties.push({
       name: name.trim(),
       type: (typeIdx !== -1 && row[typeIdx]?.toUpperCase().includes('SUPPLIER')) ? 'SUPPLIER' : 'CUSTOMER',
-      phone: (phoneIdx !== -1 && row[phoneIdx]) ? row[phoneIdx].trim() : '+91 96855 79269',
+      phone: (phoneIdx !== -1 && row[phoneIdx]) ? row[phoneIdx].trim() : '+91 9667724411',
       email: (emailIdx !== -1 && row[emailIdx]) ? row[emailIdx].trim() : '',
       gstin,
       state: (stateIdx !== -1 && row[stateIdx]) ? row[stateIdx].trim() : 'Madhya Pradesh',

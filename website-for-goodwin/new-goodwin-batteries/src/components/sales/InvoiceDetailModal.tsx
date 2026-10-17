@@ -160,17 +160,25 @@ export default function InvoiceDetailModal({
             >
               {/* Header: Company & Tax Invoice Badge */}
               <div className="flex justify-between items-start border-b border-slate-300 pb-4">
-                <div>
-                  <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-                    {business.businessName}
-                  </h1>
-                  <p className="text-[11px] text-slate-600 max-w-sm mt-0.5">
-                    {business.address}, {business.city}, {business.state} - {business.pincode}
-                  </p>
-                  <p className="text-[11px] text-slate-600 font-mono mt-0.5">
-                    <strong className="text-slate-800">GSTIN:</strong> {business.gstin} |{' '}
-                    <strong className="text-slate-800">Phone:</strong> {business.phone}
-                  </p>
+                <div className="flex items-start gap-4">
+                  {/* Company Logo in Both Portals */}
+                  <img
+                    src="/goodwin-logo.svg"
+                    alt="Goodwin Batteries Logo"
+                    className="h-16 w-auto max-w-[200px] object-contain shrink-0"
+                  />
+                  <div>
+                    <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+                      Goodwin Batteries Pvt. Ltd.
+                    </h1>
+                    <p className="text-[11px] text-slate-600 max-w-sm mt-0.5 leading-snug">
+                      202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012, Indore, Madhya Pradesh - 452012
+                    </p>
+                    <p className="text-[11px] text-slate-600 font-mono mt-0.5">
+                      <strong className="text-slate-800">GSTIN:</strong> 23AABCG1234F1Z5 |{' '}
+                      <strong className="text-slate-800">Phone:</strong> +91 9667724411
+                    </p>
+                  </div>
                 </div>
 
                 <div className="text-right space-y-1">
@@ -447,7 +455,7 @@ export default function InvoiceDetailModal({
               <div className="pt-6 border-t border-slate-200 flex justify-between items-end text-[10px] text-slate-500">
                 <p>Generated via Goodwin Batteries Cloud ERP</p>
                 <div className="text-right">
-                  <p className="font-bold text-slate-800 mb-8">For {business.businessName}</p>
+                  <p className="font-bold text-slate-800 mb-8">For Goodwin Batteries Pvt. Ltd.</p>
                   <p className="border-t border-slate-400 pt-1">Authorized Signatory</p>
                 </div>
               </div>
@@ -459,10 +467,15 @@ export default function InvoiceDetailModal({
               className="w-[300px] bg-white border border-slate-400 p-4 shadow-md font-mono text-[11px] text-slate-900 space-y-2"
             >
               <div className="text-center pb-2 border-b border-dashed border-slate-400">
-                <p className="font-bold text-sm uppercase">{business.businessName}</p>
-                <p className="text-[10px]">{business.address}</p>
-                <p className="text-[10px]">GSTIN: {business.gstin}</p>
-                <p className="text-[10px]">Tel: {business.phone}</p>
+                <img
+                  src="/goodwin-logo.svg"
+                  alt="Goodwin Batteries"
+                  className="h-8 w-auto mx-auto mb-1.5 object-contain"
+                />
+                <p className="font-bold text-xs uppercase">Goodwin Batteries Pvt. Ltd.</p>
+                <p className="text-[9px]">202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012</p>
+                <p className="text-[9px]">GSTIN: 23AABCG1234F1Z5</p>
+                <p className="text-[9px]">Tel: +91 9667724411</p>
               </div>
 
               <div className="border-b border-dashed border-slate-400 pb-1 text-[10px]">

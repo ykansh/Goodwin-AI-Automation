@@ -66,9 +66,11 @@ export default function LoginPage() {
       {/* Top Brand Bar */}
       <header className="max-w-6xl w-full mx-auto flex items-center justify-between py-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#4c3cce] to-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-xl">
-            <Zap size={22} className="fill-white" />
-          </div>
+          <img
+            src="/goodwin-icon.svg"
+            alt="Goodwin Batteries"
+            className="w-11 h-11 object-contain drop-shadow-md"
+          />
           <div>
             <span className="font-black text-lg text-white tracking-tight block">
               Goodwin Batteries

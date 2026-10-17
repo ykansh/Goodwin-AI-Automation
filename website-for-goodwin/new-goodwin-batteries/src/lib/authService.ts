@@ -63,7 +63,7 @@ export const DEFAULT_USERS: AppUserRecord[] = [
     email: 'admin@goodwinbatteries.com',
     password_hash: '', // will be set dynamically or on init
     role: 'ADMIN',
-    phone: '+91 96855 79269',
+    phone: '+91 9667724411',
     designation: 'Managing Director / Owner',
     is_active: true,
     created_at: new Date('2026-01-01').toISOString(),

@@ -35,11 +35,12 @@ CREATE TABLE IF NOT EXISTS public.company_settings (
 -- Seed Goodwin Batteries (Company 1) and Goodwin Batteries 2 (Company 2)
 INSERT INTO public.company_settings (id, company_name, gstin, address, phone, email, invoice_prefix, po_prefix, cash_balance, bank_balance)
 VALUES
-    ('00000000-0000-0000-0000-000000000001', 'Goodwin Batteries Pvt. Ltd.', '23AABCG1234F1Z5', '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012', '+91 96855 79269', 'info@goodwinbatteries.com', 'GW-INV', 'GW-PO', 50000, 0),
-    ('00000000-0000-0000-0000-000000000002', 'Goodwin Batteries 2', '23AABCG5678F1Z9', 'Unit 104, Industrial Park, Near Bypass Road, Indore – 452010', '+91 96855 79269', 'info@goodwinbatteries.com', 'GB2-INV', 'GB2-PO', 0, 0)
+    ('00000000-0000-0000-0000-000000000001', 'Goodwin Batteries Pvt. Ltd.', '23AABCG1234F1Z5', '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012, Indore, Madhya Pradesh - 452012', '+91 9667724411', 'info@goodwinbatteries.com', 'GW-INV', 'GW-PO', 50000, 0),
+    ('00000000-0000-0000-0000-000000000002', 'Goodwin Batteries Pvt. Ltd.', '23AABCG1234F1Z5', '202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012, Indore, Madhya Pradesh - 452012', '+91 9667724411', 'info@goodwinbatteries.com', 'GB2-INV', 'GB2-PO', 0, 0)
 ON CONFLICT (id) DO UPDATE SET
     company_name = EXCLUDED.company_name,
     gstin = EXCLUDED.gstin,
+    phone = EXCLUDED.phone,
     address = EXCLUDED.address;
 
 -- 2. Products / Inventory Master

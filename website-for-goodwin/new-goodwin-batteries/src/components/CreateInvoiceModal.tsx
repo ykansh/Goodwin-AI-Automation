@@ -467,7 +467,14 @@ export default function CreateInvoiceModal({
 
             <div className="flex flex-wrap gap-3 pt-3 justify-center">
               <button
-                onClick={() => window.print()}
+                onClick={() => {
+                  if (onInvoiceCreated && createdInvoice) {
+                    onInvoiceCreated(createdInvoice);
+                  }
+                  setIsSuccess(false);
+                  onClose();
+                  setTimeout(() => window.print(), 350);
+                }}
                 className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-2 transition-colors"
               >
                 <Printer size={16} />
@@ -478,7 +485,7 @@ export default function CreateInvoiceModal({
                   const docType = createdInvoice.invoiceType === 'QUOTATION' ? 'Quotation' : 'Invoice';
                   const text = `Dear ${createdInvoice.partyName}, your ${docType} ${createdInvoice.invoiceNumber} for ${formatINR(
                     createdInvoice.totalAmount
-                  )} from ${business.businessName} is ready. Pay using UPI: ${business.upiId}`;
+                  )} from ${business.businessName || 'Goodwin Batteries Pvt. Ltd.'} is ready. Pay using UPI: ${business.upiId}`;
                   window.open(`https://wa.me/91${createdInvoice.partyPhone}?text=${encodeURIComponent(text)}`, '_blank');
                 }}
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-2 shadow-2xs transition-colors"
@@ -490,6 +497,9 @@ export default function CreateInvoiceModal({
                 onClick={() => {
                   setIsSuccess(false);
                   onClose();
+                  if (onInvoiceCreated && createdInvoice) {
+                    onInvoiceCreated(createdInvoice);
+                  }
                 }}
                 className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs"
               >

@@ -97,7 +97,7 @@ export const DEFAULT_ADMIN: AuthUser = {
   id: 'usr-admin-1',
   name: 'Ansh Chourasiya',
   email: 'admin@goodwinbatteries.com',
-  phone: '+91 96855 79269',
+  phone: '+91 9667724411',
   role: 'ADMIN',
   designation: 'Owner / Administrator',
 };

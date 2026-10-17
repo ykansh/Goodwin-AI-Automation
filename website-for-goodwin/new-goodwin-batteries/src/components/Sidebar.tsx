@@ -97,16 +97,18 @@ export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
         {/* Brand Header */}
         <div className="h-16 border-b border-slate-200 px-4 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#3a4b8d] to-[#4c3cce] flex items-center justify-center text-white font-bold shadow-sm shadow-indigo-200 text-sm">
-              GB
-            </div>
+            <img
+              src="/goodwin-icon.svg"
+              alt="Goodwin Batteries"
+              className="w-9 h-9 object-contain shrink-0 drop-shadow-xs"
+            />
             <div>
-              <span className="font-extrabold text-slate-800 text-base tracking-tight flex items-center gap-1">
-                Goodwin<span className="text-[#4c3cce]">Batteries</span>
+              <span className="font-extrabold text-slate-800 text-base tracking-tight flex items-center gap-0.5">
+                Goodwin<span className="text-[#db631a]">Batteries</span>
               </span>
               <span className="text-[10px] text-slate-400 font-medium block -mt-1 tracking-wider uppercase flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Supabase Live
+                Cloud ERP
               </span>
             </div>
           </div>

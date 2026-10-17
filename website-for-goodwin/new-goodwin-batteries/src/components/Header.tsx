@@ -81,9 +81,9 @@ export default function Header({ onOpenQuickBill, onOpenAddItem }: HeaderProps) 
           </div>
 
           {/* Company Badge */}
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-medium">
-            <Building2 size={13} className="text-[#4c3cce]" />
-            <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold shadow-2xs">
+            <img src="/goodwin-icon.svg" alt="GB" className="w-4 h-4 object-contain" />
+            <span className="font-bold text-slate-900">{selectedCompany.displayName}</span>
             {isLoading ? (
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-1" title="Syncing Supabase..." />
             ) : (
