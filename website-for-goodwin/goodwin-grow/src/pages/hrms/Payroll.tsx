@@ -63,6 +63,8 @@ export const Payroll = () => {
   const [editDeductions, setEditDeductions] = useState<number>(0);
   const [editStatus, setEditStatus] = useState('Pending');
   const [editJoinDate, setEditJoinDate] = useState('');
+  const [editAbsentDays, setEditAbsentDays] = useState<number | ''>('');
+  const [editSundayDays, setEditSundayDays] = useState<number | ''>('');
   const [syncToEmployeeMaster, setSyncToEmployeeMaster] = useState(true);
 
   // Payslip Modal State
@@ -170,6 +172,14 @@ export const Payroll = () => {
     setEditDeductions(baseDeductions);
     setEditStatus(record.status || 'Pending');
     setEditJoinDate(effectiveJoinDate);
+    const attStats = calculateMonthAttendancePayroll(
+      record.name,
+      record.month,
+      record.basic || 10000,
+      attendance
+    );
+    setEditAbsentDays(attStats.absentDays);
+    setEditSundayDays(attStats.sundayExtraDays);
     setSyncToEmployeeMaster(true);
     setIsEditModalOpen(true);
   };
@@ -184,10 +194,12 @@ export const Payroll = () => {
       attendance,
       {
         allowances: Number(editAllowances) || 0,
-        otherDeductions: Number(editDeductions) || 0
+        otherDeductions: Number(editDeductions) || 0,
+        overrideAbsentDays: editAbsentDays !== '' ? Number(editAbsentDays) : undefined,
+        overrideSundayExtraDays: editSundayDays !== '' ? Number(editSundayDays) : undefined
       }
     );
-  }, [editingRecord, editBasic, editAllowances, editDeductions, attendance]);
+  }, [editingRecord, editBasic, editAllowances, editDeductions, editAbsentDays, editSundayDays, attendance]);
 
   const saveEdit = async () => {
     if (!editingRecord || !editDynamicCalculation) return;
@@ -773,21 +785,50 @@ export const Payroll = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1 pt-1 text-[11px]">
-                  <div className="flex justify-between items-center text-danger">
-                    <span>• Attendance Deduction ({editDynamicCalculation.absentDays} day(s) absent @ {formatCurrency(editDynamicCalculation.perDaySalary)}/d):</span>
-                    <span className="font-bold">-{formatCurrency(editDynamicCalculation.attendanceDeduction)}</span>
+                <div className="space-y-2 pt-1 text-[11px]">
+                  <div className="grid grid-cols-2 gap-2 bg-canvas-surface/80 p-2 rounded-lg border border-primary/10">
+                    <div>
+                      <label className="enterprise-label flex items-center justify-between text-[11px] mb-1">
+                        <span>Absent / Off Days</span>
+                        <span className="text-[10px] text-danger font-semibold">
+                          -{formatCurrency(editDynamicCalculation.attendanceDeduction)}
+                        </span>
+                      </label>
+                      <Input 
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={editAbsentDays.toString()}
+                        onChange={(e) => setEditAbsentDays(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="0"
+                        className="h-8 text-xs font-semibold"
+                      />
+                      <span className="text-[9px] text-secondary-light block mt-0.5">
+                        Deduction: {editDynamicCalculation.absentDays}d × {formatCurrency(editDynamicCalculation.perDaySalary)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="enterprise-label flex items-center justify-between text-[11px] mb-1">
+                        <span>⭐ Extra Sundays Worked</span>
+                        <span className="text-[10px] text-amber-600 font-semibold">
+                          +{formatCurrency(editDynamicCalculation.sundayBonus)}
+                        </span>
+                      </label>
+                      <Input 
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={editSundayDays.toString()}
+                        onChange={(e) => setEditSundayDays(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="0"
+                        className="h-8 text-xs font-semibold"
+                      />
+                      <span className="text-[9px] text-secondary-light block mt-0.5">
+                        Bonus: {editDynamicCalculation.sundayExtraDays}d × {formatCurrency(editDynamicCalculation.perDaySalary)}
+                      </span>
+                    </div>
                   </div>
-                  {editDynamicCalculation.sundayExtraDays > 0 ? (
-                    <div className="flex justify-between items-center text-amber-700 dark:text-amber-400">
-                      <span>• ⭐ Sunday Extra Worked ({editDynamicCalculation.sundayExtraDays} Sunday(s) clocked):</span>
-                      <span className="font-bold">+{formatCurrency(editDynamicCalculation.sundayBonus)}</span>
-                    </div>
-                  ) : (
-                    <div className="text-secondary-light">
-                      • Sunday Extra Worked: 0 days recorded in attendance
-                    </div>
-                  )}
                 </div>
               </div>
             )}
