@@ -25,6 +25,7 @@ import {
   Download,
   Sparkles,
   FileText,
+  Edit,
 } from 'lucide-react';
 
 export default function SalesPage() {
@@ -47,6 +48,7 @@ export default function SalesPage() {
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const [billingModalType, setBillingModalType] = useState<'TAX_INVOICE' | 'QUOTATION'>('TAX_INVOICE');
   const [viewingInvoice, setViewingInvoice] = useState<MockInvoice | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<MockInvoice | null>(null);
 
   // Financial Metrics
   const totalSales = invoices.reduce((acc, inv) => acc + inv.totalAmount, 0);
@@ -76,12 +78,18 @@ export default function SalesPage() {
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800">
       {/* Sidebar */}
-      <Sidebar onOpenQuickBill={() => setIsBillingModalOpen(true)} />
+      <Sidebar onOpenQuickBill={() => {
+        setEditingInvoice(null);
+        setIsBillingModalOpen(true);
+      }} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header
-          onOpenQuickBill={() => setIsBillingModalOpen(true)}
+          onOpenQuickBill={() => {
+            setEditingInvoice(null);
+            setIsBillingModalOpen(true);
+          }}
           onOpenAddItem={() => {}}
         />
 
@@ -114,6 +122,7 @@ export default function SalesPage() {
 
               <button
                 onClick={() => {
+                  setEditingInvoice(null);
                   setBillingModalType('QUOTATION');
                   setIsBillingModalOpen(true);
                 }}
@@ -125,6 +134,7 @@ export default function SalesPage() {
 
               <button
                 onClick={() => {
+                  setEditingInvoice(null);
                   setBillingModalType('TAX_INVOICE');
                   setIsBillingModalOpen(true);
                 }}
@@ -380,10 +390,22 @@ export default function SalesPage() {
                               <Eye size={15} />
                             </button>
 
-                            {/* WhatsApp Share */}
+                            {/* Edit Invoice */}
                             <button
-                              onClick={() => handleShareWhatsApp(inv)}
-                              title="Share on WhatsApp"
+                              onClick={() => {
+                                setEditingInvoice(inv);
+                                setIsBillingModalOpen(true);
+                              }}
+                              title="Edit Invoice"
+                              className="p-1.5 rounded-lg text-slate-600 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                            >
+                              <Edit size={15} />
+                            </button>
+
+                            {/* WhatsApp Share with PDF */}
+                            <button
+                              onClick={() => setViewingInvoice(inv)}
+                              title="Share on WhatsApp with attached PDF"
                               className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
                             >
                               <Share2 size={15} />
@@ -432,13 +454,25 @@ export default function SalesPage() {
         isOpen={Boolean(viewingInvoice)}
         onClose={() => setViewingInvoice(null)}
         invoice={viewingInvoice}
+        onEdit={(inv) => {
+          setViewingInvoice(null);
+          setEditingInvoice(inv);
+          setIsBillingModalOpen(true);
+        }}
       />
 
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
-        onClose={() => setIsBillingModalOpen(false)}
+        onClose={() => {
+          setIsBillingModalOpen(false);
+          setEditingInvoice(null);
+        }}
         initialType={billingModalType}
-        onInvoiceCreated={(newInv) => setViewingInvoice(newInv)}
+        editingInvoice={editingInvoice}
+        onInvoiceCreated={(newInv) => {
+          setViewingInvoice(newInv);
+          setEditingInvoice(null);
+        }}
       />
     </div>
   );

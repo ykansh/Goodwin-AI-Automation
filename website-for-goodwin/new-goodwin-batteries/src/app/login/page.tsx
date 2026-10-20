@@ -92,6 +92,11 @@ export default function LoginPage() {
         <div className="bg-white/95 backdrop-blur-md rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/20 text-slate-800 space-y-6">
           {/* Header */}
           <div className="text-center space-y-1.5">
+            <img
+              src="/goodwin-logo.svg"
+              alt="Goodwin Batteries"
+              className="h-14 mx-auto mb-2 object-contain"
+            />
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-[#4c3cce] text-[11px] font-extrabold uppercase tracking-wider mb-1">
               <Sparkles size={12} />
               <span>Sign In to ERP</span>

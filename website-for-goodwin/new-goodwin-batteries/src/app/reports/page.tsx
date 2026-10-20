@@ -64,19 +64,29 @@ export default function ReportsPage() {
               <p className="text-sm text-slate-500 leading-relaxed">
                 GST Reports are disabled for <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>. Switch to Goodwin Batteries to view GSTR-1, GSTR-3B &amp; Tally reports.
               </p>
-              <div className="flex flex-col gap-2 pt-2">
-                <Link
-                  href="/"
-                  className="w-full py-2.5 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all"
-                >
-                  Back to Dashboard
-                </Link>
+              <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 text-left space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">Active Entity:</span>
+                  <span className="font-mono bg-amber-100 px-2 py-0.5 rounded font-bold">{selectedCompany.shortName}</span>
+                </div>
+                <p className="text-[11px] text-amber-800">
+                  Switch back to Goodwin Batteries (With GST) anytime using the entity switcher dropdown in the top header or sidebar.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <button
+                  type="button"
                   onClick={() => selectCompany('goodwin-1')}
-                  className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all shadow-sm cursor-pointer"
                 >
-                  Switch to Goodwin Batteries
+                  ⚡ Switch to Goodwin Batteries (With GST)
                 </button>
+                <Link
+                  href="/sales"
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold text-center transition-all"
+                >
+                  Go to Sales Invoices
+                </Link>
               </div>
             </div>
           </main>

@@ -20,12 +20,15 @@ import {
   Download,
   Upload,
   UserPlus,
+  Check,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useRouter, usePathname } from 'next/navigation';
 import LoginModal from '@/components/LoginModal';
 import ImportExportModal from '@/components/ImportExportModal';
 import RoleTestBanner from '@/components/RoleTestBanner';
 import CreateUserModal from '@/components/CreateUserModal';
+import { cn } from '@/lib/utils';
 
 interface HeaderProps {
   onOpenQuickBill?: () => void;
@@ -33,8 +36,12 @@ interface HeaderProps {
 }
 
 export default function Header({ onOpenQuickBill, onOpenAddItem }: HeaderProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const {
     selectedCompany,
+    companies,
+    selectCompany,
     business,
     isLoading,
     currentUser,
@@ -46,17 +53,23 @@ export default function Header({ onOpenQuickBill, onOpenAddItem }: HeaderProps) 
     logoutUser,
   } = useApp();
 
+  const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
+  const companyDropdownRef = useRef<HTMLDivElement>(null);
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close user menu on outside click
+  // Close menus on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
+      }
+      if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target as Node)) {
+        setIsCompanyDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -71,7 +84,7 @@ export default function Header({ onOpenQuickBill, onOpenAddItem }: HeaderProps) 
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 select-none">
         {/* Search Input & Active Company Indicator */}
         <div className="flex items-center gap-4">
-          <div className="relative w-80 lg:w-96">
+          <div className="relative w-72 lg:w-80">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -80,14 +93,156 @@ export default function Header({ onOpenQuickBill, onOpenAddItem }: HeaderProps) 
             />
           </div>
 
-          {/* Company Badge */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold shadow-2xs">
-            <img src="/goodwin-icon.svg" alt="GB" className="w-4 h-4 object-contain" />
-            <span className="font-bold text-slate-900">{selectedCompany.displayName}</span>
-            {isLoading ? (
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-1" title="Syncing Supabase..." />
-            ) : (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1" title="Supabase Connected" />
+          {/* Interactive Company Switcher Dropdown */}
+          <div className="relative" ref={companyDropdownRef}>
+            <button
+              type="button"
+              onClick={() => setIsCompanyDropdownOpen((prev) => !prev)}
+              className={cn(
+                'flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none',
+                isCompanyDropdownOpen
+                  ? 'bg-[#ece9fb] border-[#4c3cce] text-[#4c3cce] shadow-sm ring-2 ring-[#4c3cce]/20'
+                  : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300 shadow-2xs'
+              )}
+              title="Click to switch business entity (With GST / Without GST)"
+            >
+              <img src="/goodwin-icon.svg" alt="GB" className="w-4 h-4 object-contain shrink-0" />
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-slate-900">{selectedCompany.displayName}</span>
+                <span
+                  className={cn(
+                    'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase shrink-0',
+                    selectedCompany.code === 'goodwin-2'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                  )}
+                >
+                  {selectedCompany.shortName}
+                </span>
+              </div>
+              {isLoading ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse ml-0.5" title="Syncing Supabase..." />
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-0.5" title="Supabase Connected" />
+              )}
+              <ChevronDown
+                size={14}
+                className={cn(
+                  'text-slate-400 ml-0.5 transition-transform duration-200',
+                  isCompanyDropdownOpen ? 'rotate-180 text-[#4c3cce]' : ''
+                )}
+              />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isCompanyDropdownOpen && (
+              <div className="absolute top-[calc(100%+6px)] left-0 z-50 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-2.5 py-1.5 border-b border-slate-100 flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Switch Business Entity
+                  </span>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold flex items-center gap-1 border border-emerald-200">
+                    <Cloud size={10} />
+                    Supabase DB
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  {companies.map((company) => {
+                    const isSelected = selectedCompany.code === company.code;
+                    return (
+                      <button
+                        key={company.id}
+                        type="button"
+                        onClick={() => {
+                          selectCompany(company.code);
+                          setIsCompanyDropdownOpen(false);
+                          if (
+                            company.code === 'goodwin-2' &&
+                            (pathname === '/pos' || pathname === '/store' || pathname === '/reports')
+                          ) {
+                            router.push('/sales');
+                          }
+                        }}
+                        className={cn(
+                          'w-full text-left p-2.5 rounded-xl transition-all flex items-start justify-between group cursor-pointer',
+                          isSelected
+                            ? 'bg-[#ece9fb] text-[#4c3cce] font-semibold ring-1 ring-[#4c3cce]/30'
+                            : 'hover:bg-slate-50 text-slate-700'
+                        )}
+                      >
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div
+                            className={cn(
+                              'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold p-1',
+                              company.code === 'goodwin-2'
+                                ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                                : 'bg-indigo-100 text-[#4c3cce] border border-indigo-200'
+                            )}
+                          >
+                            <img src="/goodwin-icon.svg" alt="GB Logo" className="w-5 h-5 object-contain" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-slate-900 leading-tight">
+                                {company.displayName}
+                              </span>
+                              <span
+                                className={cn(
+                                  'text-[9px] px-1 rounded font-mono font-bold',
+                                  company.code === 'goodwin-2'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-indigo-100 text-[#4c3cce]'
+                                )}
+                              >
+                                {company.shortName}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                              {company.tagline}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                              {company.hasPos && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-medium border border-indigo-100">
+                                  POS Bill
+                                </span>
+                              )}
+                              {company.hasGstReports && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-medium border border-indigo-100">
+                                  GST Reports
+                                </span>
+                              )}
+                              {company.hasOnlineStore && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
+                                  Store
+                                </span>
+                              )}
+                              {!company.hasPos && !company.hasGstReports && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 font-medium border border-amber-200">
+                                  Without GST • Fast Invoices & Stock
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {isSelected && (
+                          <div className="w-5 h-5 rounded-full bg-[#4c3cce] text-white flex items-center justify-center shrink-0 mt-1">
+                            <Check size={12} strokeWidth={3} />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="p-2 border-t border-slate-100 mt-1.5 bg-slate-50/50 rounded-b-xl flex items-center justify-between">
+                  <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                    <Sparkles size={11} className="text-[#4c3cce]" />
+                    <span>Instant Switch • Isolated Data</span>
+                  </span>
+                </div>
+              </div>
             )}
           </div>
         </div>

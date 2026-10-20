@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { MockItem, MockInvoice } from '@/lib/mockData';
 import { formatINR } from '@/lib/utils';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
 import {
   ShoppingBag,
   Search,
@@ -48,31 +50,47 @@ export default function OnlineStorePage() {
   // If Online store is removed for active company (Goodwin Batteries 2)
   if (!selectedCompany.hasOnlineStore) {
     return (
-      <div className="flex h-screen bg-[#f8fafc] items-center justify-center p-6 text-slate-800">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full shadow-lg text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-            <ShoppingBag size={28} />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900">
-            Online Store Removed
-          </h2>
-          <p className="text-sm text-slate-500 leading-relaxed">
-            The customer-facing Online Store is not enabled for <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>. Switch to Goodwin Batteries to access the online catalog.
-          </p>
-          <div className="flex flex-col gap-2 pt-2">
-            <Link
-              href="/"
-              className="w-full py-2.5 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all"
-            >
-              Back to Dashboard
-            </Link>
-            <button
-              onClick={() => selectCompany('goodwin-1')}
-              className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all"
-            >
-              Switch to Goodwin Batteries
-            </button>
-          </div>
+      <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800">
+        <Sidebar onOpenQuickBill={() => {}} />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <Header />
+          <main className="flex-1 p-6 flex items-center justify-center overflow-y-auto">
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-lg w-full shadow-lg text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                <ShoppingBag size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">
+                Online Store Excluded for {selectedCompany.displayName}
+              </h2>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                The customer-facing Online Store catalog is enabled for the primary GST branch (<span className="font-semibold text-slate-800">Goodwin Batteries</span>). It is turned off for Goodwin Batteries 2 to keep its workflow fast and focused on direct non-GST counter billing.
+              </p>
+              <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 text-left space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">Active Entity:</span>
+                  <span className="font-mono bg-amber-100 px-2 py-0.5 rounded font-bold">{selectedCompany.shortName}</span>
+                </div>
+                <p className="text-[11px] text-amber-800">
+                  Switch back to Goodwin Batteries (With GST) anytime using the entity switcher dropdown in the top header or sidebar.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => selectCompany('goodwin-1')}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all shadow-sm cursor-pointer"
+                >
+                  ⚡ Switch to Goodwin Batteries (With GST)
+                </button>
+                <Link
+                  href="/sales"
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold text-center transition-all"
+                >
+                  Go to Sales Invoices
+                </Link>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );

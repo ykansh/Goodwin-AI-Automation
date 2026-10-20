@@ -32,6 +32,7 @@ import {
   Lock,
   Download,
   Upload,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { formatINR } from '@/lib/utils';
@@ -52,6 +53,7 @@ export default function DashboardPage() {
   } = useApp();
 
   const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
+  const [billingModalType, setBillingModalType] = useState<'TAX_INVOICE' | 'QUOTATION'>('TAX_INVOICE');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
 
@@ -105,13 +107,26 @@ export default function DashboardPage() {
             <div className="mt-4 md:mt-0 flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsImportExportModalOpen(true)}
-                className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
+                className="px-3.5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
               >
                 <FileSpreadsheet size={16} />
                 <span>Import / Export CSV</span>
               </button>
               <button
-                onClick={() => setIsBillingModalOpen(true)}
+                onClick={() => {
+                  setBillingModalType('QUOTATION');
+                  setIsBillingModalOpen(true);
+                }}
+                className="px-4 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-300/40 text-amber-200 font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
+              >
+                <FileText size={16} className="text-amber-300" />
+                <span>+ Quotation / Estimate</span>
+              </button>
+              <button
+                onClick={() => {
+                  setBillingModalType('TAX_INVOICE');
+                  setIsBillingModalOpen(true);
+                }}
                 className="px-5 py-3 rounded-xl bg-[#db631a] hover:bg-[#c45312] text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-transform active:scale-95"
               >
                 <Receipt size={17} />
@@ -604,6 +619,7 @@ export default function DashboardPage() {
       <CreateInvoiceModal
         isOpen={isBillingModalOpen}
         onClose={() => setIsBillingModalOpen(false)}
+        initialType={billingModalType}
       />
 
       {/* Add Item Modal */}

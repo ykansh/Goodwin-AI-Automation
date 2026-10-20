@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Receipt,
@@ -30,6 +30,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
+  const router = useRouter();
   const pathname = usePathname();
   const { business, companies, selectedCompany, selectCompany, isEmployee, isAdmin, isTestMode } = useApp();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -104,7 +105,7 @@ export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
             />
             <div>
               <span className="font-extrabold text-slate-800 text-base tracking-tight flex items-center gap-0.5">
-                Goodwin<span className="text-[#db631a]">Batteries</span>
+                Goodwin<span className="text-[#2ea129]">Batteries</span>
               </span>
               <span className="text-[10px] text-slate-400 font-medium block -mt-1 tracking-wider uppercase flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -129,13 +130,13 @@ export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
             <div className="flex items-center gap-2.5 min-w-0">
               <div
                 className={cn(
-                  'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs transition-colors',
+                  'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs transition-colors p-1',
                   selectedCompany.code === 'goodwin-2'
                     ? 'bg-amber-100 text-amber-800 border border-amber-200'
                     : 'bg-[#ece9fb] text-[#4c3cce] border border-indigo-200'
                 )}
               >
-                <Building2 size={16} />
+                <img src="/goodwin-icon.svg" alt="GB Logo" className="w-5 h-5 object-contain" />
               </div>
               <div className="truncate">
                 <div className="flex items-center gap-1.5">
@@ -190,9 +191,15 @@ export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
                       onClick={() => {
                         selectCompany(company.code);
                         setIsDropdownOpen(false);
+                        if (
+                          company.code === 'goodwin-2' &&
+                          (pathname === '/pos' || pathname === '/store' || pathname === '/reports')
+                        ) {
+                          router.push('/sales');
+                        }
                       }}
                       className={cn(
-                        'w-full text-left p-2.5 rounded-xl transition-all flex items-start justify-between group',
+                        'w-full text-left p-2.5 rounded-xl transition-all flex items-start justify-between group cursor-pointer',
                         isSelected
                           ? 'bg-[#ece9fb] text-[#4c3cce] font-semibold'
                           : 'hover:bg-slate-50 text-slate-700'
@@ -201,13 +208,13 @@ export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
                       <div className="flex items-start gap-2.5 min-w-0">
                         <div
                           className={cn(
-                            'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold',
+                            'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold p-1',
                             company.code === 'goodwin-2'
                               ? 'bg-amber-100 text-amber-700'
                               : 'bg-indigo-100 text-[#4c3cce]'
                           )}
                         >
-                          <Building2 size={14} />
+                          <img src="/goodwin-icon.svg" alt="GB Logo" className="w-4 h-4 object-contain" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -280,7 +287,9 @@ export default function Sidebar({ onOpenQuickBill }: SidebarProps) {
             className="w-full h-10 rounded-xl bg-[#db631a] hover:bg-[#c45312] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]"
           >
             <PlusCircle size={17} />
-            <span>Create GST Bill</span>
+            <span>
+              {selectedCompany.code === 'goodwin-2' ? 'Create Bill (Without GST)' : 'Create GST Bill'}
+            </span>
           </button>
         </div>
 

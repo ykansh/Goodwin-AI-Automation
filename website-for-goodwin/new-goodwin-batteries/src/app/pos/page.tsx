@@ -23,6 +23,8 @@ import { useApp } from '@/context/AppContext';
 import { MockItem, MockInvoice } from '@/lib/mockData';
 import { formatINR, calculateGST } from '@/lib/utils';
 import { GST_STATES } from '@/lib/constants';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
 
 interface CartLine {
   item: MockItem;
@@ -36,31 +38,47 @@ export default function POSBillingPage() {
   // If POS quick bill is removed for the active company (Goodwin Batteries 2)
   if (!selectedCompany.hasPos) {
     return (
-      <div className="flex h-screen bg-[#f8fafc] items-center justify-center p-6 text-slate-800">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full shadow-lg text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-            <ScanBarcode size={28} />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900">
-            POS Quick Bill Removed
-          </h2>
-          <p className="text-sm text-slate-500 leading-relaxed">
-            POS Quick Bill is not available for <span className="font-semibold text-slate-800">{selectedCompany.displayName}</span>. Please use Sales Invoices or switch to Goodwin Batteries.
-          </p>
-          <div className="flex flex-col gap-2 pt-2">
-            <Link
-              href="/"
-              className="w-full py-2.5 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all"
-            >
-              Back to Dashboard
-            </Link>
-            <button
-              onClick={() => selectCompany('goodwin-1')}
-              className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all"
-            >
-              Switch to Goodwin Batteries
-            </button>
-          </div>
+      <div className="flex h-screen bg-[#f8fafc] overflow-hidden text-slate-800">
+        <Sidebar onOpenQuickBill={() => {}} />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <Header />
+          <main className="flex-1 p-6 flex items-center justify-center overflow-y-auto">
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-lg w-full shadow-lg text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                <ScanBarcode size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">
+                POS Quick Bill is Excluded for {selectedCompany.displayName}
+              </h2>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Goodwin Batteries 2 is configured as a simplified unit for <span className="font-semibold text-slate-800">fast non-GST sales invoicing & inventory management</span> without barcode POS checkout.
+              </p>
+              <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 text-left space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">Active Entity:</span>
+                  <span className="font-mono bg-amber-100 px-2 py-0.5 rounded font-bold">{selectedCompany.shortName}</span>
+                </div>
+                <p className="text-[11px] text-amber-800">
+                  You can switch between Goodwin Batteries (With GST) and Goodwin Batteries (Without GST) anytime using the entity switcher at the top header or sidebar.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => selectCompany('goodwin-1')}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#4c3cce] hover:bg-[#3d2eb5] text-white text-xs font-semibold text-center transition-all shadow-sm cursor-pointer"
+                >
+                  ⚡ Switch to Goodwin Batteries (With GST)
+                </button>
+                <Link
+                  href="/sales"
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold text-center transition-all"
+                >
+                  Go to Sales Invoices
+                </Link>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );

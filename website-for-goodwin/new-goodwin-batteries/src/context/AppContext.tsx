@@ -169,6 +169,7 @@ interface AppContextType {
   updateParty: (id: string, updated: Partial<MockParty>) => Promise<void>;
   deleteParty: (id: string) => Promise<void>;
   addInvoice: (invoice: MockInvoice) => Promise<MockInvoice>;
+  updateInvoice: (invoice: MockInvoice) => Promise<MockInvoice>;
   convertQuotationToInvoice: (
     quotationId: string,
     params?: {
@@ -702,6 +703,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return converted;
   };
 
+  // Update Invoice (Syncs to Supabase)
+  const updateInvoice = async (invoice: MockInvoice): Promise<MockInvoice> => {
+    const prevInvoice = invoices.find((inv) => inv.id === invoice.id);
+
+    // Update local state
+    setInvoices((prev) => prev.map((inv) => (inv.id === invoice.id ? invoice : inv)));
+
+    // Sync to Supabase
+    await updateInvoiceInSupabase(invoice.id, invoice, selectedCompany.code);
+
+    // If balance changed on a confirmed invoice, adjust customer balance
+    if (invoice.invoiceType !== 'QUOTATION' && prevInvoice) {
+      const balanceDiff = invoice.balanceAmount - prevInvoice.balanceAmount;
+      if (balanceDiff !== 0) {
+        setParties((prev) =>
+          prev.map((party) => {
+            if (party.name.toLowerCase() === invoice.partyName.toLowerCase()) {
+              const nextBalance = party.currentBalance + balanceDiff;
+              updateCustomerInSupabase(party.id, { currentBalance: nextBalance });
+              return { ...party, currentBalance: nextBalance };
+            }
+            return party;
+          })
+        );
+      }
+    }
+
+    return invoice;
+  };
+
   // Delete Invoice (Syncs to Supabase)
   const deleteInvoice = async (id: string) => {
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
@@ -865,6 +896,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateParty,
         deleteParty,
         addInvoice,
+        updateInvoice,
         convertQuotationToInvoice,
         deleteInvoice,
         recordPayment,

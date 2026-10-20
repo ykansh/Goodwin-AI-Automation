@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { MockItem, MockParty, MockInvoice } from '@/lib/mockData';
 import { useApp } from '@/context/AppContext';
-import { formatINR, calculateGST } from '@/lib/utils';
+import { formatINR, calculateGST, cn } from '@/lib/utils';
 import { GST_STATES, GST_RATES } from '@/lib/constants';
 
 interface CreateInvoiceModalProps {
@@ -36,6 +36,7 @@ interface CreateInvoiceModalProps {
   onInvoiceCreated?: (invoice: MockInvoice) => void;
   initialType?: 'TAX_INVOICE' | 'BILL_OF_SUPPLY' | 'QUOTATION' | 'DELIVERY_CHALLAN';
   defaultParty?: MockParty | null;
+  editingInvoice?: MockInvoice | null;
 }
 
 interface BillLineItem {
@@ -56,8 +57,10 @@ export default function CreateInvoiceModal({
   onInvoiceCreated,
   initialType = 'TAX_INVOICE',
   defaultParty,
+  editingInvoice,
 }: CreateInvoiceModalProps) {
-  const { items, parties, business, addInvoice, selectedCompany } = useApp();
+  const { items, parties, business, addInvoice, updateInvoice, selectedCompany } = useApp();
+  const isGB2 = selectedCompany?.code === 'goodwin-2';
 
   // Invoice Type Switcher: Tax Invoice vs Quotation vs Bill of Supply
   const [invoiceType, setInvoiceType] = useState<'TAX_INVOICE' | 'QUOTATION' | 'BILL_OF_SUPPLY'>(
@@ -65,7 +68,6 @@ export default function CreateInvoiceModal({
   );
 
   const generateNumberForType = (type: 'TAX_INVOICE' | 'QUOTATION' | 'BILL_OF_SUPPLY') => {
-    const isGB2 = selectedCompany?.code === 'goodwin-2';
     const randNum = Math.floor(100000 + Math.random() * 900000);
     if (type === 'QUOTATION') {
       return isGB2 ? `GB2-QT-${randNum}` : `GW-QT-${randNum}`;
@@ -123,7 +125,7 @@ export default function CreateInvoiceModal({
       unit: defaultItem?.unit || 'PCS',
       unitPrice: defaultItem?.salesPrice || 0,
       discount: 0,
-      taxRate: defaultItem?.taxRate || 28,
+      taxRate: isGB2 ? 0 : (defaultItem?.taxRate || 28),
     },
   ]);
 
@@ -151,19 +153,76 @@ export default function CreateInvoiceModal({
     }
   }, [sameAsBilling, billingAddress, billingState]);
 
-  // Reset or regenerate when opened
+  // Reset or regenerate when opened, or prefill when editingInvoice is provided
   useEffect(() => {
     if (isOpen) {
-      const type = initialType === 'QUOTATION' ? 'QUOTATION' : 'TAX_INVOICE';
-      setInvoiceType(type);
-      setInvoiceNumber(generateNumberForType(type));
-      setIsSuccess(false);
-      setCreatedInvoice(null);
-      if (defaultParty) {
-        handleSelectParty(defaultParty);
+      if (editingInvoice) {
+        setInvoiceType(editingInvoice.invoiceType as any);
+        setInvoiceNumber(editingInvoice.invoiceNumber);
+        setOrderNumber(editingInvoice.orderNumber || '');
+        setOrderDate(editingInvoice.orderDate || editingInvoice.invoiceDate);
+        setInvoiceDate(editingInvoice.invoiceDate);
+        setCustomerName(editingInvoice.partyName);
+        setCustomerPhone(editingInvoice.partyPhone);
+        setCustomerGstin(editingInvoice.partyGstin || '');
+        setBillingName(editingInvoice.billingName || editingInvoice.partyName);
+        setBillingAddress(editingInvoice.billingAddress || '');
+        setBillingState(editingInvoice.billingState || 'Madhya Pradesh');
+        setPlaceOfSupply(editingInvoice.placeOfSupply || '23');
+        const isSame =
+          !editingInvoice.shippingAddress ||
+          editingInvoice.shippingAddress === editingInvoice.billingAddress;
+        setSameAsBilling(isSame);
+        setShippingAddress(editingInvoice.shippingAddress || editingInvoice.billingAddress || '');
+        setShippingState(editingInvoice.shippingState || editingInvoice.billingState || 'Madhya Pradesh');
+        setTransportAddress(editingInvoice.transportAddress || '');
+        setTransportContactNumber(editingInvoice.transportContactNumber || '');
+        setTransportGstin(editingInvoice.transportGstin || '');
+        setPlaceOfDelivery(editingInvoice.placeOfDelivery || 'Madhya Pradesh');
+        setReferenceName(editingInvoice.referenceName || '');
+        setPvtMarka(editingInvoice.pvtMarka || '');
+
+        if (editingInvoice.items && editingInvoice.items.length > 0) {
+          setLineItems(
+            editingInvoice.items.map((it, idx) => ({
+              id: String(Date.now() + idx),
+              itemId: it.itemId || `it-${idx}`,
+              name: it.name,
+              hsnCode: it.hsnCode || '8507',
+              quantity: it.quantity,
+              unit: it.unit || 'PCS',
+              unitPrice: it.unitPrice,
+              discount: it.discount || 0,
+              taxRate: it.taxRate,
+            }))
+          );
+        }
+
+        setPaymentStatus(editingInvoice.paymentStatus);
+        setPaymentMode((editingInvoice.paymentMode as any) || 'UPI');
+        setPartialPaidInput(editingInvoice.paidAmount || 0);
+        setPaymentReference(editingInvoice.paymentReference || '');
+
+        const matchingParty = parties.find(
+          (p) =>
+            p.name.toLowerCase() === editingInvoice.partyName.toLowerCase() ||
+            p.phone === editingInvoice.partyPhone
+        );
+        setSelectedParty(matchingParty || null);
+        setIsSuccess(false);
+        setCreatedInvoice(null);
+      } else {
+        const type = initialType === 'QUOTATION' ? 'QUOTATION' : 'TAX_INVOICE';
+        setInvoiceType(type);
+        setInvoiceNumber(generateNumberForType(type));
+        setIsSuccess(false);
+        setCreatedInvoice(null);
+        if (defaultParty) {
+          handleSelectParty(defaultParty);
+        }
       }
     }
-  }, [isOpen, initialType, selectedCompany?.code]);
+  }, [isOpen, initialType, editingInvoice, selectedCompany?.code]);
 
   // Handle party selection from dropdown
   const handleSelectParty = (party: MockParty) => {
@@ -236,7 +295,7 @@ export default function CreateInvoiceModal({
         unit: targetItem.unit,
         unitPrice: targetItem.salesPrice,
         discount: 0,
-        taxRate: targetItem.taxRate,
+        taxRate: isGB2 ? 0 : targetItem.taxRate,
       },
     ]);
   };
@@ -266,7 +325,7 @@ export default function CreateInvoiceModal({
         hsnCode: found.hsnCode,
         unitPrice: found.salesPrice,
         unit: found.unit,
-        taxRate: found.taxRate,
+        taxRate: isGB2 ? 0 : found.taxRate,
       };
       return updated;
     });
@@ -277,10 +336,14 @@ export default function CreateInvoiceModal({
     const baseAmount = row.quantity * row.unitPrice;
     const discountAmount = (baseAmount * row.discount) / 100;
     const taxableAmount = Math.max(0, baseAmount - discountAmount);
-    const gst = calculateGST(taxableAmount, row.taxRate, isInterState);
+    const effectiveTaxRate = isGB2 ? 0 : row.taxRate;
+    const gst = isGB2
+      ? { cgst: 0, sgst: 0, igst: 0, totalTax: 0 }
+      : calculateGST(taxableAmount, effectiveTaxRate, isInterState);
     const total = taxableAmount + gst.totalTax;
     return {
       ...row,
+      taxRate: effectiveTaxRate,
       taxableAmount,
       cgst: gst.cgst,
       sgst: gst.sgst,
@@ -393,10 +456,16 @@ export default function CreateInvoiceModal({
           igst: r.igst,
           total: r.total,
         })),
-        upiQrUrl: upiQrDataUrl,
+        upiQrUrl: isGB2 ? undefined : upiQrDataUrl,
       };
 
-      const saved = await addInvoice(newInvoice);
+      let saved: MockInvoice | undefined;
+      if (editingInvoice) {
+        saved = await updateInvoice(newInvoice);
+      } else {
+        saved = await addInvoice(newInvoice);
+      }
+
       setCreatedInvoice(saved || newInvoice);
       setIsSuccess(true);
       if (onInvoiceCreated) {
@@ -420,7 +489,9 @@ export default function CreateInvoiceModal({
               <CheckCircle2 size={36} />
             </div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-              {createdInvoice.invoiceType === 'QUOTATION'
+              {editingInvoice
+                ? 'Invoice Updated Successfully!'
+                : createdInvoice.invoiceType === 'QUOTATION'
                 ? 'Quotation / Estimate Created Successfully!'
                 : 'Tax Invoice Generated in < 5s!'}
             </h2>
@@ -455,8 +526,8 @@ export default function CreateInvoiceModal({
               </div>
             )}
 
-            {/* Dynamic UPI QR Code Preview */}
-            {upiQrDataUrl && createdInvoice.paymentStatus !== 'PAID' && (
+            {/* Dynamic UPI QR Code Preview (GST portal only) */}
+            {!isGB2 && upiQrDataUrl && createdInvoice.paymentStatus !== 'PAID' && (
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center shadow-2xs">
                 <img src={upiQrDataUrl} alt="UPI QR" className="w-32 h-32 rounded-lg" />
                 <p className="text-[11px] font-mono text-slate-500 mt-2">
@@ -519,15 +590,32 @@ export default function CreateInvoiceModal({
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-black text-slate-900 text-base">
-                      {invoiceType === 'QUOTATION' ? 'Create Quotation / Estimate' : 'Create Sale Tax Invoice'}
+                      {editingInvoice
+                        ? `Edit ${invoiceType === 'QUOTATION' ? 'Quotation' : 'Sale Invoice'} (#${invoiceNumber})`
+                        : invoiceType === 'QUOTATION'
+                        ? 'Create Quotation / Estimate'
+                        : isGB2
+                        ? 'Create Sale Invoice (Without GST)'
+                        : 'Create Sale Tax Invoice'}
                     </h2>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                      ⚡ Fast Billing
+                    <span
+                      className={cn(
+                        'px-2 py-0.5 rounded-full text-[10px] font-bold',
+                        editingInvoice
+                          ? 'bg-amber-100 text-amber-800'
+                          : isGB2
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-indigo-100 text-[#4c3cce]'
+                      )}
+                    >
+                      {editingInvoice ? '✏️ Edit Mode' : isGB2 ? '⚡ Without GST' : '⚡ Fast Billing'}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500">
                     {invoiceType === 'QUOTATION'
                       ? 'Commercial quotation / rate estimate (does not deduct stock)'
+                      : isGB2
+                      ? 'Direct sales billing without GST with automatic ledger settlement & stock adjustment'
                       : 'GST-compliant invoice with automatic ledger settlement & stock adjustment'}
                   </p>
                 </div>
@@ -583,6 +671,92 @@ export default function CreateInvoiceModal({
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
               
+              {/* COMPANY & SELLER IDENTITY BANNER (With Official Logo, Legal Name, Address, GSTIN, Phone) */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <img
+                    src="/goodwin-logo.svg"
+                    alt="Goodwin Batteries Logo"
+                    className="h-12 w-auto max-w-[170px] object-contain shrink-0"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-black text-slate-900 text-sm tracking-tight">
+                        Goodwin Batteries Pvt. Ltd.
+                      </h3>
+                      <span
+                        className={cn(
+                          'text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider',
+                          isGB2
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                            : 'bg-indigo-100 text-[#4c3cce] border border-indigo-200'
+                        )}
+                      >
+                        {isGB2 ? 'Without GST Portal' : 'With GST Portal'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                      202, 2nd Floor – Samiksh Landmark, Near Choithram Circle, A.B. Road, Indore – 452012, Indore, Madhya Pradesh - 452012
+                    </p>
+                    <p className="text-[11px] text-slate-600 font-mono mt-0.5">
+                      <strong className="text-slate-800">GSTIN:</strong> 23AABCG1234F1Z5 |{' '}
+                      <strong className="text-slate-800">Phone:</strong> +91 9667724411
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Top Document Mode Switcher: Tax Invoice vs Quotation / Estimate */}
+              <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-2xs flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800 text-xs">Voucher Type:</span>
+                  <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('TAX_INVOICE')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                        invoiceType === 'TAX_INVOICE'
+                          ? 'bg-[#db631a] text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <ScanBarcode size={14} />
+                      <span>1. Sale Tax Invoice</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('QUOTATION')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                        invoiceType === 'QUOTATION'
+                          ? 'bg-amber-600 text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <FileText size={14} />
+                      <span>2. Quotation / Estimate</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('BILL_OF_SUPPLY')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                        invoiceType === 'BILL_OF_SUPPLY'
+                          ? 'bg-slate-800 text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <Truck size={14} />
+                      <span>3. Bill of Supply</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-slate-500 font-medium">
+                  {invoiceType === 'QUOTATION'
+                    ? '📋 Quotation / Estimate: Rate estimation without deducting Khata dues'
+                    : '⚡ Sale Bill: Stock and Customer Ledger (Khata) are updated upon saving'}
+                </div>
+              </div>
+
               {/* Top Banner for Quotation Mode */}
               {invoiceType === 'QUOTATION' && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2.5 text-amber-900 text-xs font-medium">
@@ -693,79 +867,108 @@ export default function CreateInvoiceModal({
                   )}
                 </div>
 
-                {/* Searchable Customer Dropdown Search Bar */}
-                <div className="relative" ref={dropdownRef}>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Select Customer / Search Khata Party *
-                  </label>
-                  <div className="relative flex items-center">
-                    <Search size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={customerSearchQuery}
+                {/* Customer Dropdown + Search Options Dual Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3" ref={dropdownRef}>
+                  {/* Option A: Customer Dropdown Selector */}
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Customer Names Dropdown
+                    </label>
+                    <select
+                      value={selectedParty?.id || ''}
                       onChange={(e) => {
-                        setCustomerSearchQuery(e.target.value);
-                        setIsCustomerDropdownOpen(true);
+                        const found = parties.find((p) => p.id === e.target.value);
+                        if (found) {
+                          handleSelectParty(found);
+                        } else {
+                          handleClearSelectedParty();
+                        }
                       }}
-                      onFocus={() => setIsCustomerDropdownOpen(true)}
-                      placeholder="Search registered customer by name, mobile number, or GSTIN..."
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-10 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#4c3cce]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setIsCustomerDropdownOpen((prev) => !prev)}
-                      className="absolute right-2.5 text-slate-400 hover:text-slate-600"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#4c3cce]"
                     >
-                      <ChevronDown size={16} />
-                    </button>
+                      <option value="">-- Choose from Customer Dropdown ({parties.length} available) --</option>
+                      {parties.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} • {p.phone} {p.gstin ? `(${p.gstin})` : ''}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {/* Dropdown Menu List */}
-                  {isCustomerDropdownOpen && (
-                    <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
-                      {filteredParties.length === 0 ? (
-                        <div className="p-3 text-center text-slate-400 text-xs">
-                          No matching registered party found. You can type customer details directly below.
-                        </div>
-                      ) : (
-                        filteredParties.map((p) => (
-                          <div
-                            key={p.id}
-                            onClick={() => handleSelectParty(p)}
-                            className="p-3 hover:bg-indigo-50/60 cursor-pointer flex items-center justify-between transition-colors"
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-800 text-xs">{p.name}</span>
-                                <span className="text-[10px] px-1.5 py-0.2 rounded-sm bg-slate-100 font-semibold text-slate-600">
-                                  {p.type}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-                                Mob: +91 {p.phone} {p.gstin ? `• GSTIN: ${p.gstin}` : ''}
-                              </p>
-                              {p.address && (
-                                <p className="text-[10px] text-slate-400 truncate max-w-md">{p.address}</p>
-                              )}
-                            </div>
-
-                            <div className="text-right">
-                              <span
-                                className={`font-mono font-bold text-xs ${
-                                  p.currentBalance >= 0 ? 'text-rose-600' : 'text-emerald-600'
-                                }`}
-                              >
-                                {p.currentBalance >= 0
-                                  ? `Due: ${formatINR(p.currentBalance)}`
-                                  : `Adv: ${formatINR(Math.abs(p.currentBalance))}`}
-                              </span>
-                              <span className="block text-[10px] text-slate-400">Khata Balance</span>
-                            </div>
-                          </div>
-                        ))
-                      )}
+                  {/* Option B: Searchable Customer Input */}
+                  <div className="relative">
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Search Customer (Name / Mobile / GSTIN)
+                    </label>
+                    <div className="relative flex items-center">
+                      <Search size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={customerSearchQuery}
+                        onChange={(e) => {
+                          setCustomerSearchQuery(e.target.value);
+                          setIsCustomerDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsCustomerDropdownOpen(true)}
+                        placeholder="Type customer name, phone, or GSTIN to search..."
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-10 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#4c3cce]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomerDropdownOpen((prev) => !prev)}
+                        className="absolute right-2.5 text-slate-400 hover:text-slate-600"
+                      >
+                        <ChevronDown size={16} />
+                      </button>
                     </div>
-                  )}
+
+                    {/* Dropdown Menu List */}
+                    {isCustomerDropdownOpen && (
+                      <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl divide-y divide-slate-100">
+                        {filteredParties.length === 0 ? (
+                          <div className="p-3 text-center text-slate-400 text-xs">
+                            No matching registered party found. You can type customer details directly below.
+                          </div>
+                        ) : (
+                          filteredParties.map((p) => (
+                            <div
+                              key={p.id}
+                              onClick={() => handleSelectParty(p)}
+                              className="p-3 hover:bg-indigo-50/60 cursor-pointer flex items-center justify-between transition-colors"
+                            >
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-800 text-xs">{p.name}</span>
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded-sm bg-slate-100 font-semibold text-slate-600">
+                                    {p.type}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 font-mono mt-0.5">
+                                  Mob: +91 {p.phone} {p.gstin ? `• GSTIN: ${p.gstin}` : ''}
+                                </p>
+                                {p.address && (
+                                  <p className="text-[10px] text-slate-400 truncate max-w-md">{p.address}</p>
+                                )}
+                              </div>
+
+                              <div className="text-right">
+                                <span
+                                  className={`font-mono font-bold text-xs ${
+                                    p.currentBalance >= 0 ? 'text-rose-600' : 'text-emerald-600'
+                                  }`}
+                                >
+                                  {p.currentBalance >= 0
+                                    ? `Due: ${formatINR(p.currentBalance)}`
+                                    : `Adv: ${formatINR(Math.abs(p.currentBalance))}`}
+                                </span>
+                                <span className="block text-[10px] text-slate-400">Khata Balance</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Detailed Customer & Billing Input Fields */}
@@ -808,7 +1011,9 @@ export default function CreateInvoiceModal({
 
                   {/* Customer GSTIN */}
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Customer GSTIN</label>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Customer GSTIN <span className="text-rose-600 font-bold">* Required</span>
+                    </label>
                     <input
                       type="text"
                       value={customerGstin}
@@ -816,6 +1021,7 @@ export default function CreateInvoiceModal({
                       placeholder="e.g. 23AABCX9988Z1"
                       className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-[#4c3cce]"
                     />
+                    <span className="text-[10px] text-slate-500 block mt-0.5">Required for customer billing</span>
                   </div>
 
                   {/* Billing Address */}
@@ -960,7 +1166,9 @@ export default function CreateInvoiceModal({
 
                   {/* Transport GSTIN */}
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Transport GSTIN</label>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Transport GSTIN <span className="text-rose-600 font-bold">* Required</span>
+                    </label>
                     <input
                       type="text"
                       value={transportGstin}
@@ -968,6 +1176,7 @@ export default function CreateInvoiceModal({
                       placeholder="e.g. 23TRANS1234F1Z1"
                       className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-[#4c3cce]"
                     />
+                    <span className="text-[10px] text-slate-500 block mt-0.5">Required for transport / e-Way</span>
                   </div>
 
                   {/* Pvt Marka */}
@@ -1208,61 +1417,113 @@ export default function CreateInvoiceModal({
 
                   {/* Payment Details Form (for Paid and Partially Paid) */}
                   {paymentStatus !== 'UNPAID' && (
-                    <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {paymentStatus === 'PARTIAL' && (
-                          <div>
-                            <label className="block font-semibold text-slate-700 mb-1">
-                              Amount Received Now (₹) *
+                    <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-4">
+                      {paymentStatus === 'PARTIAL' && (
+                        <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-xl space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <label className="block font-bold text-amber-900 text-xs">
+                              Amount Received Now / Advance (₹) *
                             </label>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-amber-700 font-semibold">Quick Set:</span>
+                              <button
+                                type="button"
+                                onClick={() => setPartialPaidInput(Math.round(grandTotal * 0.25))}
+                                className="px-2 py-0.5 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold"
+                              >
+                                25% ({formatINR(Math.round(grandTotal * 0.25))})
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPartialPaidInput(Math.round(grandTotal * 0.5))}
+                                className="px-2 py-0.5 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold"
+                              >
+                                50% ({formatINR(Math.round(grandTotal * 0.5))})
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPartialPaidInput(Math.round(grandTotal * 0.75))}
+                                className="px-2 py-0.5 rounded bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold"
+                              >
+                                75% ({formatINR(Math.round(grandTotal * 0.75))})
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">₹</span>
                             <input
                               type="number"
                               min="1"
                               max={grandTotal}
-                              value={partialPaidInput}
+                              value={partialPaidInput || ''}
                               onChange={(e) => setPartialPaidInput(Number(e.target.value))}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#4c3cce]"
+                              placeholder="Enter advance amount paid by customer..."
+                              className="w-full bg-white border border-amber-300 rounded-lg pl-7 pr-3 py-2 text-sm font-black text-slate-900 focus:outline-none focus:border-[#4c3cce]"
                             />
                           </div>
-                        )}
-
-                        <div>
-                          <label className="block font-semibold text-slate-700 mb-1">Payment Method *</label>
-                          <select
-                            value={paymentMode}
-                            onChange={(e) => setPaymentMode(e.target.value as any)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#4c3cce]"
-                          >
-                            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                            <option value="CASH">Cash Counter Payment</option>
-                            <option value="BANK_TRANSFER">Bank Transfer (NEFT / RTGS / IMPS)</option>
-                            <option value="CHEQUE">Cheque Payment</option>
-                          </select>
                         </div>
+                      )}
 
-                        <div>
-                          <label className="block font-semibold text-slate-700 mb-1">
-                            Reference / UTR / Cheque #
-                          </label>
-                          <input
-                            type="text"
-                            value={paymentReference}
-                            onChange={(e) => setPaymentReference(e.target.value)}
-                            placeholder="Optional UTR or Transaction ID"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-[#4c3cce]"
-                          />
+                      {/* Payment Mode Pills */}
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1.5">
+                          How is the customer paying? (Payment Mode) *
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {[
+                            { id: 'UPI', label: '📱 UPI / QR', desc: 'GPay, PhonePe, Paytm' },
+                            { id: 'CASH', label: '💵 Cash', desc: 'Direct cash counter' },
+                            { id: 'BANK_TRANSFER', label: '🏦 Bank Transfer', desc: 'NEFT, RTGS, IMPS' },
+                            { id: 'CHEQUE', label: '📄 Cheque', desc: 'Bank cheque leaf' },
+                          ].map((mode) => (
+                            <button
+                              key={mode.id}
+                              type="button"
+                              onClick={() => setPaymentMode(mode.id as any)}
+                              className={`p-2.5 rounded-xl border text-left transition-all ${
+                                paymentMode === mode.id
+                                  ? 'bg-indigo-50 border-[#4c3cce] ring-1 ring-[#4c3cce] shadow-2xs'
+                                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              <span
+                                className={`font-bold text-xs block ${
+                                  paymentMode === mode.id ? 'text-[#4c3cce]' : 'text-slate-800'
+                                }`}
+                              >
+                                {mode.label}
+                              </span>
+                              <span className="text-[10px] text-slate-400 block mt-0.5">{mode.desc}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
 
-                      {/* Financial summary banner for partial or unpaid */}
+                      {/* Reference Number */}
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          Payment Reference Number / UTR / Cheque #
+                        </label>
+                        <input
+                          type="text"
+                          value={paymentReference}
+                          onChange={(e) => setPaymentReference(e.target.value)}
+                          placeholder="e.g. UTR123456789 or Cheque #004521"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-[#4c3cce]"
+                        />
+                      </div>
+
+                      {/* Financial summary banner for partial */}
                       {paymentStatus === 'PARTIAL' && (
-                        <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
-                          <span>
-                            Advance Received: <strong>{formatINR(effectivePaidAmount)}</strong>
+                        <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 text-amber-900 text-xs flex flex-wrap items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                            Advance Received Now: <strong className="text-emerald-700 text-sm ml-1">{formatINR(effectivePaidAmount)}</strong>
                           </span>
-                          <span>
-                            Remaining Balance Due:{' '}
-                            <strong className="text-rose-700">{formatINR(effectiveBalanceAmount)}</strong> (will be added to customer's Khata)
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+                            Remaining Due to Khata: <strong className="text-rose-700 text-sm ml-1">{formatINR(effectiveBalanceAmount)}</strong>
                           </span>
                         </div>
                       )}
@@ -1270,10 +1531,10 @@ export default function CreateInvoiceModal({
                   )}
 
                   {paymentStatus === 'UNPAID' && (
-                    <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
-                      <AlertCircle size={16} className="text-rose-600 shrink-0" />
+                    <div className="p-3.5 bg-rose-50 rounded-xl border border-rose-200 text-rose-900 text-xs flex items-center gap-2.5">
+                      <AlertCircle size={18} className="text-rose-600 shrink-0" />
                       <span>
-                        Full invoice amount of <strong>{formatINR(grandTotal)}</strong> will be booked as an outstanding receivable against <strong>{customerName || 'customer'}</strong>.
+                        Full invoice amount of <strong className="text-sm font-black text-rose-700">{formatINR(grandTotal)}</strong> will be booked as an outstanding receivable against <strong>{customerName || 'customer'}</strong>'s Khata ledger. Paid = <strong>₹0.00</strong>.
                       </span>
                     </div>
                   )}
@@ -1282,22 +1543,24 @@ export default function CreateInvoiceModal({
 
               {/* CARD 6: BOTTOM SUMMARY & TAX BREAKDOWN */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                {/* Notes & Dynamic UPI QR */}
+                {/* Notes & Dynamic UPI QR (Only in GST Portal) */}
                 <div className="space-y-3">
-                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-4">
-                    {upiQrDataUrl && (
-                      <img src={upiQrDataUrl} alt="UPI QR" className="w-20 h-20 rounded-md border border-slate-300" />
-                    )}
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-xs">Dynamic UPI Payment QR</h4>
-                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                        Printed on invoice/quotation for instant counter payment via PhonePe, GPay, or Paytm.
-                      </p>
-                      <p className="text-[11px] font-mono text-[#4c3cce] font-semibold mt-1">
-                        VPA: {business.upiId}
-                      </p>
+                  {!isGB2 && (
+                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-4">
+                      {upiQrDataUrl && (
+                        <img src={upiQrDataUrl} alt="UPI QR" className="w-20 h-20 rounded-md border border-slate-300" />
+                      )}
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-xs">Dynamic UPI Payment QR</h4>
+                        <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                          Printed on invoice/quotation for instant counter payment via PhonePe, GPay, or Paytm.
+                        </p>
+                        <p className="text-[11px] font-mono text-[#4c3cce] font-semibold mt-1">
+                          VPA: {business.upiId}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Bill Calculation Summary */}
@@ -1352,9 +1615,24 @@ export default function CreateInvoiceModal({
             {/* Modal Footer */}
             <div className="h-16 px-6 border-t border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-slate-500">
-                  {invoiceType === 'QUOTATION' ? 'Ready to issue commercial quotation' : 'Press Save to confirm tax invoice'}
-                </span>
+                <span className="text-[11px] font-bold text-slate-700">Settlement:</span>
+                {invoiceType === 'QUOTATION' ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                    📋 Quotation (Estimate)
+                  </span>
+                ) : paymentStatus === 'PAID' ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    🟢 Paid: {formatINR(effectivePaidAmount)} via {paymentMode}
+                  </span>
+                ) : paymentStatus === 'PARTIAL' ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                    🟡 Partial: {formatINR(effectivePaidAmount)} Paid • {formatINR(effectiveBalanceAmount)} Khata Due
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                    🔴 Unpaid: {formatINR(effectiveBalanceAmount)} 100% Khata Due
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-3">
@@ -1379,6 +1657,8 @@ export default function CreateInvoiceModal({
                   <span>
                     {isSubmitting
                       ? 'Saving...'
+                      : editingInvoice
+                      ? 'Update & Save Changes'
                       : invoiceType === 'QUOTATION'
                       ? 'Save & Generate Quotation'
                       : 'Save & Generate Bill'}

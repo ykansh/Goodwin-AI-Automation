@@ -721,7 +721,8 @@ export async function insertInvoiceToSupabase(
  */
 export async function updateInvoiceInSupabase(
   id: string,
-  updated: Partial<MockInvoice>
+  updated: Partial<MockInvoice>,
+  companyCode?: 'goodwin-1' | 'goodwin-2'
 ): Promise<boolean> {
   try {
     const payload: any = {};
@@ -730,6 +731,15 @@ export async function updateInvoiceInSupabase(
       payload.lifecycle_status = updated.invoiceType === 'QUOTATION' ? 'Quotation' : 'Confirmed';
     }
     if (updated.invoiceNumber) payload.invoice_number = updated.invoiceNumber;
+    if (updated.invoiceDate) payload.date = updated.invoiceDate;
+    if (updated.partyName) payload.customer_name = updated.partyName;
+    if (updated.partyGstin !== undefined) payload.customer_gstin = updated.partyGstin || null;
+    if (updated.subtotal !== undefined) {
+      payload.taxable_amount = updated.subtotal;
+      payload.subtotal = updated.subtotal;
+    }
+    if (updated.taxTotal !== undefined) payload.gst_amount = updated.taxTotal;
+    if (updated.totalAmount !== undefined) payload.grand_total = updated.totalAmount;
     if (updated.paymentStatus) {
       payload.status = updated.paymentStatus.toLowerCase();
       payload.payment_status =
@@ -743,6 +753,40 @@ export async function updateInvoiceInSupabase(
       payload.outstanding = updated.balanceAmount;
     }
     if (updated.paymentMode) payload.payment_mode = updated.paymentMode.toLowerCase();
+    if (updated.items) payload.items = updated.items;
+    if (updated.transportAddress !== undefined) payload.transport_address = updated.transportAddress || null;
+    if (updated.transportContactNumber !== undefined) payload.transport_contact_number = updated.transportContactNumber || null;
+    if (updated.transportGstin !== undefined) payload.transport_gstin = updated.transportGstin || null;
+    if (updated.placeOfSupply !== undefined) payload.place_of_supply = updated.placeOfSupply;
+    if (updated.placeOfDelivery !== undefined) payload.place_of_delivery = updated.placeOfDelivery;
+    if (updated.referenceName !== undefined) payload.reference_name = updated.referenceName || null;
+    if (updated.pvtMarka !== undefined) payload.pvt_marka = updated.pvtMarka || null;
+    if (updated.billingState !== undefined) payload.billing_state_ut = updated.billingState;
+    if (updated.shippingState !== undefined) payload.shipping_state_ut = updated.shippingState;
+
+    // Extra meta in notes
+    const extraMeta = {
+      orderNumber: updated.orderNumber || '',
+      orderDate: updated.orderDate || '',
+      customerPhone: updated.partyPhone || '',
+      billingName: updated.billingName || updated.partyName || '',
+      billingAddress: updated.billingAddress || '',
+      billingState: updated.billingState || 'Madhya Pradesh',
+      shippingAddress: updated.shippingAddress || '',
+      shippingState: updated.shippingState || 'Madhya Pradesh',
+      transportAddress: updated.transportAddress || '',
+      transportContactNumber: updated.transportContactNumber || '',
+      transportGstin: updated.transportGstin || '',
+      placeOfSupply: updated.placeOfSupply || 'Madhya Pradesh',
+      placeOfDelivery: updated.placeOfDelivery || updated.placeOfSupply || 'Madhya Pradesh',
+      referenceName: updated.referenceName || '',
+      pvtMarka: updated.pvtMarka || '',
+      paymentMode: updated.paymentMode || 'UPI',
+      paymentReference: updated.paymentReference || '',
+      paymentStatus: updated.paymentStatus,
+    };
+    const prefixTag = companyCode === 'goodwin-2' ? '[GB2]' : '';
+    payload.notes = `${prefixTag} [META:${JSON.stringify(extraMeta)}]`.trim();
 
     const { error } = await supabase.from('sales_invoices').update(payload).eq('id', id);
     if (error) {

@@ -39,7 +39,9 @@ export default function PartyStatementModal({
       inv.partyName.toLowerCase() === party.name.toLowerCase() &&
       inv.invoiceType !== 'QUOTATION'
   );
-  const partyPayments = payments.filter((p) => p.partyId === party.id);
+  const partyPayments = payments.filter(
+    (p) => p.partyId === party.id || (p.partyName && p.partyName.toLowerCase() === party.name.toLowerCase())
+  );
 
   // Combine and sort by date
   interface LedgerRow {
@@ -67,7 +69,13 @@ export default function PartyStatementModal({
   });
 
   partyPayments.forEach((pay) => {
-    const isPaymentIn = pay.type === 'PAYMENT_IN';
+    const isPaymentOut =
+      pay.type === 'PAYMENT_OUT' ||
+      (pay as any).direction === 'out' ||
+      String((pay as any).type || '').toUpperCase() === 'PAYMENT_OUT' ||
+      String((pay as any).direction || '').toLowerCase() === 'out';
+    const isPaymentIn = !isPaymentOut;
+
     rows.push({
       id: pay.id,
       date: pay.date,
@@ -77,7 +85,7 @@ export default function PartyStatementModal({
         : `Payment Out (${pay.paymentMode})`,
       refNo: pay.referenceNumber,
       // Payment In reduces receivable (Credit -), Payment Out gives cash to customer / increases receivable (Debit +)
-      debit: isPaymentIn ? 0 : pay.amount,
+      debit: isPaymentOut ? pay.amount : 0,
       credit: isPaymentIn ? pay.amount : 0,
     });
   });
