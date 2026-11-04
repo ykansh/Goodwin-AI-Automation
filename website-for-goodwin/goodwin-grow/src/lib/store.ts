@@ -17,13 +17,15 @@ export interface Employee {
   notes: string;
 }
 
-export type AttendanceStatus = 'Present' | 'Absent' | 'Half-Day';
+export type AttendanceStatus = 'Present' | 'Absent' | 'Half-Day' | 'Extra Day';
 
 export interface AttendanceRecord {
   status: AttendanceStatus;
   arrival: string;
   departure: string;
   isFinalized?: boolean;
+  isExtraDay?: boolean;
+  notes?: string;
 }
 
 export interface Leave {
@@ -35,6 +37,11 @@ export interface Leave {
   endDate: string;
   days: number;
   status: string;
+}
+
+export interface PublicHoliday {
+  date: string;
+  name: string;
 }
 
 export interface PayrollRecord {
@@ -97,6 +104,7 @@ export interface GlobalState {
   // HRMS - Attendance
   attendance: Record<string, Record<string, AttendanceRecord>>; // date -> employeeName -> record
   updateAttendance: (date: string, employeeName: string, record: AttendanceRecord) => Promise<void>;
+  deleteAttendanceRecord: (date: string, employeeName: string) => Promise<void>;
   clockIn: (employeeName: string) => Promise<void>;
   clockOut: (employeeName: string) => Promise<void>;
   markAbsences: (date: string) => Promise<void>;
@@ -106,6 +114,12 @@ export interface GlobalState {
   requestLeave: (leave: Omit<Leave, 'id' | 'name' | 'status'>) => Promise<void>;
   updateLeave: (id: string, leave: Partial<Leave>) => Promise<void>;
   deleteLeave: (id: string) => Promise<void>;
+
+  // HRMS - Public Holidays / Extra Days
+  publicHolidays: PublicHoliday[];
+  addPublicHoliday: (date: string, name: string) => Promise<void>;
+  removePublicHoliday: (date: string) => Promise<void>;
+  isPublicHoliday: (date: string) => boolean;
 
   // HRMS - Payroll
   payroll: PayrollRecord[];
@@ -151,6 +165,7 @@ export const useStore = create<GlobalState>((set, get) => ({
   attendance: {},
   leaves: [],
   payroll: [],
+  publicHolidays: [],
   recruits: [],
   onboardings: [],
   aiTools: [],
@@ -214,6 +229,20 @@ export const useStore = create<GlobalState>((set, get) => ({
           status: l.status
         };
       });
+
+      // Fetch Public Holidays
+      let holidays: PublicHoliday[] = [];
+      try {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('goodwin_public_holidays') : null;
+        if (stored) holidays = JSON.parse(stored);
+      } catch {}
+      try {
+        const { data: holData, error: holError } = await supabase.from('public_holidays').select('*');
+        if (!holError && holData && holData.length > 0) {
+          holidays = holData.map(h => ({ date: h.date, name: h.name }));
+          try { localStorage.setItem('goodwin_public_holidays', JSON.stringify(holidays)); } catch {}
+        }
+      } catch {}
 
       // Fetch Payroll
       const { data: payrollData, error: payrollError } = await supabase.from('payroll').select('*');
@@ -345,6 +374,7 @@ export const useStore = create<GlobalState>((set, get) => ({
         attendance: attendanceObj,
         leaves,
         payroll,
+        publicHolidays: holidays,
         recruits,
         onboardings,
         aiTools,
@@ -482,6 +512,24 @@ export const useStore = create<GlobalState>((set, get) => ({
     }));
   },
 
+  deleteAttendanceRecord: async (date, employeeName) => {
+    try {
+      await supabase.from('attendance').delete().match({ date, employee_name: employeeName });
+    } catch (err) {
+      console.warn('Error deleting attendance record:', err);
+    }
+    set(state => {
+      const day = { ...(state.attendance[date] || {}) };
+      delete day[employeeName];
+      return {
+        attendance: {
+          ...state.attendance,
+          [date]: day
+        }
+      };
+    });
+  },
+
   clockIn: async (employeeName) => {
     const date = new Date().toISOString().split('T')[0];
     const arrival = new Date().toTimeString().split(' ')[0].substring(0, 5); // "HH:mm"
@@ -518,6 +566,11 @@ export const useStore = create<GlobalState>((set, get) => ({
 
   markAbsences: async (date) => {
     const state = get();
+    // Rule: Never mark absences on a Sunday or Public Holiday (paid leave for all employees!)
+    const parsed = parseISO(date);
+    if ((isValid(parsed) && getDay(parsed) === 0) || state.isPublicHoliday(date)) {
+      return;
+    }
     const activeEmployees = state.employees.filter(e => e.status === 'active');
     const todaysAttendance = state.attendance[date] || {};
     
@@ -533,6 +586,54 @@ export const useStore = create<GlobalState>((set, get) => ({
       });
       
     await Promise.all(absentPromises);
+  },
+
+  addPublicHoliday: async (date: string, name: string) => {
+    const state = get();
+    const existing = state.publicHolidays.filter(h => h.date !== date);
+    const updated = [...existing, { date, name }];
+    try {
+      localStorage.setItem('goodwin_public_holidays', JSON.stringify(updated));
+    } catch {}
+    set({ publicHolidays: updated });
+
+    try {
+      await supabase.from('public_holidays').upsert({ date, name }, { onConflict: 'date' });
+    } catch (e) {
+      console.warn('Could not persist to supabase public_holidays:', e);
+    }
+
+    // Rule: A declared day extra is a public leave. 
+    // Clear any existing 'Absent' records on this date so no employee is penalized with absent deductions on a public holiday!
+    const dayRecords = state.attendance[date];
+    if (dayRecords) {
+      const absentNames = Object.entries(dayRecords)
+        .filter(([_, r]) => r.status === 'Absent')
+        .map(([name]) => name);
+      for (const empName of absentNames) {
+        await get().deleteAttendanceRecord(date, empName);
+      }
+    }
+  },
+
+  removePublicHoliday: async (date: string) => {
+    const state = get();
+    const updated = state.publicHolidays.filter(h => h.date !== date);
+    try {
+      localStorage.setItem('goodwin_public_holidays', JSON.stringify(updated));
+    } catch {}
+    set({ publicHolidays: updated });
+
+    try {
+      await supabase.from('public_holidays').delete().eq('date', date);
+    } catch (e) {
+      console.warn('Could not delete from supabase public_holidays:', e);
+    }
+  },
+
+  isPublicHoliday: (date: string) => {
+    const list = get().publicHolidays || [];
+    return list.some(h => h.date === date);
   },
 
   requestLeave: async (leave) => {

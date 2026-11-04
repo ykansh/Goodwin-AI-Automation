@@ -4,14 +4,19 @@ import html2canvas from 'html2canvas';
 export interface GeneratePdfOptions {
   elementId?: string;
   filename?: string;
+  marginSideMm?: number;
+  marginTopMm?: number;
+  marginBottomMm?: number;
 }
 
 /**
- * Captures an HTML element and compiles it into an A4 PDF Blob & File.
+ * Captures an HTML element and compiles it into an A4 PDF Blob & File
+ * with natural blank borders (margins) on the sides, top, and bottom.
  */
 export async function generateInvoicePdfBlob(
   elementId: string = 'printable-invoice',
-  filename: string = 'invoice'
+  filename: string = 'invoice',
+  options?: Partial<GeneratePdfOptions>
 ): Promise<{ blob: Blob; file: File }> {
   const element = document.getElementById(elementId);
   if (!element) {
@@ -25,9 +30,15 @@ export async function generateInvoicePdfBlob(
     logging: false,
     backgroundColor: '#ffffff',
     windowWidth: 1024,
+    onclone: (clonedDoc) => {
+      const clonedEl = clonedDoc.getElementById(elementId);
+      if (clonedEl) {
+        // Strip drop shadows so edges stay clean and sharp without blurry shadow artifacts
+        clonedEl.style.boxShadow = 'none';
+      }
+    },
   });
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.98);
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -36,21 +47,87 @@ export async function generateInvoicePdfBlob(
 
   const pdfWidth = 210; // A4 width in mm
   const pdfHeight = 297; // A4 height in mm
-  const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  // Check if printing thermal receipt (narrow POS layout) or standard A4 invoice
+  const isThermalReceipt = element.offsetWidth < 500;
 
-  // First page
-  pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
-  heightLeft -= pdfHeight;
+  // Natural blank borders (margins) on sides and top/bottom
+  // Standard A4 invoice: 12mm blank borders on sides (~0.47 in), 10mm top & bottom
+  const marginX = options?.marginSideMm ?? (isThermalReceipt ? (pdfWidth - 80) / 2 : 12);
+  const marginY = options?.marginTopMm ?? 10;
+  const marginBottom = options?.marginBottomMm ?? 10;
 
-  // Subsequent pages if invoice overflows single page
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
-    heightLeft -= pdfHeight;
+  const contentWidth = isThermalReceipt ? 80 : pdfWidth - marginX * 2;
+  const contentHeight = pdfHeight - marginY - marginBottom;
+
+  // Calculate full scaled height in mm
+  const totalImgHeightMm = (canvas.height * contentWidth) / canvas.width;
+
+  if (totalImgHeightMm <= contentHeight) {
+    // Single page invoice - render directly with natural blank borders
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    pdf.addImage(
+      imgData,
+      'JPEG',
+      marginX,
+      marginY,
+      contentWidth,
+      totalImgHeightMm,
+      undefined,
+      'FAST'
+    );
+  } else {
+    // Multi-page invoice - slice canvas cleanly page-by-page preserving margins
+    const pxPerMm = canvas.width / contentWidth;
+    const pagePxHeight = contentHeight * pxPerMm;
+
+    let sourceY = 0;
+    let pageIndex = 0;
+
+    while (sourceY < canvas.height) {
+      const chunkPxHeight = Math.min(pagePxHeight, canvas.height - sourceY);
+
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = chunkPxHeight;
+      const ctx = pageCanvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0,
+          sourceY,
+          canvas.width,
+          chunkPxHeight,
+          0,
+          0,
+          canvas.width,
+          chunkPxHeight
+        );
+      }
+
+      const chunkMmHeight = (chunkPxHeight * contentWidth) / canvas.width;
+      const chunkData = pageCanvas.toDataURL('image/jpeg', 0.98);
+
+      if (pageIndex > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(
+        chunkData,
+        'JPEG',
+        marginX,
+        marginY,
+        contentWidth,
+        chunkMmHeight,
+        undefined,
+        'FAST'
+      );
+
+      sourceY += chunkPxHeight;
+      pageIndex++;
+    }
   }
 
   const cleanFilename = filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`;
@@ -65,9 +142,10 @@ export async function generateInvoicePdfBlob(
  */
 export async function downloadInvoicePdf(
   elementId: string = 'printable-invoice',
-  filename: string = 'invoice'
+  filename: string = 'invoice',
+  options?: Partial<GeneratePdfOptions>
 ): Promise<void> {
-  const { blob, file } = await generateInvoicePdfBlob(elementId, filename);
+  const { blob, file } = await generateInvoicePdfBlob(elementId, filename, options);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -86,6 +164,7 @@ export interface ShareInvoiceOptions {
   totalAmount: number;
   businessName?: string;
   upiId?: string;
+  marginSideMm?: number;
 }
 
 /**
@@ -101,6 +180,7 @@ export async function shareInvoicePdfWithWhatsApp({
   totalAmount,
   businessName = 'Goodwin Batteries Pvt. Ltd.',
   upiId = 'goodwin@okaxis',
+  marginSideMm,
 }: ShareInvoiceOptions): Promise<{ sharedVia: 'native-share' | 'whatsapp-with-download' }> {
   const filename = `${invoiceNumber}.pdf`;
   const formattedAmount = new Intl.NumberFormat('en-IN', {
@@ -109,8 +189,10 @@ export async function shareInvoicePdfWithWhatsApp({
     maximumFractionDigits: 2,
   }).format(totalAmount);
 
-  // Generate the PDF
-  const { file, blob } = await generateInvoicePdfBlob(elementId, filename);
+  // Generate the PDF with natural blank borders
+  const { file, blob } = await generateInvoicePdfBlob(elementId, filename, {
+    marginSideMm,
+  });
 
   const shareText = `Dear ${partyName},\n\nPlease find attached your invoice *${invoiceNumber}* for *${formattedAmount}* from ${businessName}.\n\nPay via UPI: ${upiId}\n\nThank you for choosing Goodwin Batteries!`;
 

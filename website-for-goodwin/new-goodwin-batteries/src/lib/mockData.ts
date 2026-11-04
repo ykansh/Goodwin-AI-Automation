@@ -71,6 +71,7 @@ export interface MockInvoiceItem {
 
 export interface MockInvoice {
   id: string;
+  companyCode?: 'goodwin-1' | 'goodwin-2';
   invoiceNumber: string;
   invoiceType: 'TAX_INVOICE' | 'BILL_OF_SUPPLY' | 'QUOTATION' | 'DELIVERY_CHALLAN';
   orderNumber?: string;

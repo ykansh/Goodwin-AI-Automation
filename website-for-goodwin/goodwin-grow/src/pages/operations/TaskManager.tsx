@@ -29,6 +29,8 @@ export const TaskManager = () => {
   const attendance = useStore((state: any) => state.attendance);
   const leaves = useStore((state: any) => state.leaves);
   const updateAttendance = useStore((state: any) => state.updateAttendance);
+  const deleteAttendanceRecord = useStore((state: any) => state.deleteAttendanceRecord);
+  const publicHolidays = useStore((state: any) => state.publicHolidays) || [];
 
   const { isAdmin, isEmployee, employeeName } = useCurrentUser();
 
@@ -107,7 +109,7 @@ export const TaskManager = () => {
     await deleteTask(taskId);
   };
 
-  const handleSetAttendance = async (status: 'Present' | 'Absent' | 'Half-Day') => {
+  const handleSetAttendance = async (status: 'Present' | 'Absent' | 'Half-Day' | 'Extra Day') => {
     if (!selectedDate || !selectedEmployee) return;
     if (isEmployee && !isSameEmployee(selectedEmployee, employeeName)) {
       return;
@@ -115,8 +117,8 @@ export const TaskManager = () => {
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
     await updateAttendance(dateKey, selectedEmployee, {
       status,
-      arrival: status === 'Present' ? '09:00' : status === 'Half-Day' ? '09:00' : '',
-      departure: status === 'Present' ? '17:00' : status === 'Half-Day' ? '13:00' : '',
+      arrival: (status === 'Present' || status === 'Extra Day') ? '09:00' : status === 'Half-Day' ? '09:00' : '',
+      departure: (status === 'Present' || status === 'Extra Day') ? '17:00' : status === 'Half-Day' ? '13:00' : '',
       isFinalized: true
     });
   };
@@ -432,13 +434,18 @@ export const TaskManager = () => {
             const dateKey = format(selectedDate, 'yyyy-MM-dd');
             const att = getEmployeeAttendance(dateKey, selectedEmployee);
             const isSunday = getDay(selectedDate) === 0;
-            const currentStatus = att?.status || 'Not Marked';
+            const holiday = publicHolidays.find((h: any) => h.date === dateKey);
+            const isHoliday = !!holiday;
+            const isOffDay = isSunday || isHoliday;
+            const currentStatus = att?.status || (isHoliday ? 'Holiday Off' : isSunday ? 'Sunday Off' : 'Not Marked');
 
             const isApprovedLeave = (leaves || []).some((l: any) => {
               const empMatch = isSameEmployee(l.name, selectedEmployee) || 
                                (employees && employees.some((e: any) => e.id === l.employeeId && isSameEmployee(e.name, selectedEmployee)));
               return empMatch && (l.status === 'Approved' || l.status === 'Sanctioned') && dateKey >= l.startDate && dateKey <= l.endDate;
             });
+
+            const isExtraWorked = (isOffDay && (att?.status === 'Present' || att?.status === 'Half-Day' || att?.status === 'Extra Day')) || att?.status === 'Extra Day';
 
             return (
               <div className="space-y-2">
@@ -447,9 +454,25 @@ export const TaskManager = () => {
                     <span>ℹ️ Sanctioned Leave in HRMS — Automatically reflected as Absent in employee roster.</span>
                   </div>
                 )}
-                {isSunday && (currentStatus === 'Present' || currentStatus === 'Half-Day') && (
+                {isHoliday && !isExtraWorked && (
+                  <div className="p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-800 text-xs font-semibold flex items-center justify-between gap-2">
+                    <span>🌴 Declared Public Holiday: {holiday.name} (Paid Public Leave, 0 absent deductions)</span>
+                    {att && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await deleteAttendanceRecord(dateKey, selectedEmployee);
+                        }}
+                        className="text-xs text-sky-700 hover:underline font-bold"
+                      >
+                        Reset to Paid Leave
+                      </button>
+                    )}
+                  </div>
+                )}
+                {isExtraWorked && (
                   <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 text-xs font-semibold flex items-center gap-1.5">
-                    <span>⭐ Sunday Overtime — Counted as Extra Day Worked in HRMS attendance & payroll.</span>
+                    <span>⭐ Extra Day Worked — Excluded from regular attendance, credited with +₹333 in HRMS payroll.</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between p-3.5 bg-canvas/40 rounded-lg border border-canvas-variant">
@@ -459,17 +482,19 @@ export const TaskManager = () => {
                       <span className={`w-2 h-2 rounded-full ${
                         currentStatus === 'Absent' || isApprovedLeave ? 'bg-red-500' :
                         currentStatus === 'Present' ? 'bg-green-500' :
-                        currentStatus === 'Half-Day' ? 'bg-amber-500' : 'bg-secondary-light/40'
+                        currentStatus === 'Half-Day' ? 'bg-amber-500' : 
+                        currentStatus === 'Extra Day' || isExtraWorked ? 'bg-amber-600' : 
+                        isHoliday ? 'bg-sky-500' : 'bg-secondary-light/40'
                       }`} />
-                      {isApprovedLeave ? 'Absent (Sanctioned Leave)' : currentStatus}
-                      {isSunday && (currentStatus === 'Present' || currentStatus === 'Half-Day') && (
-                        <span className="text-[10px] text-amber-700 bg-amber-100 font-bold px-1.5 py-0.5 rounded ml-1">
-                          Extra Day
+                      {isApprovedLeave ? 'Absent (Sanctioned Leave)' : isHoliday && !att ? `🌴 ${holiday.name} (Paid Off)` : currentStatus}
+                      {isExtraWorked ? (
+                        <span className="text-[10px] text-amber-800 bg-amber-100 font-extrabold px-1.5 py-0.5 rounded ml-1 border border-amber-300">
+                          ⭐ +₹333 Extra Day
                         </span>
-                      )}
+                      ) : null}
                     </span>
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     <Button
                       size="sm"
                       variant={currentStatus === 'Present' ? 'primary' : 'secondary'}
@@ -493,6 +518,14 @@ export const TaskManager = () => {
                       onClick={() => handleSetAttendance('Half-Day')}
                     >
                       Half-Day
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={currentStatus === 'Extra Day' ? 'primary' : 'secondary'}
+                      className={`text-xs h-7 px-2.5 ${currentStatus === 'Extra Day' ? 'bg-amber-500 hover:bg-amber-600 text-white font-bold' : 'text-amber-800 border-amber-300 hover:bg-amber-50'}`}
+                      onClick={() => handleSetAttendance('Extra Day')}
+                    >
+                      ⭐ Extra Day
                     </Button>
                   </div>
                 </div>

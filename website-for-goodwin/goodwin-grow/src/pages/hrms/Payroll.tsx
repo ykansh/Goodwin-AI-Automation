@@ -109,29 +109,39 @@ export const Payroll = () => {
     let sundayExtraDays = 0;
     const sundayDates: string[] = [];
     const trimmedEmpName = (employeeName || '').trim().toLowerCase();
+    const publicHolidays = useStore.getState().publicHolidays || [];
 
     let cur = new Date(mStart);
     while (cur <= mEnd && cur <= today) {
-      if (getDay(cur) === 0) { // Sunday
-        const dStr = format(cur, 'yyyy-MM-dd');
-        const dayRec = attendance[dStr];
-        if (dayRec) {
-          const empRec = dayRec[employeeName] || 
-            Object.entries(dayRec).find(([k]) => k.trim().toLowerCase() === trimmedEmpName)?.[1];
+      const isSunday = getDay(cur) === 0;
+      const dStr = format(cur, 'yyyy-MM-dd');
+      const holiday = publicHolidays.find(h => h.date === dStr);
+      const isOffDay = isSunday || !!holiday;
 
-          if (empRec?.status === 'Present') {
-            sundayExtraDays += 1;
-            sundayDates.push(format(cur, 'd MMM'));
-          } else if (empRec?.status === 'Half-Day') {
-            sundayExtraDays += 0.5;
-            sundayDates.push(`${format(cur, 'd MMM')} (Half-Day)`);
+      const dayRec = attendance[dStr];
+      if (dayRec) {
+        const empRec = dayRec[employeeName] || 
+          Object.entries(dayRec).find(([k]) => k.trim().toLowerCase() === trimmedEmpName)?.[1];
+
+        const didWork = empRec && (empRec.status === 'Present' || empRec.status === 'Half-Day' || empRec.status === 'Extra Day');
+
+        if (isOffDay) {
+          if (didWork) {
+            const extra = empRec.status === 'Half-Day' ? 0.5 : 1.0;
+            sundayExtraDays += extra;
+            const label = isSunday ? 'Sun' : (holiday?.name ? `Holiday: ${holiday.name}` : 'Govt Hol');
+            sundayDates.push(`${format(cur, 'd MMM')} (${label})${extra === 0.5 ? ' (Half-Day)' : ''}`);
           }
+        } else if (empRec?.status === 'Extra Day' || empRec?.isExtraDay) {
+          sundayExtraDays += 1.0;
+          sundayDates.push(`${format(cur, 'd MMM')} (Extra Day)`);
         }
       }
       cur = addDays(cur, 1);
     }
 
-    const overtimeBonus = Math.round(sundayExtraDays * (basicSalary / 30));
+    // User rule: 1 extraday equals 333 rupees
+    const overtimeBonus = Math.round(sundayExtraDays * 333);
 
     return {
       sundayExtraDays,
@@ -394,7 +404,7 @@ export const Payroll = () => {
       alert('No data to export');
       return;
     }
-    const headers = ['Employee', 'Type', 'Date of Joining', 'Month', 'Basic Salary / Stipend', 'Allowances', 'Sunday Extra Days', 'Sunday Bonus', 'Attendance Deduction', 'Total Deductions', 'Net Salary / Stipend', 'Status'];
+    const headers = ['Employee', 'Type', 'Date of Joining', 'Month', 'Basic Salary / Stipend', 'Allowances', 'Extra Days', 'Extra Days Bonus (@ ₹333/d)', 'Attendance Deduction', 'Total Deductions', 'Net Salary / Stipend', 'Status'];
     const csvContent = [
       headers.join(','),
       ...filteredPayroll.map(p => {
@@ -519,7 +529,7 @@ export const Payroll = () => {
             </div>
           </div>
           <div className="text-2xl font-bold text-amber-700 dark:text-amber-400 mt-2">
-            ⭐ {stats.totalSundayExtraDays} Days Worked
+            ⭐ {stats.totalSundayExtraDays} Extra Days Worked
           </div>
           <p className="text-xs text-secondary-light mt-1">
             Credited at daily rate based on attendance section
@@ -664,7 +674,7 @@ export const Payroll = () => {
                         {hasSundayExtra && (
                           <div className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
                             <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                            <span>{sundayInfo.sundayExtraDays} Sun (+{formatCurrency(sundayInfo.overtimeBonus)})</span>
+                            <span>{sundayInfo.sundayExtraDays} Extra Day{sundayInfo.sundayExtraDays > 1 ? 's' : ''} (+{formatCurrency(sundayInfo.overtimeBonus)})</span>
                           </div>
                         )}
                       </td>
@@ -810,7 +820,7 @@ export const Payroll = () => {
 
                     <div>
                       <label className="enterprise-label flex items-center justify-between text-[11px] mb-1">
-                        <span>⭐ Extra Sundays Worked</span>
+                        <span>⭐ Extra Days Worked</span>
                         <span className="text-[10px] text-amber-600 font-semibold">
                           +{formatCurrency(editDynamicCalculation.sundayBonus)}
                         </span>
@@ -825,7 +835,7 @@ export const Payroll = () => {
                         className="h-8 text-xs font-semibold"
                       />
                       <span className="text-[9px] text-secondary-light block mt-0.5">
-                        Bonus: {editDynamicCalculation.sundayExtraDays}d × {formatCurrency(editDynamicCalculation.perDaySalary)}
+                        Bonus: {editDynamicCalculation.sundayExtraDays}d × {formatCurrency(333)} (₹333/day)
                       </span>
                     </div>
                   </div>
@@ -1039,12 +1049,12 @@ export const Payroll = () => {
                       <div className="flex justify-between font-bold">
                         <span className="flex items-center gap-1">
                           <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                          Sunday Extra Worked:
+                          Extra Days Worked (Govt Hol / Sun):
                         </span>
                         <span>+{formatCurrency(selectedPayslip.sundayOvertimeBonus || 0)}</span>
                       </div>
                       <div className="text-[11px] text-amber-700/80 dark:text-amber-400 mt-0.5">
-                        {selectedPayslip.sundayExtraDays} Sunday(s) worked @ {formatCurrency(selectedPayslip.perDaySalary || 0)}/day
+                        {selectedPayslip.sundayExtraDays} Extra Day(s) worked @ {formatCurrency(333)}/day
                         {selectedPayslip.sundayDates && selectedPayslip.sundayDates.length > 0 ? ` (${selectedPayslip.sundayDates.join(', ')})` : ''}
                       </div>
                     </div>
@@ -1113,7 +1123,7 @@ export const Payroll = () => {
                 <div>• <strong>Attendance Deduction:</strong> {selectedPayslip.absentDays} day(s) absent deducted (-{formatCurrency(selectedPayslip.attendanceDeduction || 0)}).</div>
               ) : null}
               {selectedPayslip.sundayExtraDays && selectedPayslip.sundayExtraDays > 0 ? (
-                <div>• <strong>⭐ Sunday Extra Worked:</strong> Employee clocked {selectedPayslip.sundayExtraDays} Sunday(s) (+{formatCurrency(selectedPayslip.sundayOvertimeBonus || 0)}).</div>
+                <div>• <strong>⭐ Extra Days Worked:</strong> Employee clocked {selectedPayslip.sundayExtraDays} Extra Day(s) (Govt Holiday / Sunday worked), credited with overtime bonus @ {formatCurrency(333)}/day (+{formatCurrency(selectedPayslip.sundayOvertimeBonus || 0)}).</div>
               ) : null}
             </div>
 

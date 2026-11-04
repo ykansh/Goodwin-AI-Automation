@@ -59,6 +59,10 @@ body {
 
 /* Print Styles for thermal and A4 bill prints */
 @media print {
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
   body * {
     visibility: hidden;
   }
@@ -72,6 +76,7 @@ body {
     width: 100%;
     margin: 0;
     padding: 0;
+    box-shadow: none !important;
   }
   .no-print {
     display: none !important;

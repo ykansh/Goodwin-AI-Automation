@@ -13,14 +13,26 @@ import {
 } from 'date-fns';
 import type { Employee, AttendanceRecord } from './store';
 
+export const EXTRA_DAY_RATE = 333;
+
+export const getCachedPublicHolidays = (): { date: string; name: string }[] => {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('goodwin_public_holidays') : null;
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+};
+
 export interface DailyAttendanceDetail {
   date: string;
   dayOfWeek: string;
   isSunday: boolean;
-  status: 'Present' | 'Absent' | 'Half-Day' | 'Sunday Off' | 'Unmarked';
+  isPublicHoliday?: boolean;
+  holidayName?: string;
+  status: 'Present' | 'Absent' | 'Half-Day' | 'Sunday Off' | 'Holiday Off' | 'Unmarked' | 'Extra Day';
   arrival: string;
   departure: string;
-  credit: number; // 1 for present/sunday, 0.5 for half day, 0 for absent/unmarked
+  credit: number; // 1 for present/sunday/holiday off/extra day, 0.5 for half day, 0 for absent/unmarked
   isFinalized?: boolean;
   isExtraDayWorked?: boolean;
   isSanctionedLeave?: boolean;
@@ -163,6 +175,8 @@ export const calculateEmployeeAttendanceStats = (
   const firstDate = parseISO(firstAttendanceDateStr);
   const totalDaysSinceJoining = Math.max(1, differenceInCalendarDays(today, firstDate) + 1);
 
+  const publicHolidays = getCachedPublicHolidays();
+
   // Daily records list from firstDate to today
   const dailyRecords: DailyAttendanceDetail[] = [];
   let allSundays = 0;
@@ -179,6 +193,9 @@ export const calculateEmployeeAttendanceStats = (
     const dStr = format(cur, 'yyyy-MM-dd');
     const dayOfWeek = format(cur, 'EEEE');
     const isSunday = getDay(cur) === 0;
+    const holiday = publicHolidays.find(h => h.date === dStr);
+    const isPublicHoliday = !!holiday;
+    const isOffDay = isSunday || isPublicHoliday;
     const rec = getEmployeeAttendanceRecord(attendance, dStr, employee.name);
 
     if (isSunday) allSundays++;
@@ -190,36 +207,57 @@ export const calculateEmployeeAttendanceStats = (
       return empMatch && isApproved && dStr >= l.startDate && dStr <= l.endDate;
     });
 
-    let status: DailyAttendanceDetail['status'] = isSunday ? 'Sunday Off' : 'Unmarked';
-    let credit = isSunday ? 1.0 : 0.0;
+    let status: DailyAttendanceDetail['status'] = isSunday ? 'Sunday Off' : isPublicHoliday ? 'Holiday Off' : 'Unmarked';
+    let credit = isOffDay ? 1.0 : 0.0;
     let arrival = '';
     let departure = '';
     let isFinalized = false;
     let isExtraDayWorked = false;
-    let notes = '';
+    let notes = isSunday ? 'Weekly Off' : isPublicHoliday ? `Public Holiday: ${holiday?.name || 'Public Leave'}` : '';
 
-    if (isSanctionedLeave) {
-      allAbsents++;
-      allSanctionedLeaves++;
-      status = 'Absent';
-      credit = 0.0;
-      notes = 'Sanctioned Leave';
-    } else if (rec) {
-      arrival = rec.arrival || '';
-      departure = rec.departure || '';
-      isFinalized = rec.isFinalized || false;
+    const didWork = !!(rec && (rec.status === 'Present' || rec.status === 'Half-Day' || rec.status === 'Extra Day'));
 
-      if (isSunday) {
-        if (rec.status === 'Present' || rec.status === 'Half-Day') {
-          isExtraDayWorked = true;
-          status = rec.status;
-          const extra = rec.status === 'Present' ? 1.0 : 0.5;
-          allSundayExtraDays += extra;
-          credit = 1.0;
-          notes = '⭐ Extra Day Worked';
-        }
+    if (isOffDay) {
+      if (didWork) {
+        // Employee worked on Sunday or Public Holiday! -> ⭐ Extra Day (+₹333)
+        isExtraDayWorked = true;
+        status = 'Extra Day';
+        const extra = rec?.status === 'Half-Day' ? 0.5 : 1.0;
+        allSundayExtraDays += extra;
+        credit = 1.0;
+        arrival = rec?.arrival || '09:00';
+        departure = rec?.departure || '17:00';
+        isFinalized = rec?.isFinalized || false;
+        notes = isPublicHoliday 
+          ? `⭐ Extra Day (${holiday?.name || 'Govt Holiday'}) (+₹333)`
+          : '⭐ Sunday Extra Day (+₹333)';
       } else {
-        if (rec.status === 'Present') {
+        // Did NOT work on off day / public holiday: Paid Leave (Holiday Off / Sunday Off)
+        // Rule: DO NOT mark absent! DO NOT mark as Extra Day!
+        status = isSunday ? 'Sunday Off' : 'Holiday Off';
+        credit = 1.0;
+        notes = isSunday ? 'Weekly Off' : `Public Holiday: ${holiday?.name || 'Public Leave'}`;
+      }
+    } else {
+      // Regular working day (Monday - Saturday, not a public holiday)
+      if (isSanctionedLeave) {
+        allAbsents++;
+        allSanctionedLeaves++;
+        status = 'Absent';
+        credit = 0.0;
+        notes = 'Sanctioned Leave';
+      } else if (rec) {
+        arrival = rec.arrival || '';
+        departure = rec.departure || '';
+        isFinalized = rec.isFinalized || false;
+
+        if (rec.status === 'Extra Day' || rec.isExtraDay) {
+          isExtraDayWorked = true;
+          status = 'Extra Day';
+          allSundayExtraDays += 1.0;
+          credit = 1.0;
+          notes = '⭐ Extra Day (+₹333)';
+        } else if (rec.status === 'Present') {
           allPresents++;
           status = 'Present';
           credit = 1.0;
@@ -233,9 +271,7 @@ export const calculateEmployeeAttendanceStats = (
           status = 'Absent';
           credit = 0.0;
         }
-      }
-    } else {
-      if (!isSunday) {
+      } else {
         allUnmarked++;
       }
     }
@@ -244,6 +280,8 @@ export const calculateEmployeeAttendanceStats = (
       date: dStr,
       dayOfWeek,
       isSunday,
+      isPublicHoliday,
+      holidayName: holiday?.name,
       status,
       arrival,
       departure,
@@ -268,14 +306,19 @@ export const calculateEmployeeAttendanceStats = (
   let l30Absents = 0;
   let l30SundayExtraDays = 0;
   let l30Unmarked = 0;
+  let l30HolidaysOff = 0;
 
   let c30 = new Date(last30StartDate);
   while (c30 <= today) {
     const dStr = format(c30, 'yyyy-MM-dd');
     const isSunday = getDay(c30) === 0;
+    const holiday = publicHolidays.find(h => h.date === dStr);
+    const isPublicHoliday = !!holiday;
+    const isOffDay = isSunday || isPublicHoliday;
     const rec = getEmployeeAttendanceRecord(attendance, dStr, employee.name);
 
     if (isSunday) l30Sundays++;
+    if (isPublicHoliday && !isSunday) l30HolidaysOff++;
 
     const isSanctionedLeave = (leaves || []).some((l: any) => {
       const empMatch = l.employeeId === employee.id || (l.name && l.name.trim().toLowerCase() === empName.toLowerCase());
@@ -283,15 +326,20 @@ export const calculateEmployeeAttendanceStats = (
       return empMatch && isApproved && dStr >= l.startDate && dStr <= l.endDate;
     });
 
-    if (isSanctionedLeave) {
-      l30Absents++;
-    } else if (rec) {
-      if (isSunday) {
-        if (rec.status === 'Present' || rec.status === 'Half-Day') {
-          l30SundayExtraDays += rec.status === 'Present' ? 1.0 : 0.5;
-        }
-      } else {
-        if (rec.status === 'Present') {
+    const didWork = !!(rec && (rec.status === 'Present' || rec.status === 'Half-Day' || rec.status === 'Extra Day'));
+
+    if (isOffDay) {
+      if (didWork) {
+        l30SundayExtraDays += rec?.status === 'Half-Day' ? 0.5 : 1.0;
+      }
+      // If unworked on off day: Paid leave, neither absent nor extra day!
+    } else {
+      if (isSanctionedLeave) {
+        l30Absents++;
+      } else if (rec) {
+        if (rec.status === 'Extra Day' || rec.isExtraDay) {
+          l30SundayExtraDays += 1.0;
+        } else if (rec.status === 'Present') {
           l30Presents++;
           l30NonSundayPresents++;
         } else if (rec.status === 'Half-Day') {
@@ -299,18 +347,16 @@ export const calculateEmployeeAttendanceStats = (
         } else if (rec.status === 'Absent') {
           l30Absents++;
         }
-      }
-    } else {
-      if (!isSunday) {
+      } else {
         l30Unmarked++;
       }
     }
     c30 = new Date(c30.getTime() + 24 * 60 * 60 * 1000);
   }
 
-  // Effective counts: non-Sunday presents + Sundays + 0.5 * half-days + sundayExtraDays
-  const last30Effective = Number((l30NonSundayPresents + l30Sundays + l30SundayExtraDays + (l30HalfDays * 0.5)).toFixed(1));
-  const allTimeEffective = Number((allNonSundayPresents + allSundays + allSundayExtraDays + (allHalfDays * 0.5)).toFixed(1));
+  // Effective counts: regular presents + Sundays + Holidays Off + 0.5 * half-days
+  const last30Effective = Number((l30NonSundayPresents + l30Sundays + l30HolidaysOff + (l30HalfDays * 0.5)).toFixed(1));
+  const allTimeEffective = Number((dailyRecords.reduce((acc, r) => acc + r.credit, 0)).toFixed(1));
 
   const last30Rate = `${((last30Effective / 30) * 100).toFixed(1)}%`;
   const allTimeRate = `${((allTimeEffective / totalDaysSinceJoining) * 100).toFixed(1)}%`;
@@ -374,6 +420,7 @@ export const calculateCustomRangeAttendanceStats = (
   const end = parseISO(endDateStr);
   const totalPeriodDays = Math.max(1, differenceInCalendarDays(end, start) + 1);
 
+  const publicHolidays = getCachedPublicHolidays();
   const dailyRecords: DailyAttendanceDetail[] = [];
   let presentCount = 0;
   let sundayExtraDaysCount = 0;
@@ -388,6 +435,9 @@ export const calculateCustomRangeAttendanceStats = (
     const dStr = format(cur, 'yyyy-MM-dd');
     const dayOfWeek = format(cur, 'EEEE');
     const isSunday = getDay(cur) === 0;
+    const holiday = publicHolidays.find(h => h.date === dStr);
+    const isPublicHoliday = !!holiday;
+    const isOffDay = isSunday || isPublicHoliday;
     const rec = getEmployeeAttendanceRecord(attendance, dStr, employee.name);
 
     const isSanctionedLeave = (leaves || []).some((l: any) => {
@@ -396,58 +446,76 @@ export const calculateCustomRangeAttendanceStats = (
       return empMatch && isApproved && dStr >= l.startDate && dStr <= l.endDate;
     });
 
-    let status: DailyAttendanceDetail['status'] = isSunday ? 'Sunday Off' : 'Unmarked';
-    let credit = isSunday ? 1.0 : 0.0;
+    let status: DailyAttendanceDetail['status'] = isSunday ? 'Sunday Off' : isPublicHoliday ? 'Holiday Off' : 'Unmarked';
+    let credit = isOffDay ? 1.0 : 0.0;
     let arrival = rec?.arrival || '';
     let departure = rec?.departure || '';
     let isFinalized = rec?.isFinalized || false;
     let isExtraDayWorked = false;
-    let notes = '';
+    let notes = isSunday ? 'Weekly Off' : isPublicHoliday ? `Public Holiday: ${holiday?.name || 'Public Leave'}` : '';
 
-    if (isSanctionedLeave) {
-      status = 'Absent';
-      credit = 0.0;
-      absentCount++;
-      sanctionedLeavesCount++;
-      notes = 'Sanctioned Leave';
-    } else if (isSunday) {
-      if (rec && (rec.status === 'Present' || rec.status === 'Half-Day')) {
+    const didWork = !!(rec && (rec.status === 'Present' || rec.status === 'Half-Day' || rec.status === 'Extra Day'));
+
+    if (isOffDay) {
+      if (didWork) {
         isExtraDayWorked = true;
-        status = rec.status;
-        const extraWeight = rec.status === 'Present' ? 1 : 0.5;
+        status = 'Extra Day';
+        const extraWeight = rec?.status === 'Half-Day' ? 0.5 : 1;
         sundayExtraDaysCount += extraWeight;
         credit = 1.0;
-        notes = '⭐ Extra Day Worked';
+        arrival = rec?.arrival || '09:00';
+        departure = rec?.departure || '17:00';
+        notes = isPublicHoliday 
+          ? `⭐ Extra Day (${holiday?.name || 'Govt Holiday'}) (+₹333)`
+          : '⭐ Sunday Extra Day (+₹333)';
       } else {
-        status = 'Sunday Off';
+        // Did NOT work on off day / public holiday: Paid Leave (Holiday Off / Sunday Off)
+        // Rule: DO NOT mark absent! DO NOT mark as Extra Day!
+        status = isSunday ? 'Sunday Off' : 'Holiday Off';
         sundaysOffCount++;
         credit = 1.0;
-        notes = 'Weekly Off';
-      }
-    } else if (rec) {
-      if (rec.status === 'Present') {
-        presentCount++;
-        status = 'Present';
-        credit = 1.0;
-      } else if (rec.status === 'Half-Day') {
-        halfDaysCount++;
-        status = 'Half-Day';
-        credit = 0.5;
-      } else if (rec.status === 'Absent') {
-        absentCount++;
-        status = 'Absent';
-        credit = 0.0;
+        notes = isSunday ? 'Weekly Off' : `Public Holiday: ${holiday?.name || 'Public Leave'}`;
       }
     } else {
-      unmarkedCount++;
-      status = 'Unmarked';
-      credit = 0.0;
+      if (isSanctionedLeave) {
+        status = 'Absent';
+        credit = 0.0;
+        absentCount++;
+        sanctionedLeavesCount++;
+        notes = 'Sanctioned Leave';
+      } else if (rec) {
+        if (rec.status === 'Extra Day' || rec.isExtraDay) {
+          isExtraDayWorked = true;
+          status = 'Extra Day';
+          sundayExtraDaysCount += 1;
+          credit = 1.0;
+          notes = '⭐ Extra Day (+₹333)';
+        } else if (rec.status === 'Present') {
+          presentCount++;
+          status = 'Present';
+          credit = 1.0;
+        } else if (rec.status === 'Half-Day') {
+          halfDaysCount++;
+          status = 'Half-Day';
+          credit = 0.5;
+        } else if (rec.status === 'Absent') {
+          absentCount++;
+          status = 'Absent';
+          credit = 0.0;
+        }
+      } else {
+        unmarkedCount++;
+        status = 'Unmarked';
+        credit = 0.0;
+      }
     }
 
     dailyRecords.push({
       date: dStr,
       dayOfWeek,
       isSunday,
+      isPublicHoliday,
+      holidayName: holiday?.name,
       status,
       arrival,
       departure,
@@ -461,7 +529,8 @@ export const calculateCustomRangeAttendanceStats = (
     cur = new Date(cur.getTime() + 24 * 60 * 60 * 1000);
   }
 
-  const effectiveAttendanceCount = Number((presentCount + sundaysOffCount + sundayExtraDaysCount + (halfDaysCount * 0.5)).toFixed(1));
+  // Effective counts: regular presents + sundays/holidays off + half-days
+  const effectiveAttendanceCount = Number((dailyRecords.reduce((acc, r) => acc + r.credit, 0)).toFixed(1));
   const attendanceRate = `${((effectiveAttendanceCount / totalPeriodDays) * 100).toFixed(1)}%`;
 
   return {
@@ -514,6 +583,9 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
       statusClass = 'status-halfday';
     } else if (r.status === 'Sunday Off') {
       statusClass = 'status-sunday';
+    } else if (r.status === 'Holiday Off') {
+      statusClass = 'status-holiday';
+      displayStatus = '🌴 Public Holiday Off';
     }
 
     return `
@@ -782,6 +854,7 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
     .status-absent { background: #fee2e2; color: #991b1b; }
     .status-halfday { background: #fef3c7; color: #92400e; }
     .status-sunday { background: #0f172a; color: #f8fafc; }
+    .status-holiday { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
     .status-extra { background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; }
     .status-unmarked { background: #f1f5f9; color: #64748b; }
 
@@ -904,9 +977,9 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
         <div class="kpi-sub-stat">Regular working days</div>
       </div>
       <div class="kpi-card gold">
-        <div class="kpi-title">⭐ Sunday Extra Days</div>
+        <div class="kpi-title">⭐ Extra Days (+₹333/day)</div>
         <div class="kpi-main-stat" style="color: #b45309;">${stats.sundayExtraDaysCount}</div>
-        <div class="kpi-sub-stat">Sunday Overtime worked</div>
+        <div class="kpi-sub-stat">Govt Holiday / Sunday (+₹${stats.sundayExtraDaysCount * EXTRA_DAY_RATE})</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-title">Half Days</div>
@@ -1000,7 +1073,7 @@ export const downloadCustomRangeCSV = (
   const rows = stats.dailyRecords.map(r => [
     `"${r.date}"`,
     `"${r.dayOfWeek}"`,
-    `"${r.isSunday ? (r.isExtraDayWorked ? 'Sunday Extra Day Worked' : 'Sunday Off') : 'Regular Workday'}"`,
+    `"${r.isSunday ? (r.isExtraDayWorked ? 'Sunday Extra Day Worked' : 'Sunday Off') : (r.isExtraDayWorked ? 'Govt Holiday (Extra Day Worked)' : 'Regular Workday')}"`,
     `"${r.status}"`,
     `"${r.arrival}"`,
     `"${r.departure}"`,
@@ -1366,6 +1439,8 @@ export const generateEmployeeReceiptHTML = (stats: EmployeeAttendanceStats): str
     .status-absent { background: #fee2e2; color: #991b1b; }
     .status-halfday { background: #fef3c7; color: #92400e; }
     .status-sunday { background: #0f172a; color: #f8fafc; }
+    .status-holiday { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .status-extra { background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; font-weight: 700; }
     .status-unmarked { background: #f1f5f9; color: #64748b; }
 
     .receipt-footer {
@@ -1590,9 +1665,11 @@ export const generateEmployeeReceiptHTML = (stats: EmployeeAttendanceStats): str
                   r.status === 'Present' ? 'status-present' :
                   r.status === 'Absent' ? 'status-absent' :
                   r.status === 'Half-Day' ? 'status-halfday' :
-                  r.status === 'Sunday Off' ? 'status-sunday' : 'status-unmarked'
+                  r.status === 'Extra Day' ? 'status-extra' :
+                  r.status === 'Sunday Off' ? 'status-sunday' :
+                  r.status === 'Holiday Off' ? 'status-holiday' : 'status-unmarked'
                 }">
-                  ${r.status}
+                  ${r.status === 'Extra Day' ? '⭐ Extra Day' : r.status}
                 </span>
               </td>
               <td>${r.arrival || '--'}</td>
@@ -2126,10 +2203,15 @@ export const calculateMonthAttendancePayroll = (
 
   const trimmedEmpName = (employeeName || '').trim().toLowerCase();
 
+  const publicHolidays = getCachedPublicHolidays();
+
   let cur = new Date(mStart);
   while (cur <= mEnd) {
     const dStr = format(cur, 'yyyy-MM-dd');
     const isSunday = getDay(cur) === 0;
+    const holiday = publicHolidays.find(h => h.date === dStr);
+    const isPublicHoliday = !!holiday;
+    const isOffDay = isSunday || isPublicHoliday;
 
     const dayRec = attendance[dStr];
     let empRec: AttendanceRecord | null = null;
@@ -2142,15 +2224,26 @@ export const calculateMonthAttendancePayroll = (
       }
     }
 
-    if (isSunday) {
-      if (empRec && (empRec.status === 'Present' || empRec.status === 'Half-Day')) {
-        const extra = empRec.status === 'Present' ? 1.0 : 0.5;
+    const didWork = empRec && (empRec.status === 'Present' || empRec.status === 'Half-Day' || empRec.status === 'Extra Day');
+
+    if (isOffDay) {
+      if (didWork) {
+        const extra = empRec?.status === 'Half-Day' ? 0.5 : 1.0;
         autoSundayExtraDays += extra;
-        sundayDates.push(format(cur, 'd MMM') + (extra === 0.5 ? ' (Half-Day)' : ''));
+        const label = isSunday ? 'Sun' : (holiday?.name ? `Holiday: ${holiday.name}` : 'Govt Hol');
+        sundayDates.push(`${format(cur, 'd MMM')} (${label})${extra === 0.5 ? ' (Half-Day)' : ''}`);
+      } else {
+        // Unworked on off day / public leave:
+        // Rule: NEVER count as absent! (0 deduction)
+        // Rule: NEVER count as extra day! (0 bonus)
       }
     } else {
+      // Regular working day (not Sunday, not public holiday)
       if (empRec) {
-        if (empRec.status === 'Present') {
+        if (empRec.status === 'Extra Day' || empRec.isExtraDay) {
+          autoSundayExtraDays += 1;
+          sundayDates.push(`${format(cur, 'd MMM')} (Extra Day)`);
+        } else if (empRec.status === 'Present') {
           autoPresentDays += 1;
         } else if (empRec.status === 'Half-Day') {
           autoPresentDays += 0.5;
@@ -2177,8 +2270,8 @@ export const calculateMonthAttendancePayroll = (
   // Deductions due to attendance: absentDays * perDaySalary
   const attendanceDeduction = Math.round(finalAbsentDays * perDaySalary);
 
-  // Bonus due to extra Sundays: sundayExtraDays * perDaySalary
-  const sundayBonus = Math.round(finalSundayExtraDays * perDaySalary);
+  // Bonus for Extra Days (Govt Holiday & Sunday worked): 1 extraday equals 333 rupees
+  const sundayBonus = Math.round(finalSundayExtraDays * EXTRA_DAY_RATE);
 
   const allowances = options?.allowances !== undefined 
     ? options.allowances 
@@ -2562,9 +2655,9 @@ export const generatePayslipHTML = (data: PayslipData): string => {
             ${sundayExtraDays > 0 ? `
             <tr class="sunday-highlight">
               <td>
-                ⭐ Sunday Extra Days Worked
+                ⭐ Extra Days Worked (Govt Holiday / Sunday)
                 <div style="font-size:11px; color:#a16207; font-weight:normal;">
-                  ${sundayExtraDays} Sunday(s) worked @ ${formatCur(perDaySalary)}/day
+                  ${sundayExtraDays} Extra Day(s) worked @ ${formatCur(EXTRA_DAY_RATE)}/day (₹333/day)
                   ${data.sundayDates && data.sundayDates.length > 0 ? `(${data.sundayDates.join(', ')})` : ''}
                 </div>
               </td>
@@ -2572,7 +2665,7 @@ export const generatePayslipHTML = (data: PayslipData): string => {
             </tr>
             ` : `
             <tr>
-              <td>Sunday Extra Days Worked</td>
+              <td>Extra Days Worked</td>
               <td class="amount" style="color:#94a3b8;">₹0 (0 days)</td>
             </tr>
             `}
@@ -2639,8 +2732,8 @@ export const generatePayslipHTML = (data: PayslipData): string => {
       • Verified Date of Joining: <strong>${joinDateDisplay}</strong>.<br>
       • Daily Rate Formula: <strong>Basic ${formatCur(data.basicSalary)} ÷ ${totalDaysInMonth} days = ${formatCur(perDaySalary)} / day</strong>.<br>
       ${attendanceDeduction > 0 ? `• Attendance Deduction: ${data.absentDays} day(s) absent deducted (- ${formatCur(attendanceDeduction)}).<br>` : '• Attendance: Perfect attendance recorded during this period.<br>'}
-      ${sundayExtraDays > 0 ? `• <strong>⭐ Sunday Extra Days Worked:</strong> Employee clocked ${sundayExtraDays} Sunday(s), credited with overtime bonus (+ ${formatCur(sundayBonus)}).<br>` : ''}
-      • Net Salary / Stipend dynamically calculated: Basic (${formatCur(data.basicSalary)}) + Allowances (${formatCur(standardAllowances)}) + Sunday Bonus (${formatCur(sundayBonus)}) - Attendance Deduction (${formatCur(attendanceDeduction)}) - Other Deductions (${formatCur(otherDeductions)}) = <strong>${formatCur(data.netSalary)}</strong>.
+      ${sundayExtraDays > 0 ? `• <strong>⭐ Extra Days Worked:</strong> Employee clocked ${sundayExtraDays} Extra Day(s) (Govt Holiday / Sunday worked), credited with overtime bonus @ ₹333/day (+ ${formatCur(sundayBonus)}).<br>` : ''}
+      • Net Salary / Stipend dynamically calculated: Basic (${formatCur(data.basicSalary)}) + Allowances (${formatCur(standardAllowances)}) + Extra Days Bonus (${formatCur(sundayBonus)}) - Attendance Deduction (${formatCur(attendanceDeduction)}) - Other Deductions (${formatCur(otherDeductions)}) = <strong>${formatCur(data.netSalary)}</strong>.
     </div>
 
     <div class="signatures">

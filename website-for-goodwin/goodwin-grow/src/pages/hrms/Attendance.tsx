@@ -10,7 +10,10 @@ import {
   FileSpreadsheet, 
   Eye, 
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Star,
+  Palmtree,
+  Trash2
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -51,11 +54,16 @@ import {
 export const Attendance = () => {
   const attendance = useStore((state) => state.attendance);
   const updateAttendance = useStore((state) => state.updateAttendance);
+  const deleteAttendanceRecord = useStore((state) => state.deleteAttendanceRecord);
   const clockIn = useStore((state) => state.clockIn);
   const clockOut = useStore((state) => state.clockOut);
   const markAbsences = useStore((state) => state.markAbsences);
   const employees = useStore((state) => state.employees);
   const leaves = useStore((state) => state.leaves);
+  const publicHolidays = useStore((state) => state.publicHolidays);
+  const addPublicHoliday = useStore((state) => state.addPublicHoliday);
+  const removePublicHoliday = useStore((state) => state.removePublicHoliday);
+  const isPublicHoliday = useStore((state) => state.isPublicHoliday);
 
   const { isAdmin, isEmployee, employeeName, employee: currentEmpObj } = useCurrentUser();
   
@@ -92,6 +100,14 @@ export const Attendance = () => {
     arrival: '09:00',
     departure: '17:00'
   });
+
+  // Bulk Govt Holiday / Extra Day Modal State (Admin only)
+  const [isGovtHolidayModalOpen, setIsGovtHolidayModalOpen] = useState(false);
+  const [holidayDate, setHolidayDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [holidayName, setHolidayName] = useState<string>('Govt Holiday');
+  const [selectedHolidayEmpIds, setSelectedHolidayEmpIds] = useState<string[]>([]);
+  const [holidayArrival, setHolidayArrival] = useState('09:00');
+  const [holidayDeparture, setHolidayDeparture] = useState('17:00');
 
   // Matched employee object for logged-in user
   const myEmployeeObj = useMemo(() => {
@@ -307,11 +323,11 @@ export const Attendance = () => {
                   </div>
                   <div>
                     <span className="text-secondary-light block text-[10px] uppercase font-semibold">
-                      {stats.sundayExtraDaysCount > 0 ? 'Extra Days (Sunday)' : 'All Time Ratio'}
+                      {stats.sundayExtraDaysCount > 0 ? 'Extra Days (Govt / Sun)' : 'All Time Ratio'}
                     </span>
                     {stats.sundayExtraDaysCount > 0 ? (
                       <span className="font-bold text-amber-700 flex items-center gap-0.5">
-                        ⭐ {stats.sundayExtraDaysCount} Sun Extra Day{stats.sundayExtraDaysCount > 1 ? 's' : ''}
+                        ⭐ {stats.sundayExtraDaysCount} Extra Day{stats.sundayExtraDaysCount > 1 ? 's' : ''} (+₹{stats.sundayExtraDaysCount * 333})
                       </span>
                     ) : (
                       <span className="font-bold text-primary">
@@ -392,20 +408,29 @@ export const Attendance = () => {
           return empMatch && (l.status === 'Approved' || l.status === 'Sanctioned') && dateKey >= l.startDate && dateKey <= l.endDate;
         });
 
-        const isSundayExtraDay = isSunday && (record?.status === 'Present' || record?.status === 'Half-Day');
+        const holiday = publicHolidays.find(h => h.date === dateKey);
+        const isHoliday = !!holiday;
+        const isOffDay = isSunday || isHoliday;
+
+        const didWork = !!(record && (record.status === 'Present' || record.status === 'Half-Day' || record.status === 'Extra Day'));
+        const isExtraDay = (isOffDay && didWork) || record?.status === 'Extra Day' || record?.isExtraDay;
         
         let bgColorClass = "";
         let dateColorClass = "text-secondary-dark";
 
-        if (isSundayExtraDay) {
-          // Sunday worked counted as Extra Day Worked
-          bgColorClass = "bg-neutral-900 text-amber-100 hover:bg-neutral-850 border-amber-500/50 shadow-inner";
-          dateColorClass = "text-amber-300 font-extrabold";
+        if (isExtraDay) {
+          // Extra Day Worked (Govt Holiday or Sunday worked)
+          bgColorClass = "bg-amber-500/10 dark:bg-amber-950/30 text-amber-900 dark:text-amber-100 hover:bg-amber-500/20 border-amber-400/50 shadow-inner";
+          dateColorClass = "text-amber-800 dark:text-amber-300 font-extrabold";
+        } else if (isHoliday) {
+          // Declared Public Holiday - Paid Public Leave for all employees!
+          bgColorClass = "bg-sky-500/10 dark:bg-sky-950/30 text-sky-900 dark:text-sky-200 border-sky-400/40 hover:bg-sky-500/20 shadow-sm";
+          dateColorClass = "text-sky-800 dark:text-sky-300 font-bold";
         } else if (isSunday) {
           bgColorClass = "bg-neutral-950 text-white hover:bg-neutral-900 border-neutral-800";
           dateColorClass = "text-white font-bold";
         } else if (isSanctionedLeave || record?.status === 'Absent') {
-          // Sanctioned leave reflects as Absent
+          // Sanctioned leave or regular workday absent
           bgColorClass = "bg-danger/15 text-danger border-danger/30 hover:bg-danger/25";
           dateColorClass = "text-danger font-bold";
         } else if (record) {
@@ -431,13 +456,17 @@ export const Attendance = () => {
             key={cloneDay.toISOString()}
             onClick={() => onDateClick(cloneDay, empToUse || '', isReadOnly)}
           >
-            <div className="flex justify-between items-start flex-shrink-0 mb-1">
+            <div className="flex justify-between items-start flex-shrink-0 mb-1 gap-1">
               <span className={`text-xs font-semibold ${isToday ? 'bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-sm' : dateColorClass}`}>
                 {formattedDate}
               </span>
-              {isSundayExtraDay ? (
-                <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border bg-amber-400 text-amber-950 border-amber-500 shadow-sm">
-                  ⭐ Extra Day
+              {isExtraDay ? (
+                <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border bg-amber-400 text-amber-950 border-amber-500 shadow-sm flex items-center gap-0.5 shrink-0">
+                  ⭐ Extra (+₹333)
+                </span>
+              ) : isHoliday ? (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-900/60 dark:text-sky-200 shrink-0 truncate max-w-[100px]" title={`Public Leave: ${holiday.name}`}>
+                  🌴 {holiday.name}
                 </span>
               ) : isSanctionedLeave ? (
                 <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border bg-red-100 text-red-700 border-red-200 dark:bg-red-950/70">
@@ -454,12 +483,18 @@ export const Attendance = () => {
               ) : null}
             </div>
             
-            {(isSundayExtraDay || (record && record.status !== 'Absent' && !isSanctionedLeave)) && (
+            {(isExtraDay || (record && record.status !== 'Absent' && !isSanctionedLeave && !isHoliday)) && (
               <div className="mt-auto pt-1">
-                <div className={`text-[10px] flex items-center ${isSunday ? 'text-amber-300 font-medium' : 'text-secondary-dark'}`}>
+                <div className={`text-[10px] flex items-center ${isExtraDay ? 'text-amber-800 dark:text-amber-300 font-semibold' : isSunday ? 'text-amber-300 font-medium' : 'text-secondary-dark'}`}>
                   <Clock className="w-3 h-3 mr-1 inline opacity-70" />
-                  {record?.arrival || '--'} - {record?.departure || '--'}
+                  {record?.arrival || '09:00'} - {record?.departure || '17:00'}
                 </div>
+              </div>
+            )}
+            {isHoliday && !didWork && (
+              <div className="mt-auto pt-1 text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center">
+                <Palmtree className="w-3 h-3 mr-1 inline opacity-80" />
+                Paid Holiday Off
               </div>
             )}
           </div>
@@ -785,15 +820,15 @@ export const Attendance = () => {
               <span className="text-[11px] text-green-700 mt-0.5 block font-medium">Regular Workdays</span>
             </div>
 
-            {/* Requirement 4: Sunday Extra Days Worked */}
+            {/* Extra Days Worked (Govt Holiday & Sunday Worked) */}
             <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/30 shadow-sm">
-              <span className="text-[10px] uppercase font-extrabold text-amber-900 block flex items-center gap-1">
-                ⭐ Extra Days (Sunday)
+              <span className="text-[10px] uppercase font-extrabold text-amber-900 dark:text-amber-300 block flex items-center gap-1">
+                ⭐ Extra Days (+₹333/day)
               </span>
-              <span className="text-xl font-extrabold text-amber-950 mt-1 block">
-                {customRangeStats.sundayExtraDaysCount} <span className="text-xs font-semibold text-amber-800">Days</span>
+              <span className="text-xl font-extrabold text-amber-950 dark:text-amber-100 mt-1 block">
+                {customRangeStats.sundayExtraDaysCount} <span className="text-xs font-semibold text-amber-800 dark:text-amber-400">Days (+₹{customRangeStats.sundayExtraDaysCount * 333})</span>
               </span>
-              <span className="text-[11px] text-amber-800 mt-0.5 block font-medium">Sunday Overtime</span>
+              <span className="text-[11px] text-amber-800 dark:text-amber-400 mt-0.5 block font-medium">Govt Holiday / Sunday Worked</span>
             </div>
 
             <div className="p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
@@ -920,12 +955,16 @@ export const Attendance = () => {
                       <td className="py-2.5 px-4">
                         {r.isSunday ? (
                           r.isExtraDayWorked ? (
-                            <span className="text-amber-800 font-extrabold flex items-center gap-1">
-                              ⭐ Sunday Overtime
+                            <span className="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1">
+                              ⭐ Sunday Extra Day (+₹333)
                             </span>
                           ) : (
                             <span className="text-secondary-light font-medium">Sunday Off</span>
                           )
+                        ) : r.isExtraDayWorked ? (
+                          <span className="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1">
+                            ⭐ Govt Holiday Extra Day (+₹333)
+                          </span>
                         ) : (
                           <span className="text-secondary-dark font-medium">Regular Workday</span>
                         )}
@@ -933,7 +972,7 @@ export const Attendance = () => {
                       <td className="py-2.5 px-4">
                         {r.isExtraDayWorked ? (
                           <span className="px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-400 text-amber-950 border border-amber-500 shadow-sm">
-                            ⭐ Extra Day Worked
+                            ⭐ Extra Day (+₹333)
                           </span>
                         ) : r.isSanctionedLeave ? (
                           <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
@@ -956,7 +995,7 @@ export const Attendance = () => {
                       <td className="py-2.5 px-4 text-right font-bold text-secondary-dark">{r.credit}d</td>
                       <td className="py-2.5 px-4">
                         {r.isExtraDayWorked ? (
-                          <span className="text-amber-800 font-bold text-[11px]">⭐ Sunday Extra Day Worked</span>
+                          <span className="text-amber-800 dark:text-amber-400 font-bold text-[11px]">⭐ Extra Day Worked (+₹333 Bonus)</span>
                         ) : r.notes ? (
                           <span className="text-secondary-light text-[11px]">{r.notes}</span>
                         ) : (
@@ -999,6 +1038,18 @@ export const Attendance = () => {
         {/* Admin Bulk Action Buttons */}
         {isAdmin && (
           <div className="flex items-center space-x-3 flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSelectedHolidayEmpIds([]);
+                setIsGovtHolidayModalOpen(true);
+              }}
+              className="border-amber-400 bg-amber-500/10 text-amber-900 dark:text-amber-200 hover:bg-amber-500/20 font-semibold shadow-sm"
+            >
+              <Palmtree className="h-4 w-4 mr-2 text-amber-600" />
+              Public Holiday & Extra Day
+            </Button>
+
             <Button 
               variant="secondary" 
               onClick={() => setIsDownloadAllModalOpen(true)}
@@ -1175,9 +1226,10 @@ export const Attendance = () => {
                 {readOnlyDayDetail.record ? (
                   <Badge variant={
                     readOnlyDayDetail.record.status === 'Present' ? 'success' :
-                    readOnlyDayDetail.record.status === 'Absent' ? 'destructive' : 'warning'
-                  }>
-                    {readOnlyDayDetail.record.status}
+                    readOnlyDayDetail.record.status === 'Absent' ? 'destructive' :
+                    readOnlyDayDetail.record.status === 'Extra Day' ? 'default' : 'warning'
+                  } className={readOnlyDayDetail.record.status === 'Extra Day' ? 'bg-amber-500/15 text-amber-800 border-amber-300 font-bold' : ''}>
+                    {readOnlyDayDetail.record.status === 'Extra Day' ? '⭐ Extra Day (+₹333)' : readOnlyDayDetail.record.status}
                   </Badge>
                 ) : (
                   <span className="text-xs text-secondary-light font-medium">No record logged</span>
@@ -1498,6 +1550,36 @@ export const Attendance = () => {
       >
         <div className="space-y-6 mt-4">
           <div className="space-y-4">
+            {selectedDate && isPublicHoliday(format(selectedDate, 'yyyy-MM-dd')) && (
+              <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-300 dark:border-sky-800 text-xs text-sky-900 dark:text-sky-200 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2">
+                  <Palmtree className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block">
+                      Declared Public Holiday: {publicHolidays.find(h => h.date === format(selectedDate, 'yyyy-MM-dd'))?.name || 'Public Leave'}
+                    </span>
+                    <span className="text-[11px] text-sky-700 dark:text-sky-300">
+                      Unworked employees receive Paid Leave with 0 deductions. Only mark "Extra Day" if this employee actually worked (+₹333).
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  className="text-xs h-7 shrink-0 border-sky-300 text-sky-800"
+                  onClick={async () => {
+                    if (selectedDate && selectedEmployee) {
+                      await deleteAttendanceRecord(format(selectedDate, 'yyyy-MM-dd'), selectedEmployee);
+                      setIsEditModalOpen(false);
+                    }
+                  }}
+                >
+                  Reset to Paid Leave
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="enterprise-label">Status</label>
               <Select 
@@ -1507,8 +1589,59 @@ export const Attendance = () => {
                   { value: 'Present', label: 'Present' },
                   { value: 'Absent', label: 'Absent' },
                   { value: 'Half-Day', label: 'Half-Day' },
+                  { value: 'Extra Day', label: '⭐ Extra Day (Govt Holiday Worked - ₹333)' }
                 ]}
               />
+            </div>
+
+            {/* Quick 1-Click Toggle for Extra Day */}
+            <div className={`p-3 rounded-xl border transition-all ${
+              formData.status === 'Extra Day'
+                ? 'bg-amber-500/10 border-amber-500/40 text-amber-950 dark:text-amber-200'
+                : 'bg-canvas border-canvas-variant hover:border-amber-400/50'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <Star className={`w-4 h-4 ${formData.status === 'Extra Day' ? 'fill-amber-500 text-amber-500' : 'text-secondary-light'}`} />
+                  <div>
+                    <span className="text-xs font-bold block">
+                      Mark as Extra Day (Govt Holiday / Holiday Worked)
+                    </span>
+                    <span className="text-[11px] text-secondary-light">
+                      1 Extra Day = <strong className="text-amber-700 dark:text-amber-400">₹333</strong>. Excluded from regular attendance.
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant={formData.status === 'Extra Day' ? 'primary' : 'secondary'}
+                  className={`text-xs h-7 px-3 ${formData.status === 'Extra Day' ? 'bg-amber-500 hover:bg-amber-600 text-white font-bold' : 'border-amber-300 text-amber-800'}`}
+                  onClick={() => {
+                    if (formData.status === 'Extra Day') {
+                      setFormData({ ...formData, status: 'Present' });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        status: 'Extra Day',
+                        arrival: formData.arrival || '09:00',
+                        departure: formData.departure || '17:00'
+                      });
+                    }
+                  }}
+                >
+                  {formData.status === 'Extra Day' ? 'Marked Extra Day ✓' : 'Make Extra Day'}
+                </Button>
+              </div>
+
+              {formData.status === 'Extra Day' && (
+                <div className="mt-2.5 pt-2.5 border-t border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-300 font-medium flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    This day will count toward <strong>Extra Days (+₹333 bonus)</strong> and will <strong>NOT</strong> count in regular attendance.
+                  </span>
+                </div>
+              )}
             </div>
 
             {formData.status !== 'Absent' && (
@@ -1536,6 +1669,245 @@ export const Attendance = () => {
           <div className="pt-4 flex justify-end space-x-2 border-t border-canvas-variant">
             <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
             <Button onClick={handleSaveAttendance}>Save Record</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal for Public Holiday & Extra Day Manager (Admin only) */}
+      <Modal
+        isOpen={isGovtHolidayModalOpen}
+        onClose={() => setIsGovtHolidayModalOpen(false)}
+        title="🌴 Public Holiday & Extra Day Manager"
+        className="max-w-3xl"
+      >
+        <div className="space-y-6 mt-3 max-h-[80vh] overflow-y-auto pr-1">
+          {/* Policy Banner */}
+          <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-950 dark:text-sky-100 text-xs space-y-1.5">
+            <div className="font-bold flex items-center gap-2 text-sky-800 dark:text-sky-300 text-sm">
+              <Palmtree className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <span>Public Leave & Extra Day Policy</span>
+            </div>
+            <p className="text-[12px] leading-relaxed text-secondary-dark">
+              • A declared day is a <strong>Public Leave</strong> for all employees (like Sunday): everyone receives a paid day off with <strong>0 absent deductions</strong>.
+              <br />
+              • Employees who do <strong>not</strong> work will remain on <strong>Public Leave (Holiday Off)</strong> with ₹0 bonus and zero penalty.
+              <br />
+              • If an employee <strong>actually worked</strong>, select them below to credit them with an <strong>⭐ Extra Day (+₹333 bonus)</strong>.
+            </p>
+          </div>
+
+          {/* Holiday Setup Form */}
+          <div className="p-4 rounded-xl border border-canvas-variant bg-canvas/40 space-y-4">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-secondary-dark flex items-center gap-1.5">
+              <span>Step 1: Declare Public Holiday</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="enterprise-label">Date</label>
+                <Input
+                  type="date"
+                  value={holidayDate}
+                  onChange={(e) => setHolidayDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="enterprise-label">Occasion / Reason</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Diwali / Gandhi Jayanti / Govt Holiday"
+                  value={holidayName}
+                  onChange={(e) => setHolidayName(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Who Worked Selector (Optional) */}
+          <div className="p-4 rounded-xl border border-canvas-variant bg-canvas/40 space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h4 className="font-bold text-xs uppercase tracking-wider text-secondary-dark flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                  <span>Step 2: Did Anyone Work? (Optional Extra Day +₹333)</span>
+                </h4>
+                <p className="text-[11px] text-secondary-light mt-0.5">
+                  Unselected employees will stay on Paid Public Leave (₹0 bonus, 0 absent).
+                </p>
+              </div>
+              <div className="space-x-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setSelectedHolidayEmpIds(employees.filter(e => e.status === 'active').map(e => e.id))}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  Select All
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedHolidayEmpIds([])}
+                  className="text-secondary-light hover:underline font-semibold"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+
+            {selectedHolidayEmpIds.length > 0 && (
+              <div className="grid grid-cols-2 gap-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                <div>
+                  <label className="enterprise-label text-[11px]">Working Arrival Time</label>
+                  <Input
+                    type="time"
+                    value={holidayArrival}
+                    onChange={(e) => setHolidayArrival(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="enterprise-label text-[11px]">Working Departure Time</label>
+                  <Input
+                    type="time"
+                    value={holidayDeparture}
+                    onChange={(e) => setHolidayDeparture(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="max-h-52 overflow-y-auto border border-canvas-variant rounded-xl divide-y divide-canvas-variant/50 p-1 bg-canvas-surface">
+              {employees.map(emp => {
+                const isSelected = selectedHolidayEmpIds.includes(emp.id);
+                return (
+                  <label
+                    key={emp.id}
+                    className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-colors ${
+                      isSelected ? 'bg-amber-500/10 hover:bg-amber-500/15' : 'hover:bg-canvas'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedHolidayEmpIds([...selectedHolidayEmpIds, emp.id]);
+                          } else {
+                            setSelectedHolidayEmpIds(selectedHolidayEmpIds.filter(id => id !== emp.id));
+                          }
+                        }}
+                        className="rounded border-canvas-variant text-amber-600 focus:ring-amber-500 w-4 h-4"
+                      />
+                      <div>
+                        <span className="text-xs font-bold text-secondary-dark block">{emp.name}</span>
+                        <span className="text-[10px] text-secondary-light">{emp.role} • {emp.status}</span>
+                      </div>
+                    </div>
+                    {isSelected ? (
+                      <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-600 text-amber-600" />
+                        +₹333 Extra Day
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                        Paid Public Leave (₹0)
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="pt-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 border-t border-canvas-variant">
+            <span className="text-xs text-secondary-light font-medium">
+              {selectedHolidayEmpIds.length === 0 ? (
+                <span className="text-sky-700 font-semibold">All employees will receive Paid Public Leave.</span>
+              ) : (
+                <span><strong>{selectedHolidayEmpIds.length}</strong> employee(s) worked (+₹333 each).</span>
+              )}
+            </span>
+            <div className="flex items-center space-x-2">
+              <Button variant="secondary" onClick={() => setIsGovtHolidayModalOpen(false)}>
+                Cancel
+              </Button>
+              {selectedHolidayEmpIds.length === 0 ? (
+                <Button
+                  onClick={async () => {
+                    if (!holidayDate) return;
+                    await addPublicHoliday(holidayDate, holidayName.trim() || 'Govt Holiday');
+                    setIsGovtHolidayModalOpen(false);
+                    alert(`Declared ${holidayDate} as a Public Holiday (${holidayName || 'Govt Holiday'}). All employees receive Paid Leave with zero absent deductions.`);
+                  }}
+                  className="bg-sky-600 hover:bg-sky-700 text-white font-bold"
+                >
+                  <Palmtree className="w-4 h-4 mr-1.5" />
+                  Declare Public Holiday (All Off)
+                </Button>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    if (!holidayDate) return;
+                    await addPublicHoliday(holidayDate, holidayName.trim() || 'Govt Holiday');
+                    const selectedEmps = employees.filter(e => selectedHolidayEmpIds.includes(e.id));
+                    await Promise.all(
+                      selectedEmps.map(emp =>
+                        updateAttendance(holidayDate, emp.name, {
+                          status: 'Extra Day',
+                          arrival: holidayArrival,
+                          departure: holidayDeparture,
+                          isFinalized: true
+                        })
+                      )
+                    );
+                    setIsGovtHolidayModalOpen(false);
+                    alert(`Declared ${holidayDate} as Public Holiday and marked ${selectedEmps.length} working employee(s) with ⭐ Extra Day (+₹333 each). All other employees are on Paid Holiday Off.`);
+                  }}
+                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                >
+                  <Star className="w-4 h-4 mr-1.5 fill-white text-white" />
+                  Save Holiday & Grant Extra Day ({selectedHolidayEmpIds.length})
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Currently Declared Public Holidays */}
+          <div className="pt-4 border-t border-canvas-variant">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-secondary-dark mb-2.5">
+              Declared Public Holidays ({publicHolidays.length})
+            </h4>
+            {publicHolidays.length === 0 ? (
+              <p className="text-xs text-secondary-light italic">No public holidays declared yet. Use the form above to add one.</p>
+            ) : (
+              <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                {publicHolidays.map(h => (
+                  <div
+                    key={h.date}
+                    className="flex justify-between items-center p-2.5 rounded-lg border border-canvas-variant bg-canvas text-xs"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Palmtree className="w-3.5 h-3.5 text-sky-600" />
+                      <span className="font-semibold text-secondary-dark">{h.name}</span>
+                      <span className="text-secondary-light">({h.date})</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        if (confirm(`Remove public holiday for ${h.date} (${h.name})?`)) {
+                          await removePublicHoliday(h.date);
+                        }
+                      }}
+                      className="text-danger hover:bg-danger/10 h-7 px-2 text-xs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </Modal>

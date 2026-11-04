@@ -472,6 +472,11 @@ export const MarketingDashboard = () => {
                             Present Today
                           </span>
                         )}
+                        {member.attendance === 'Extra Day' && (
+                          <span className="px-2 py-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded-full text-[10px] font-bold">
+                            ⭐ Extra Day (+₹333)
+                          </span>
+                        )}
                         {member.attendance === 'Absent' && (
                           <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-full text-[10px] font-medium">
                             Absent Today
