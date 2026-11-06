@@ -1,0 +1,32 @@
+-- FORCE UPDATE ALL WARRANTY PLAN NAMES TO MATCH PRODUCT TITLES
+
+UPDATE warranty_plans SET plan_name = 'GW-TZ4LB (48 Months)' WHERE id = 'plan-prod-tz4lb';
+UPDATE warranty_plans SET plan_name = 'GW-XL5LB (48 Months)' WHERE id = 'plan-prod-xl5lb';
+UPDATE warranty_plans SET plan_name = 'GW-XL2.5LC (48 Months)' WHERE id = 'plan-prod-xl25lc';
+UPDATE warranty_plans SET plan_name = 'GW-TZ5LB (48 Months)' WHERE id = 'plan-prod-tz5lb';
+UPDATE warranty_plans SET plan_name = 'GW-12SMF8-UPS (12 Months)' WHERE id = 'plan-prod-12smf8';
+UPDATE warranty_plans SET plan_name = 'GW-4SMF5 (6 Months)' WHERE id = 'plan-prod-4smf5';
+UPDATE warranty_plans SET plan_name = 'GW-4V7AH-VRLA (6 Months)' WHERE id = 'plan-prod-4v7ah';
+UPDATE warranty_plans SET plan_name = 'GW-6V5AH (6 Months)' WHERE id = 'plan-prod-6v5ah';
+UPDATE warranty_plans SET plan_name = 'GW-GOLD 14AH (12 Months)' WHERE id = 'plan-prod-gold-14ah';
+UPDATE warranty_plans SET plan_name = 'GW-INVERTER TUBULAR 150AH (72 Months)' WHERE id = 'plan-prod-inverter-tubular';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 6V 4.2AH (12 Months)' WHERE id = 'plan-prod-gold-series-6v-4-2ah-12m';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 12V 12AH (12 Months)' WHERE id = 'plan-prod-gold-series-12v-12ah-12m';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 12V 15AH (12 Months)' WHERE id = 'plan-prod-gold-series-12v-15ah-12m';
+UPDATE warranty_plans SET plan_name = 'GW-TZ4LB (12 Months)' WHERE id = 'plan-prod-tz4lb-12m-12m';
+UPDATE warranty_plans SET plan_name = 'GW-TZ4LB (18 Months)' WHERE id = 'plan-prod-tz4lb-18m-18m';
+UPDATE warranty_plans SET plan_name = 'GW-TZ5LB (12 Months)' WHERE id = 'plan-prod-tz5lb-12m-12m';
+UPDATE warranty_plans SET plan_name = 'GW-TZ5LB (18 Months)' WHERE id = 'plan-prod-tz5lb-18m-18m';
+UPDATE warranty_plans SET plan_name = 'GW-XL5LB (12 Months)' WHERE id = 'plan-prod-xl5lb-12m-12m';
+UPDATE warranty_plans SET plan_name = 'GW-XL5LB (18 Months)' WHERE id = 'plan-prod-xl5lb-18m-18m';
+UPDATE warranty_plans SET plan_name = 'GW-XL2.5LC (12 Months)' WHERE id = 'plan-prod-xl25lc-12m-12m';
+UPDATE warranty_plans SET plan_name = 'GW-XL2.5LC (18 Months)' WHERE id = 'plan-prod-xl25lc-18m-18m';
+UPDATE warranty_plans SET plan_name = 'GW-INVERTER TUBULAR 200AH (72 Months)' WHERE id = 'plan-prod-inverter-tubular-200ah-72m';
+UPDATE warranty_plans SET plan_name = 'GW-INVERTER TUBULAR 250AH (72 Months)' WHERE id = 'plan-prod-inverter-tubular-250ah-72m';
+UPDATE warranty_plans SET plan_name = 'GW-LITHIUM-AGRO-14AH (12 Months)' WHERE id = 'plan-prod-li-agro14-12m';
+UPDATE warranty_plans SET plan_name = 'GW-LITHIUM-UPS-8AH (12 Months)' WHERE id = 'plan-prod-li-ups8-12m';
+UPDATE warranty_plans SET plan_name = 'GW-VRLA-AGRO-14AH (6 Months)' WHERE id = 'plan-prod-vrla-agro14-6m';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 6V 4.5AH (12 Months)' WHERE id = 'plan-prod-gold-series-6v-4-5ah-12m';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 12V 7.2AH (12 Months)' WHERE id = 'plan-prod-gold-series-12v-7-2ah-12m';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 12V 9AH (12 Months)' WHERE id = 'plan-prod-gold-series-12v-9ah-12m';
+UPDATE warranty_plans SET plan_name = 'GOLD SERIES 12V 17AH (12 Months)' WHERE id = 'plan-prod-gold-series-12v-17ah-12m';

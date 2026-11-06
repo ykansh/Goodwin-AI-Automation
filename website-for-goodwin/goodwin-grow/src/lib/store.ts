@@ -58,6 +58,9 @@ export interface PayrollRecord {
   totalDaysInMonth?: number;
   perDaySalary?: number;
   presentDays?: number;
+  grossAbsentDays?: number;
+  grossSundayExtraDays?: number;
+  cancelledLeaveDays?: number;
   absentDays?: number;
   attendanceDeduction?: number;
   sundayExtraDays?: number;
@@ -291,6 +294,9 @@ export const useStore = create<GlobalState>((set, get) => ({
           totalDaysInMonth: attStats.totalDaysInMonth,
           perDaySalary: attStats.perDaySalary,
           presentDays: attStats.presentDays,
+          grossAbsentDays: attStats.grossAbsentDays,
+          grossSundayExtraDays: attStats.grossSundayExtraDays,
+          cancelledLeaveDays: attStats.cancelledLeaveDays,
           absentDays: attStats.absentDays,
           attendanceDeduction: attStats.attendanceDeduction,
           sundayExtraDays: attStats.sundayExtraDays,
@@ -533,9 +539,12 @@ export const useStore = create<GlobalState>((set, get) => ({
   clockIn: async (employeeName) => {
     const date = new Date().toISOString().split('T')[0];
     const arrival = new Date().toTimeString().split(' ')[0].substring(0, 5); // "HH:mm"
+    const isSun = new Date().getDay() === 0;
+    const isHoliday = get().isPublicHoliday(date);
+    const status: AttendanceStatus = (isSun || isHoliday) ? 'Extra Day' : 'Present';
     
     const record: AttendanceRecord = {
-      status: 'Present',
+      status,
       arrival,
       departure: '',
       isFinalized: false
@@ -823,6 +832,9 @@ export const useStore = create<GlobalState>((set, get) => ({
             totalDaysInMonth: attStats.totalDaysInMonth,
             perDaySalary: attStats.perDaySalary,
             presentDays: attStats.presentDays,
+            grossAbsentDays: attStats.grossAbsentDays,
+            grossSundayExtraDays: attStats.grossSundayExtraDays,
+            cancelledLeaveDays: attStats.cancelledLeaveDays,
             absentDays: attStats.absentDays,
             attendanceDeduction: attStats.attendanceDeduction,
             sundayExtraDays: attStats.sundayExtraDays,
@@ -909,6 +921,9 @@ export const useStore = create<GlobalState>((set, get) => ({
             totalDaysInMonth: attStats.totalDaysInMonth,
             perDaySalary: attStats.perDaySalary,
             presentDays: attStats.presentDays,
+            grossAbsentDays: attStats.grossAbsentDays,
+            grossSundayExtraDays: attStats.grossSundayExtraDays,
+            cancelledLeaveDays: attStats.cancelledLeaveDays,
             absentDays: attStats.absentDays,
             attendanceDeduction: attStats.attendanceDeduction,
             sundayExtraDays: attStats.sundayExtraDays,

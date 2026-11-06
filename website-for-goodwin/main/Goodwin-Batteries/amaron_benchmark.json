@@ -1,0 +1,220 @@
+{
+  "batteryFinder": {
+    "inputs": [
+      {
+        "name": "search",
+        "type": "text",
+        "id": "edit-search"
+      },
+      {
+        "name": "op",
+        "type": "submit",
+        "id": "edit-submit"
+      },
+      {
+        "name": "form_build_id",
+        "type": "hidden"
+      },
+      {
+        "name": "form_id",
+        "type": "hidden"
+      },
+      {
+        "name": "vehicle-type",
+        "type": "hidden"
+      },
+      {
+        "name": "select-vehicle",
+        "type": "select",
+        "id": "edit-select-vehicle"
+      },
+      {
+        "name": "vehicle-make",
+        "type": "select",
+        "id": "edit-vehicle-make"
+      },
+      {
+        "name": "model",
+        "type": "select",
+        "id": "edit-model"
+      },
+      {
+        "name": "fuel",
+        "type": "select",
+        "id": "edit-fuel"
+      },
+      {
+        "name": "op",
+        "type": "submit",
+        "id": "edit-apply"
+      },
+      {
+        "name": "form_build_id",
+        "type": "hidden"
+      },
+      {
+        "name": "form_id",
+        "type": "hidden"
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "id": "edit-name"
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "id": "edit-city"
+      },
+      {
+        "name": "pincode",
+        "type": "text",
+        "id": "edit-pincode"
+      },
+      {
+        "name": "mobile",
+        "type": "tel",
+        "id": "edit-mobile"
+      },
+      {
+        "name": "consent",
+        "type": "checkbox",
+        "id": "edit-consent"
+      },
+      {
+        "name": "op",
+        "type": "submit",
+        "id": "edit-generate-otp"
+      },
+      {
+        "name": "form_build_id",
+        "type": "hidden"
+      },
+      {
+        "name": "form_id",
+        "type": "hidden"
+      }
+    ],
+    "notes": "Looks for dropdowns for Make, Model, Variant, Fuel Type"
+  },
+  "productPage": {
+    "specLabels": [],
+    "badges": [],
+    "layout": "Checks what tables/specs are displayed"
+  },
+  "dealerLocator": {
+    "inputs": [
+      {
+        "name": "search",
+        "placeholder": "Search"
+      },
+      {
+        "name": "op"
+      },
+      {
+        "name": "form_build_id"
+      },
+      {
+        "name": "form_id"
+      },
+      {
+        "name": "select-country"
+      },
+      {
+        "name": "state_select"
+      },
+      {
+        "name": "city"
+      },
+      {
+        "name": "op"
+      },
+      {
+        "name": "form_build_id"
+      },
+      {
+        "name": "form_id"
+      },
+      {
+        "name": "name",
+        "placeholder": "Enter your name*"
+      },
+      {
+        "name": "city",
+        "placeholder": "Select your city*"
+      },
+      {
+        "name": "pincode",
+        "placeholder": "Enter your pincode*"
+      },
+      {
+        "name": "mobile",
+        "placeholder": "Enter your mobile number*"
+      },
+      {
+        "name": "consent"
+      },
+      {
+        "name": "op"
+      },
+      {
+        "name": "form_build_id"
+      },
+      {
+        "name": "form_id"
+      }
+    ]
+  },
+  "warranty": {
+    "inputs": [
+      {
+        "name": "search",
+        "type": "text"
+      },
+      {
+        "name": "op",
+        "type": "submit"
+      },
+      {
+        "name": "form_build_id",
+        "type": "hidden"
+      },
+      {
+        "name": "form_id",
+        "type": "hidden"
+      },
+      {
+        "name": "name",
+        "type": "text"
+      },
+      {
+        "name": "city",
+        "type": "text"
+      },
+      {
+        "name": "pincode",
+        "type": "text"
+      },
+      {
+        "name": "mobile",
+        "type": "tel"
+      },
+      {
+        "name": "consent",
+        "type": "checkbox"
+      },
+      {
+        "name": "op",
+        "type": "submit"
+      },
+      {
+        "name": "form_build_id",
+        "type": "hidden"
+      },
+      {
+        "name": "form_id",
+        "type": "hidden"
+      }
+    ]
+  }
+}

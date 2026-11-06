@@ -36,6 +36,8 @@ export interface DailyAttendanceDetail {
   isFinalized?: boolean;
   isExtraDayWorked?: boolean;
   isSanctionedLeave?: boolean;
+  isOffsetByExtraDay?: boolean; // Leave day cancelled by an Extra Day (Compensatory Off: 0 deduction)
+  isOffsetUsed?: boolean; // Extra Day consumed to cancel a Leave Day (Not counted in extras / ₹0 extra amount)
   notes?: string;
 }
 
@@ -52,6 +54,11 @@ export interface EmployeeAttendanceStats {
   totalDaysSinceJoining: number; // Calendar days from joining date up to today
   sundayExtraDaysCount: number;
   sanctionedLeavesCount: number;
+  grossExtraDaysCount?: number;
+  grossAbsentCount?: number;
+  cancelledLeavesCount?: number;
+  netExtraDaysCount?: number;
+  netAbsentCount?: number;
   
   // Last 30 Days stats (Sundays in)
   last30Days: {
@@ -62,8 +69,13 @@ export interface EmployeeAttendanceStats {
     presentCount: number;
     halfDaysCount: number;
     absentCount: number;
+    grossAbsentCount?: number;
     unmarkedCount: number;
     sundayExtraDaysCount: number;
+    grossExtraDaysCount?: number;
+    cancelledLeavesCount?: number;
+    netExtraDaysCount?: number;
+    netAbsentCount?: number;
     effectiveAttendanceCount: number; // non-Sunday presents + Sundays + 0.5*half-days
     attendanceRate: string; // percentage string, e.g. "85.0%"
   };
@@ -77,8 +89,13 @@ export interface EmployeeAttendanceStats {
     presentCount: number;
     halfDaysCount: number;
     absentCount: number;
+    grossAbsentCount?: number;
     unmarkedCount: number;
     sundayExtraDaysCount: number;
+    grossExtraDaysCount?: number;
+    cancelledLeavesCount?: number;
+    netExtraDaysCount?: number;
+    netAbsentCount?: number;
     effectiveAttendanceCount: number; // non-Sunday presents + Sundays + 0.5*half-days
     attendanceRatio: string; // e.g. "27.5 / 32"
     attendanceRate: string; // percentage string, e.g. "85.9%"
@@ -101,15 +118,37 @@ export interface CustomRangeAttendanceStats {
   endDate: string;
   totalPeriodDays: number;
   presentCount: number;
-  sundayExtraDaysCount: number;
+  grossExtraDaysCount: number; // Worked on holiday / Sunday / Extra Day
+  grossAbsentCount: number; // Leaves taken / Absent
+  cancelledLeavesCount: number; // Compensatory off: 1 Extra Day cancels 1 Leave Day
+  netExtraDaysCount: number; // Surplus Extra Days counted in extras (+₹333)
+  netAbsentCount: number; // Remaining chargeable leaves for salary deduction
+  sundayExtraDaysCount: number; // Net extra days (backward compatibility alias)
+  absentCount: number; // Net absent count (backward compatibility alias)
   halfDaysCount: number;
-  absentCount: number;
   sanctionedLeavesCount: number;
   sundaysOffCount: number;
+  holidaysOffCount: number;
   unmarkedCount: number;
   effectiveAttendanceCount: number;
   attendanceRate: string;
   dailyRecords: DailyAttendanceDetail[];
+}
+
+export interface CustomRangeMasterStats {
+  startDate: string;
+  endDate: string;
+  totalPeriodDays: number;
+  employeesCount: number;
+  allStats: CustomRangeAttendanceStats[];
+  totalWorkdaysPresent: number;
+  totalGrossExtraDays: number;
+  totalLeavesTaken: number;
+  totalCancelledLeaves: number;
+  totalNetExtraDays: number;
+  totalNetAbsentDays: number;
+  totalExtraBonusAmount: number;
+  averageAttendanceRate: string;
 }
 
 /**
@@ -361,6 +400,14 @@ export const calculateEmployeeAttendanceStats = (
   const last30Rate = `${((last30Effective / 30) * 100).toFixed(1)}%`;
   const allTimeRate = `${((allTimeEffective / totalDaysSinceJoining) * 100).toFixed(1)}%`;
 
+  const l30CancelledLeaves = Math.min(l30SundayExtraDays, l30Absents);
+  const l30NetExtraDays = l30SundayExtraDays - l30CancelledLeaves;
+  const l30NetAbsents = l30Absents - l30CancelledLeaves;
+
+  const allCancelledLeaves = Math.min(allSundayExtraDays, allAbsents);
+  const allNetExtraDays = allSundayExtraDays - allCancelledLeaves;
+  const allNetAbsents = allAbsents - allCancelledLeaves;
+
   return {
     employeeId: employee.id,
     employeeName: empName,
@@ -372,8 +419,13 @@ export const calculateEmployeeAttendanceStats = (
     firstAttendanceDate: firstAttendanceDateStr,
     officialJoinDate: employee.joinDate || firstAttendanceDateStr,
     totalDaysSinceJoining,
-    sundayExtraDaysCount: allSundayExtraDays,
+    sundayExtraDaysCount: allNetExtraDays,
     sanctionedLeavesCount: allSanctionedLeaves,
+    grossExtraDaysCount: allSundayExtraDays,
+    grossAbsentCount: allAbsents,
+    cancelledLeavesCount: allCancelledLeaves,
+    netExtraDaysCount: allNetExtraDays,
+    netAbsentCount: allNetAbsents,
     last30Days: {
       startDate: last30StartStr,
       endDate: todayStr,
@@ -381,9 +433,14 @@ export const calculateEmployeeAttendanceStats = (
       sundaysCount: l30Sundays,
       presentCount: l30Presents,
       halfDaysCount: l30HalfDays,
-      absentCount: l30Absents,
+      absentCount: l30NetAbsents,
+      grossAbsentCount: l30Absents,
       unmarkedCount: l30Unmarked,
-      sundayExtraDaysCount: l30SundayExtraDays,
+      sundayExtraDaysCount: l30NetExtraDays,
+      grossExtraDaysCount: l30SundayExtraDays,
+      cancelledLeavesCount: l30CancelledLeaves,
+      netExtraDaysCount: l30NetExtraDays,
+      netAbsentCount: l30NetAbsents,
       effectiveAttendanceCount: last30Effective,
       attendanceRate: last30Rate
     },
@@ -394,9 +451,14 @@ export const calculateEmployeeAttendanceStats = (
       sundaysCount: allSundays,
       presentCount: allPresents,
       halfDaysCount: allHalfDays,
-      absentCount: allAbsents,
+      absentCount: allNetAbsents,
+      grossAbsentCount: allAbsents,
       unmarkedCount: allUnmarked,
-      sundayExtraDaysCount: allSundayExtraDays,
+      sundayExtraDaysCount: allNetExtraDays,
+      grossExtraDaysCount: allSundayExtraDays,
+      cancelledLeavesCount: allCancelledLeaves,
+      netExtraDaysCount: allNetExtraDays,
+      netAbsentCount: allNetAbsents,
       effectiveAttendanceCount: allTimeEffective,
       attendanceRatio: `${allTimeEffective} / ${totalDaysSinceJoining}`,
       attendanceRate: allTimeRate
@@ -423,11 +485,12 @@ export const calculateCustomRangeAttendanceStats = (
   const publicHolidays = getCachedPublicHolidays();
   const dailyRecords: DailyAttendanceDetail[] = [];
   let presentCount = 0;
-  let sundayExtraDaysCount = 0;
+  let grossExtraDaysCount = 0;
   let halfDaysCount = 0;
-  let absentCount = 0;
+  let grossAbsentCount = 0;
   let sanctionedLeavesCount = 0;
   let sundaysOffCount = 0;
+  let holidaysOffCount = 0;
   let unmarkedCount = 0;
 
   let cur = new Date(start);
@@ -461,18 +524,19 @@ export const calculateCustomRangeAttendanceStats = (
         isExtraDayWorked = true;
         status = 'Extra Day';
         const extraWeight = rec?.status === 'Half-Day' ? 0.5 : 1;
-        sundayExtraDaysCount += extraWeight;
+        grossExtraDaysCount += extraWeight;
         credit = 1.0;
         arrival = rec?.arrival || '09:00';
         departure = rec?.departure || '17:00';
         notes = isPublicHoliday 
-          ? `⭐ Extra Day (${holiday?.name || 'Govt Holiday'}) (+₹333)`
-          : '⭐ Sunday Extra Day (+₹333)';
+          ? `⭐ Extra Day (${holiday?.name || 'Govt Holiday'})`
+          : '⭐ Sunday Extra Day';
       } else {
         // Did NOT work on off day / public holiday: Paid Leave (Holiday Off / Sunday Off)
         // Rule: DO NOT mark absent! DO NOT mark as Extra Day!
         status = isSunday ? 'Sunday Off' : 'Holiday Off';
-        sundaysOffCount++;
+        if (isSunday) sundaysOffCount++;
+        else holidaysOffCount++;
         credit = 1.0;
         notes = isSunday ? 'Weekly Off' : `Public Holiday: ${holiday?.name || 'Public Leave'}`;
       }
@@ -480,16 +544,16 @@ export const calculateCustomRangeAttendanceStats = (
       if (isSanctionedLeave) {
         status = 'Absent';
         credit = 0.0;
-        absentCount++;
+        grossAbsentCount++;
         sanctionedLeavesCount++;
         notes = 'Sanctioned Leave';
       } else if (rec) {
         if (rec.status === 'Extra Day' || rec.isExtraDay) {
           isExtraDayWorked = true;
           status = 'Extra Day';
-          sundayExtraDaysCount += 1;
+          grossExtraDaysCount += 1;
           credit = 1.0;
-          notes = '⭐ Extra Day (+₹333)';
+          notes = '⭐ Extra Day (Holiday Worked)';
         } else if (rec.status === 'Present') {
           presentCount++;
           status = 'Present';
@@ -499,7 +563,7 @@ export const calculateCustomRangeAttendanceStats = (
           status = 'Half-Day';
           credit = 0.5;
         } else if (rec.status === 'Absent') {
-          absentCount++;
+          grossAbsentCount++;
           status = 'Absent';
           credit = 0.0;
         }
@@ -529,6 +593,35 @@ export const calculateCustomRangeAttendanceStats = (
     cur = new Date(cur.getTime() + 24 * 60 * 60 * 1000);
   }
 
+  // User compensatory off logic:
+  // 1 Extra Day cancels 1 Leave Day (1:1).
+  // Cancelled leaves are not deducted (₹0 deduction).
+  // Cancelled extra days are consumed and not counted in extras or extra amount (₹0 bonus).
+  const cancelledLeavesCount = Math.min(grossExtraDaysCount, grossAbsentCount);
+  const netExtraDaysCount = grossExtraDaysCount - cancelledLeavesCount;
+  const netAbsentCount = grossAbsentCount - cancelledLeavesCount;
+
+  // Annotate daily records with offset flags
+  let extraOffsetRemaining = cancelledLeavesCount;
+  let leaveOffsetRemaining = cancelledLeavesCount;
+
+  for (const r of dailyRecords) {
+    if (r.isExtraDayWorked && extraOffsetRemaining > 0) {
+      r.isOffsetUsed = true;
+      const weight = r.status === 'Half-Day' ? 0.5 : 1.0;
+      extraOffsetRemaining -= weight;
+      r.notes = (r.notes ? r.notes : '') + ' • Cancelled 1 Leave Day (₹0 extra bonus)';
+    } else if (r.isExtraDayWorked && extraOffsetRemaining <= 0) {
+      r.notes = (r.notes ? r.notes : '') + ' • Bonus Eligible (+₹333)';
+    }
+
+    if (r.status === 'Absent' && leaveOffsetRemaining > 0) {
+      r.isOffsetByExtraDay = true;
+      leaveOffsetRemaining -= 1.0;
+      r.notes = (r.notes ? r.notes + ' • ' : '') + 'Cancelled by Extra Day (₹0 deduction)';
+    }
+  }
+
   // Effective counts: regular presents + sundays/holidays off + half-days
   const effectiveAttendanceCount = Number((dailyRecords.reduce((acc, r) => acc + r.credit, 0)).toFixed(1));
   const attendanceRate = `${((effectiveAttendanceCount / totalPeriodDays) * 100).toFixed(1)}%`;
@@ -546,11 +639,17 @@ export const calculateCustomRangeAttendanceStats = (
     endDate: endDateStr,
     totalPeriodDays,
     presentCount,
-    sundayExtraDaysCount,
+    grossExtraDaysCount,
+    grossAbsentCount,
+    cancelledLeavesCount,
+    netExtraDaysCount,
+    netAbsentCount,
+    sundayExtraDaysCount: netExtraDaysCount, // net extra days
+    absentCount: netAbsentCount, // net absent count
     halfDaysCount,
-    absentCount,
     sanctionedLeavesCount,
     sundaysOffCount,
+    holidaysOffCount,
     unmarkedCount,
     effectiveAttendanceCount,
     attendanceRate,
@@ -565,42 +664,12 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
   const issueDate = format(new Date(), 'PPP');
   const receiptNo = `GW-REC-${stats.startDate.replace(/-/g, '')}-${stats.endDate.replace(/-/g, '')}-${stats.employeeId.slice(0, 4).toUpperCase()}`;
 
-  const rowsHTML = stats.dailyRecords.map(r => {
-    let statusClass = 'status-unmarked';
-    let displayStatus: string = r.status;
-
-    if (r.isExtraDayWorked) {
-      statusClass = 'status-extra';
-      displayStatus = `⭐ Extra Day Worked (${r.status})`;
-    } else if (r.isSanctionedLeave) {
-      statusClass = 'status-absent';
-      displayStatus = 'Absent (Sanctioned Leave)';
-    } else if (r.status === 'Present') {
-      statusClass = 'status-present';
-    } else if (r.status === 'Absent') {
-      statusClass = 'status-absent';
-    } else if (r.status === 'Half-Day') {
-      statusClass = 'status-halfday';
-    } else if (r.status === 'Sunday Off') {
-      statusClass = 'status-sunday';
-    } else if (r.status === 'Holiday Off') {
-      statusClass = 'status-holiday';
-      displayStatus = '🌴 Public Holiday Off';
-    }
-
-    return `
-      <tr>
-        <td><strong>${r.date}</strong></td>
-        <td>${r.dayOfWeek}</td>
-        <td>${r.isSunday ? (r.isExtraDayWorked ? '⭐ Sunday (Overtime)' : 'Sunday (Off)') : 'Regular Workday'}</td>
-        <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
-        <td>${r.arrival || '--'}</td>
-        <td>${r.departure || '--'}</td>
-        <td style="text-align: right; font-weight: 700;">${r.credit}d</td>
-        <td>${r.notes || '-'}</td>
-      </tr>
-    `;
-  }).join('');
+  // Simplified: Total Leave Days = Leaves - Extra Days (net leaves after comp-off)
+  const totalLeaveDays = stats.netAbsentCount;
+  // Attendance % = ((Period Days - Total Leave Days) / Period Days) * 100
+  const attendancePercent = stats.totalPeriodDays > 0
+    ? ((stats.totalPeriodDays - totalLeaveDays) / stats.totalPeriodDays * 100).toFixed(1)
+    : '0.0';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -612,13 +681,13 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: #0f172a;
+      background-color: #f8fafc;
       color: #1e293b;
       padding: 30px 15px;
       line-height: 1.5;
     }
     .action-bar {
-      max-width: 900px;
+      max-width: 700px;
       margin: 0 auto 20px;
       display: flex;
       justify-content: space-between;
@@ -649,12 +718,12 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
     .btn-secondary:hover { background: #475569; }
 
     .receipt-container {
-      max-width: 900px;
+      max-width: 700px;
       margin: 0 auto;
       background: #ffffff;
       border-radius: 16px;
       padding: 40px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
       position: relative;
     }
 
@@ -664,76 +733,14 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
       align-items: flex-start;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 24px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
-    .company-title {
-      font-size: 26px;
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.5px;
-    }
-    .company-subtitle {
-      font-size: 12px;
-      font-weight: 700;
-      color: #6366f1;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 2px;
-    }
-    .company-meta {
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 6px;
-    }
-    .receipt-badge-box {
-      text-align: right;
-    }
-    .receipt-tag {
-      display: inline-block;
-      background: #e0e7ff;
-      color: #4338ca;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-    .receipt-number {
-      font-family: monospace;
-      font-size: 13px;
-      font-weight: 700;
-      color: #334155;
-      margin-top: 6px;
-    }
-    .receipt-date {
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 2px;
-    }
-
-    .period-banner {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 10px;
-      padding: 12px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    .period-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #1e40af;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .period-dates {
-      font-size: 14px;
-      font-weight: 700;
-      color: #1e3a8a;
-    }
+    .company-title { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+    .company-subtitle { font-size: 12px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .receipt-badge-box { text-align: right; }
+    .receipt-tag { display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }
+    .receipt-number { font-family: monospace; font-size: 13px; font-weight: 700; color: #334155; margin-top: 6px; }
+    .receipt-date { font-size: 12px; color: #64748b; margin-top: 2px; }
 
     .employee-card {
       background: #f8fafc;
@@ -741,122 +748,48 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
       border-radius: 12px;
       padding: 20px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 16px;
       margin-bottom: 28px;
     }
-    .emp-item-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
-    }
-    .emp-item-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: #0f172a;
-    }
-    .emp-item-value.highlight {
-      color: #4f46e5;
-      font-weight: 700;
-    }
+    .emp-item-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .emp-item-value { font-size: 14px; font-weight: 600; color: #0f172a; }
+    .emp-item-value.highlight { color: #4f46e5; font-weight: 700; }
 
-    .kpi-grid {
+    .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 14px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
       margin-bottom: 28px;
     }
-    .kpi-card {
+    .summary-card {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
     }
-    .kpi-card.gold {
-      border-color: #fde68a;
-      background: #fefce8;
-    }
-    .kpi-card.green {
-      border-color: #bbf7d0;
-      background: #f0fdf4;
-    }
-    .kpi-card.indigo {
-      border-color: #c7d2fe;
-      background: #f5f7ff;
-    }
-    .kpi-card.red {
-      border-color: #fecaca;
-      background: #fef2f2;
-    }
-    .kpi-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-    .kpi-main-stat {
-      font-size: 24px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .kpi-sub-stat {
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 4px;
-      font-weight: 500;
-    }
+    .summary-card.leave { border-color: #fca5a5; background: #fef2f2; }
+    .summary-card.percent { border-color: #a5b4fc; background: #eef2ff; }
+    .summary-card.days { border-color: #bfdbfe; background: #eff6ff; }
+    .summary-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .summary-value { font-size: 36px; font-weight: 900; color: #0f172a; line-height: 1; }
+    .summary-value.red { color: #dc2626; }
+    .summary-value.indigo { color: #4338ca; }
+    .summary-value.blue { color: #1e40af; }
+    .summary-sub { font-size: 12px; color: #64748b; margin-top: 6px; font-weight: 500; }
 
-    .table-container {
+    .formula-box {
+      background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 30px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      text-align: left;
-    }
-    th {
-      background: #f1f5f9;
-      color: #475569;
-      font-weight: 700;
-      padding: 10px 14px;
-      border-bottom: 1px solid #cbd5e1;
-      text-transform: uppercase;
-      font-size: 10px;
-      letter-spacing: 0.5px;
-    }
-    td {
-      padding: 10px 14px;
-      border-bottom: 1px solid #f1f5f9;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 13px;
       color: #334155;
+      line-height: 1.8;
     }
-    tr:last-child td { border-bottom: none; }
-    tr:nth-child(even) { background: #fafafa; }
-    .status-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .status-present { background: #dcfce7; color: #166534; }
-    .status-absent { background: #fee2e2; color: #991b1b; }
-    .status-halfday { background: #fef3c7; color: #92400e; }
-    .status-sunday { background: #0f172a; color: #f8fafc; }
-    .status-holiday { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-    .status-extra { background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; }
-    .status-unmarked { background: #f1f5f9; color: #64748b; }
+    .formula-box strong { color: #0f172a; }
 
     .receipt-footer {
       border-top: 2px dashed #cbd5e1;
@@ -867,169 +800,97 @@ export const generateCustomRangeReceiptHTML = (stats: CustomRangeAttendanceStats
       font-size: 11px;
       color: #64748b;
     }
-    .signature-box {
-      text-align: center;
-      width: 200px;
-    }
-    .signature-line {
-      border-bottom: 1px solid #475569;
-      margin-bottom: 6px;
-      height: 40px;
-    }
+    .signature-box { text-align: center; width: 200px; }
+    .signature-line { border-bottom: 1px solid #475569; margin-bottom: 6px; height: 40px; }
 
-    @page {
-      margin: 10mm 12mm;
-      size: auto;
-    }
-
+    @page { margin: 10mm 12mm; size: auto; }
     @media print {
-      *, *::before, *::after {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-      html, body {
-        background: #ffffff !important;
-        color: #0f172a !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
+      html, body { background: #ffffff !important; padding: 0 !important; margin: 0 !important; }
       .action-bar { display: none !important; }
-      .receipt-container {
-        box-shadow: none !important;
-        border: 1px solid #cbd5e1 !important;
-        padding: 20px !important;
-        max-width: 100% !important;
-      }
-      .table-container { overflow: visible !important; }
-      tr { page-break-inside: avoid !important; }
+      .receipt-container { box-shadow: none !important; border: 1px solid #cbd5e1 !important; padding: 20px !important; max-width: 100% !important; }
     }
   </style>
 </head>
 <body>
 
   <div class="action-bar">
-    <div>
-      <h4>Goodwin HRMS Attendance Period Receipt</h4>
-    </div>
+    <div><h4>Attendance Receipt</h4></div>
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="window.print()">
-        🖨️ Print / Save as PDF
-      </button>
-      <button class="btn btn-secondary" onclick="downloadSelf()">
-        📥 Download HTML
-      </button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+      <button class="btn btn-secondary" onclick="downloadSelf()">📥 Download HTML</button>
     </div>
   </div>
 
   <div class="receipt-container" id="receipt">
-    <!-- Header -->
     <div class="receipt-header">
       <div>
         <div class="company-title">GOODWIN GROW</div>
-        <div class="company-subtitle">Goodwin AI HRMS & Operations</div>
-        <div class="company-meta">Official Period Attendance Statement & Receipt</div>
+        <div class="company-subtitle">Attendance Report</div>
       </div>
       <div class="receipt-badge-box">
         <span class="receipt-tag">Official Receipt</span>
         <div class="receipt-number">${receiptNo}</div>
-        <div class="receipt-date">Issued on: ${issueDate}</div>
+        <div class="receipt-date">Issued: ${issueDate}</div>
       </div>
     </div>
 
-    <!-- Period Banner -->
-    <div class="period-banner">
-      <div>
-        <div class="period-title">Specified Attendance Window</div>
-        <div class="period-dates">From ${stats.startDate} to ${stats.endDate}</div>
-      </div>
-      <div style="text-align: right;">
-        <span style="font-size: 18px; font-weight: 800; color: #1e3a8a;">${stats.totalPeriodDays}</span>
-        <span style="font-size: 12px; color: #3b82f6; display: block;">Total Days</span>
-      </div>
-    </div>
-
-    <!-- Employee Information -->
+    <!-- Employee Info -->
     <div class="employee-card">
       <div>
         <div class="emp-item-label">Employee Name</div>
         <div class="emp-item-value">${stats.employeeName}</div>
       </div>
       <div>
-        <div class="emp-item-label">Designation / Role</div>
+        <div class="emp-item-label">Role</div>
         <div class="emp-item-value">${stats.role}</div>
       </div>
       <div>
-        <div class="emp-item-label">Joining Date</div>
-        <div class="emp-item-value highlight">${stats.joinDate}</div>
+        <div class="emp-item-label">Period</div>
+        <div class="emp-item-value highlight">${stats.startDate} to ${stats.endDate}</div>
       </div>
       <div>
-        <div class="emp-item-label">Employment Type</div>
-        <div class="emp-item-value">${stats.type} (${stats.status})</div>
+        <div class="emp-item-label">Join Date</div>
+        <div class="emp-item-value">${stats.joinDate}</div>
       </div>
     </div>
 
-    <!-- KPI Summary Grid -->
-    <div class="kpi-grid">
-      <div class="kpi-card green">
-        <div class="kpi-title">Workdays Present</div>
-        <div class="kpi-main-stat">${stats.presentCount}</div>
-        <div class="kpi-sub-stat">Regular working days</div>
+    <!-- Main Summary: Only Total Leave Days & Attendance % -->
+    <div class="summary-grid">
+      <div class="summary-card days">
+        <div class="summary-label">Period Days</div>
+        <div class="summary-value blue">${stats.totalPeriodDays}</div>
+        <div class="summary-sub">${stats.startDate} → ${stats.endDate}</div>
       </div>
-      <div class="kpi-card gold">
-        <div class="kpi-title">⭐ Extra Days (+₹333/day)</div>
-        <div class="kpi-main-stat" style="color: #b45309;">${stats.sundayExtraDaysCount}</div>
-        <div class="kpi-sub-stat">Govt Holiday / Sunday (+₹${stats.sundayExtraDaysCount * EXTRA_DAY_RATE})</div>
+      <div class="summary-card leave">
+        <div class="summary-label">Total Leave Days</div>
+        <div class="summary-value red">${totalLeaveDays}</div>
+        <div class="summary-sub">Leave (${stats.grossAbsentCount}) − Extra Days (${stats.grossExtraDaysCount})</div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Half Days</div>
-        <div class="kpi-main-stat">${stats.halfDaysCount}</div>
-        <div class="kpi-sub-stat">0.5 credit each</div>
-      </div>
-      <div class="kpi-card red">
-        <div class="kpi-title">Absents & Leaves</div>
-        <div class="kpi-main-stat" style="color: #b91c1c;">${stats.absentCount}</div>
-        <div class="kpi-sub-stat">${stats.sanctionedLeavesCount} Sanctioned Leaves</div>
-      </div>
-      <div class="kpi-card indigo">
-        <div class="kpi-title">Presence Rate</div>
-        <div class="kpi-main-stat" style="color: #4338ca;">${stats.attendanceRate}</div>
-        <div class="kpi-sub-stat">${stats.effectiveAttendanceCount} / ${stats.totalPeriodDays} effective</div>
+      <div class="summary-card percent">
+        <div class="summary-label">Attendance %</div>
+        <div class="summary-value indigo">${attendancePercent}%</div>
+        <div class="summary-sub">(${stats.totalPeriodDays} − ${totalLeaveDays}) / ${stats.totalPeriodDays} × 100</div>
       </div>
     </div>
 
-    <!-- Daily Log Table -->
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Day</th>
-            <th>Day Classification</th>
-            <th>Recorded Status</th>
-            <th>In Time</th>
-            <th>Out Time</th>
-            <th style="text-align: right;">Credit</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHTML}
-        </tbody>
-      </table>
+    <!-- Formula breakdown -->
+    <div class="formula-box">
+      <strong>Total Leave Days</strong> = Gross Leaves (${stats.grossAbsentCount}) − Extra Days Worked (${stats.grossExtraDaysCount}) = <strong>${totalLeaveDays} day(s)</strong>
+      <br/>
+      <strong>Attendance %</strong> = (${stats.totalPeriodDays} − ${totalLeaveDays}) / ${stats.totalPeriodDays} × 100 = <strong>${attendancePercent}%</strong>
+      ${stats.cancelledLeavesCount > 0 ? `<br/><em style="color: #047857;">⭐ ${stats.cancelledLeavesCount} Extra Day(s) cancelled ${stats.cancelledLeavesCount} Leave Day(s) via Compensatory Off (1:1)</em>` : ''}
     </div>
 
     <!-- Footer -->
     <div class="receipt-footer">
       <div>
-        <p><strong>Verification Notice:</strong> This receipt is system-generated and verified by Goodwin AI ERP.</p>
-        <p>Sundays worked are officially accredited as Extra Days Worked / Sunday Overtime.</p>
-        <p style="margin-top: 4px;">Confidential HRMS Record • Ref: ${receiptNo}</p>
+        <p><strong>Verification:</strong> System-generated by Goodwin AI HRMS.</p>
+        <p style="margin-top: 4px;">Confidential Record • Ref: ${receiptNo}</p>
       </div>
       <div class="signature-box">
         <div class="signature-line"></div>
         <strong>Authorized Signatory</strong>
-        <div>Goodwin Grow HR & Admin</div>
+        <div>Goodwin Grow HR</div>
       </div>
     </div>
   </div>
@@ -1066,6 +927,7 @@ export const downloadCustomRangeCSV = (
     'Departure',
     'Effective Credit',
     'Extra Day Worked',
+    'Compensatory Off Status',
     'Sanctioned Leave',
     'Notes'
   ];
@@ -1073,18 +935,312 @@ export const downloadCustomRangeCSV = (
   const rows = stats.dailyRecords.map(r => [
     `"${r.date}"`,
     `"${r.dayOfWeek}"`,
-    `"${r.isSunday ? (r.isExtraDayWorked ? 'Sunday Extra Day Worked' : 'Sunday Off') : (r.isExtraDayWorked ? 'Govt Holiday (Extra Day Worked)' : 'Regular Workday')}"`,
+    `"${r.isSunday ? (r.isExtraDayWorked ? 'Sunday Extra Day Worked' : 'Sunday Off') : (r.isPublicHoliday ? `Public Holiday (${r.holidayName || 'Holiday'})` : (r.isExtraDayWorked ? 'Govt Holiday (Extra Day Worked)' : 'Regular Workday'))}"`,
     `"${r.status}"`,
     `"${r.arrival}"`,
     `"${r.departure}"`,
     r.credit,
     r.isExtraDayWorked ? 'Yes' : 'No',
+    r.isOffsetUsed ? '"Used to Cancel Leave (₹0 Bonus)"' : (r.isOffsetByExtraDay ? '"Cancelled by Extra Day (₹0 Deduction)"' : (r.isExtraDayWorked ? '"Bonus Eligible (+₹333)"' : '"-"')),
     r.isSanctionedLeave ? 'Yes' : 'No',
     `"${r.notes || ''}"`
   ]);
 
   const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
   triggerDownload(csvContent, `${filenamePrefix}_${stats.employeeName.replace(/\s+/g, '_')}_${stats.startDate}_to_${stats.endDate}.csv`, 'text/csv;charset=utf-8;');
+};
+
+/**
+ * Download Master Consolidated Attendance Report for all employees as CSV
+ */
+export const downloadCustomRangeMasterCSV = (
+  masterStats: CustomRangeMasterStats,
+  filenamePrefix: string = 'Master_Attendance_Report'
+) => {
+  const headers = [
+    'Employee Name',
+    'Role',
+    'Type',
+    'Status',
+    'Total Period Days',
+    'Workdays Present',
+    'Gross Extra Days (Holiday/Sunday Worked)',
+    'Gross Leaves Taken',
+    'Compensatory Off (Cancelled Leaves)',
+    'Net Extra Days (Bonus Eligible)',
+    'Net Chargeable Leaves',
+    'Extra Day Overtime Bonus (INR)',
+    'Presence Rate %'
+  ];
+
+  const rows = masterStats.allStats.map(s => [
+    `"${s.employeeName}"`,
+    `"${s.role}"`,
+    `"${s.type}"`,
+    `"${s.status}"`,
+    s.totalPeriodDays,
+    s.presentCount,
+    s.grossExtraDaysCount,
+    s.grossAbsentCount,
+    s.cancelledLeavesCount,
+    s.netExtraDaysCount,
+    s.netAbsentCount,
+    s.netExtraDaysCount * EXTRA_DAY_RATE,
+    `"${s.attendanceRate}"`
+  ]);
+
+  const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+  triggerDownload(csvContent, `${filenamePrefix}_${masterStats.startDate}_to_${masterStats.endDate}.csv`, 'text/csv;charset=utf-8;');
+};
+
+/**
+ * Generate Master Attendance PDF/HTML Report for ALL employees over custom date range
+ */
+export const generateCustomRangeMasterReceiptHTML = (masterStats: CustomRangeMasterStats): string => {
+  const issueDate = format(new Date(), 'PPP');
+  const reportRef = `GW-MASTER-${masterStats.startDate.replace(/-/g, '')}-${masterStats.endDate.replace(/-/g, '')}`;
+
+  // Simplified table: Employee | Role | Total Leave Days | Attendance %
+  const rowsHTML = masterStats.allStats.map((s, idx) => {
+    const totalLeaveDays = s.netAbsentCount;
+    const attendPct = s.totalPeriodDays > 0
+      ? ((s.totalPeriodDays - totalLeaveDays) / s.totalPeriodDays * 100).toFixed(1)
+      : '0.0';
+    return `
+    <tr>
+      <td style="font-weight: 700;">${idx + 1}. ${s.employeeName}</td>
+      <td style="color: #64748b;">${s.role}</td>
+      <td style="text-align: center; font-weight: 800; color: ${totalLeaveDays > 0 ? '#dc2626' : '#166534'}; font-size: 16px;">${totalLeaveDays}</td>
+      <td style="text-align: center; color: #64748b; font-size: 11px;">Leave ${s.grossAbsentCount} − Extra ${s.grossExtraDaysCount}</td>
+      <td style="text-align: center; font-weight: 800; color: #4338ca; font-size: 16px;">${attendPct}%</td>
+      <td style="text-align: center; color: #64748b; font-size: 11px;">(${masterStats.totalPeriodDays} − ${totalLeaveDays}) / ${masterStats.totalPeriodDays}</td>
+    </tr>
+  `;
+  }).join('');
+
+  // Aggregated totals
+  const teamTotalLeaveDays = masterStats.totalNetAbsentDays;
+  const teamAvgLeaveDays = masterStats.employeesCount > 0
+    ? (teamTotalLeaveDays / masterStats.employeesCount).toFixed(1)
+    : '0';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goodwin_Master_Attendance_Report_${masterStats.startDate}_to_${masterStats.endDate}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      padding: 30px 15px;
+      line-height: 1.5;
+    }
+    .action-bar {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e293b;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      color: #f8fafc;
+    }
+    .action-bar h4 { font-size: 14px; font-weight: 600; color: #94a3b8; }
+    .btn-group { display: flex; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+      border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+    }
+    .btn-primary { background: #6366f1; color: white; }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-secondary:hover { background: #475569; }
+
+    .receipt-container {
+      max-width: 900px; margin: 0 auto; background: #ffffff; border-radius: 16px;
+      padding: 36px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .receipt-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 24px;
+    }
+    .company-title { font-size: 24px; font-weight: 900; color: #0f172a; }
+    .company-subtitle { font-size: 13px; color: #64748b; font-weight: 600; margin-top: 2px; }
+    .receipt-badge-box { text-align: right; }
+    .receipt-tag { background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; display: inline-block; margin-bottom: 6px; }
+    .receipt-number { font-size: 12px; font-weight: 700; color: #334155; }
+    .receipt-date { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    .period-banner {
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+      padding: 14px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .period-title { font-size: 12px; font-weight: 700; color: #1e40af; text-transform: uppercase; }
+    .period-dates { font-size: 15px; font-weight: 800; color: #1e3a8a; }
+
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px;
+    }
+    .summary-card {
+      background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 20px; text-align: center;
+    }
+    .summary-card.leave { border-color: #fca5a5; background: #fef2f2; }
+    .summary-card.percent { border-color: #a5b4fc; background: #eef2ff; }
+    .summary-card.days { border-color: #bfdbfe; background: #eff6ff; }
+    .summary-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px; }
+    .summary-value { font-size: 36px; font-weight: 900; line-height: 1; }
+    .summary-value.red { color: #dc2626; }
+    .summary-value.indigo { color: #4338ca; }
+    .summary-value.blue { color: #1e40af; }
+    .summary-sub { font-size: 12px; color: #64748b; margin-top: 6px; font-weight: 500; }
+
+    .formula-box {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+      padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: #334155; line-height: 1.8;
+    }
+    .formula-box strong { color: #0f172a; }
+
+    .table-container { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 28px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    th { background: #f1f5f9; color: #475569; font-weight: 700; padding: 10px 14px; border-bottom: 1px solid #cbd5e1; text-transform: uppercase; font-size: 10px; }
+    td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: #fafafa; }
+
+    .receipt-footer {
+      border-top: 2px dashed #cbd5e1; padding-top: 20px;
+      display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: #64748b;
+    }
+    .signature-box { text-align: center; width: 200px; }
+    .signature-line { border-bottom: 1px solid #475569; margin-bottom: 6px; height: 35px; }
+
+    @page { margin: 8mm 10mm; size: auto; }
+    @media print {
+      html, body { background: #ffffff !important; padding: 0 !important; margin: 0 !important; }
+      .action-bar { display: none !important; }
+      .receipt-container { box-shadow: none !important; border: 1px solid #cbd5e1 !important; padding: 15px !important; max-width: 100% !important; }
+      tr { page-break-inside: avoid !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="action-bar">
+    <div><h4>Master Attendance Report (${masterStats.startDate} to ${masterStats.endDate})</h4></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Save as PDF</button>
+      <button class="btn btn-secondary" onclick="window.close()">✕ Close</button>
+    </div>
+  </div>
+
+  <div class="receipt-container">
+    <div class="receipt-header">
+      <div>
+        <div class="company-title">GOODWIN GROW</div>
+        <div class="company-subtitle">Attendance Report</div>
+      </div>
+      <div class="receipt-badge-box">
+        <span class="receipt-tag">Master Report</span>
+        <div class="receipt-number">${reportRef}</div>
+        <div class="receipt-date">Issued: ${issueDate}</div>
+      </div>
+    </div>
+
+    <div class="period-banner">
+      <div>
+        <div class="period-title">Reporting Period</div>
+        <div class="period-dates">From ${masterStats.startDate} to ${masterStats.endDate} (${masterStats.totalPeriodDays} Days)</div>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 20px; font-weight: 900; color: #1e3a8a;">${masterStats.employeesCount}</span>
+        <span style="font-size: 11px; color: #3b82f6; display: block; font-weight: 700;">Employees</span>
+      </div>
+    </div>
+
+    <!-- Only 3 key metrics -->
+    <div class="summary-grid">
+      <div class="summary-card days">
+        <div class="summary-label">Period Days</div>
+        <div class="summary-value blue">${masterStats.totalPeriodDays}</div>
+        <div class="summary-sub">${masterStats.employeesCount} employees</div>
+      </div>
+      <div class="summary-card leave">
+        <div class="summary-label">Avg Leave Days / Employee</div>
+        <div class="summary-value red">${teamAvgLeaveDays}</div>
+        <div class="summary-sub">Total: ${teamTotalLeaveDays} days (Leave − Extra Days)</div>
+      </div>
+      <div class="summary-card percent">
+        <div class="summary-label">Avg Attendance %</div>
+        <div class="summary-value indigo">${masterStats.averageAttendanceRate}</div>
+        <div class="summary-sub">(Period Days − Leave Days) / Period Days × 100</div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <strong>Total Leave Days</strong> = Leave Days − Extra Days Worked (1 extra cancels 1 leave)<br/>
+      <strong>Attendance %</strong> = (Period Days − Total Leave Days) / Period Days × 100
+    </div>
+
+    <!-- Simplified Table: Employee | Role | Total Leave Days | Attendance % -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Role</th>
+            <th style="text-align: center;">Total Leave Days</th>
+            <th style="text-align: center;">Calculation</th>
+            <th style="text-align: center;">Attendance %</th>
+            <th style="text-align: center;">Formula</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHTML}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="receipt-footer">
+      <div>
+        <p><strong>Note:</strong> Generated by Goodwin AI HRMS. Ref: ${reportRef}</p>
+      </div>
+      <div class="signature-box">
+        <div class="signature-line"></div>
+        <strong>Authorized Signatory</strong>
+        <div>Goodwin Grow HR</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+/**
+ * Universal PDF downloader that triggers high-fidelity browser print to PDF
+ */
+export const downloadPDFReport = (htmlContent: string, title?: string) => {
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const blobUrl = URL.createObjectURL(blob);
+  const win = window.open(blobUrl, '_blank');
+  if (win) {
+    win.focus();
+    win.onload = () => {
+      setTimeout(() => {
+        try {
+          win.print();
+        } catch (e) {
+          console.warn('Auto print triggered inside window', e);
+        }
+      }, 500);
+    };
+  } else {
+    printReceiptDirectly(htmlContent);
+  }
 };
 
 /**
@@ -2135,6 +2291,9 @@ export interface PayslipData {
   totalDaysInMonth?: number;
   perDaySalary?: number;
   presentDays?: number;
+  grossAbsentDays?: number;
+  grossSundayExtraDays?: number;
+  cancelledLeaveDays?: number;
   absentDays?: number;
   attendanceDeduction?: number;
   allowances: number;
@@ -2154,8 +2313,11 @@ export interface MonthAttendancePayroll {
   totalDaysInMonth: number;
   perDaySalary: number;
   presentDays: number;
-  absentDays: number;
-  sundayExtraDays: number;
+  grossAbsentDays: number;
+  grossSundayExtraDays: number;
+  cancelledLeaveDays: number;
+  absentDays: number; // Net absent days (after cancellation by extra days)
+  sundayExtraDays: number; // Net extra days (after cancellation by leave days)
   sundayDates: string[];
   attendanceDeduction: number;
   sundayBonus: number;
@@ -2257,21 +2419,27 @@ export const calculateMonthAttendancePayroll = (
     cur = addDays(cur, 1);
   }
 
-  const finalAbsentDays = options?.overrideAbsentDays !== undefined 
+  const finalGrossAbsentDays = options?.overrideAbsentDays !== undefined 
     ? options.overrideAbsentDays 
     : autoAbsentDays;
 
-  const finalSundayExtraDays = options?.overrideSundayExtraDays !== undefined 
+  const finalGrossSundayExtraDays = options?.overrideSundayExtraDays !== undefined 
     ? options.overrideSundayExtraDays 
     : autoSundayExtraDays;
 
-  const finalPresentDays = autoPresentDays;
+  // Compensatory Off Rule:
+  // 1 Extra Day cancels 1 Leave Day (1:1).
+  // "extraday should cancel leave. like one extraday cancel one leave day. and then extraday will not be counted in extras or extra amount ."
+  const cancelledLeaveDays = Math.min(finalGrossSundayExtraDays, finalGrossAbsentDays);
+  const netAbsentDays = finalGrossAbsentDays - cancelledLeaveDays;
+  const netSundayExtraDays = finalGrossSundayExtraDays - cancelledLeaveDays;
 
-  // Deductions due to attendance: absentDays * perDaySalary
-  const attendanceDeduction = Math.round(finalAbsentDays * perDaySalary);
+  // Deductions due to attendance: only net uncancelled absent days * perDaySalary
+  const attendanceDeduction = Math.round(netAbsentDays * perDaySalary);
 
-  // Bonus for Extra Days (Govt Holiday & Sunday worked): 1 extraday equals 333 rupees
-  const sundayBonus = Math.round(finalSundayExtraDays * EXTRA_DAY_RATE);
+  // Bonus for Extra Days (Govt Holiday & Sunday worked): only net uncancelled extra days * 333
+  // "and then extraday will not be counted in extras or extra amount"
+  const sundayBonus = Math.round(netSundayExtraDays * EXTRA_DAY_RATE);
 
   const allowances = options?.allowances !== undefined 
     ? options.allowances 
@@ -2288,9 +2456,12 @@ export const calculateMonthAttendancePayroll = (
   return {
     totalDaysInMonth,
     perDaySalary,
-    presentDays: finalPresentDays,
-    absentDays: finalAbsentDays,
-    sundayExtraDays: finalSundayExtraDays,
+    presentDays: autoPresentDays,
+    grossAbsentDays: finalGrossAbsentDays,
+    grossSundayExtraDays: finalGrossSundayExtraDays,
+    cancelledLeaveDays,
+    absentDays: netAbsentDays,
+    sundayExtraDays: netSundayExtraDays,
     sundayDates,
     attendanceDeduction,
     sundayBonus,

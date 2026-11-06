@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="40" height="48">
+  <!-- The Outer 'U' (Namam) -->
+  <path d="M 20 10 C 20 60, 20 80, 50 100 C 80 80, 80 60, 80 10 C 70 10, 65 30, 65 60 C 65 75, 55 85, 50 85 C 45 85, 35 75, 35 60 C 35 30, 30 10, 20 10 Z" fill="#00843D" />
+  
+  <!-- The Base of the Namam -->
+  <path d="M 40 100 C 45 115, 55 115, 60 100 Z" fill="#00843D" />
+  
+  <!-- The Central Line (Srichurnam) -->
+  <path d="M 46 20 C 46 50, 48 70, 50 80 C 52 70, 54 50, 54 20 C 54 10, 46 10, 46 20 Z" fill="#F9C900" />
+</svg>

@@ -24,6 +24,7 @@ import { useStore, type AttendanceRecord, type AttendanceStatus, type Employee }
 import { useCurrentUser, isSameEmployee } from '../../lib/useCurrentUser';
 import { 
   format, 
+  parseISO,
   addMonths, 
   subMonths, 
   startOfMonth, 
@@ -46,9 +47,13 @@ import {
   triggerDownload,
   calculateCustomRangeAttendanceStats,
   generateCustomRangeReceiptHTML,
+  generateCustomRangeMasterReceiptHTML,
   downloadCustomRangeCSV,
+  downloadCustomRangeMasterCSV,
+  downloadPDFReport,
   type EmployeeAttendanceStats,
-  type CustomRangeAttendanceStats
+  type CustomRangeAttendanceStats,
+  type CustomRangeMasterStats
 } from '../../lib/attendanceReceipt';
 
 export const Attendance = () => {
@@ -138,9 +143,12 @@ export const Attendance = () => {
     return calculateEmployeeAttendanceStats(selectedEmpObj, attendance, leaves);
   }, [selectedEmpObj, attendance, leaves]);
 
+  const isAllEmployeesRange = !isEmployee && rangeEmployeeId === 'ALL';
+
   // Selected employee for custom date range
   const rangeEmployee = useMemo(() => {
     if (isEmployee) return myEmployeeObj;
+    if (rangeEmployeeId === 'ALL') return null;
     if (rangeEmployeeId) {
       return employees.find(e => e.id === rangeEmployeeId) || employees[0] || null;
     }
@@ -148,7 +156,7 @@ export const Attendance = () => {
   }, [employees, rangeEmployeeId, isEmployee, myEmployeeObj]);
 
   const customRangeStats = useMemo(() => {
-    if (!rangeEmployee || !rangeStartDate || !rangeEndDate) return null;
+    if (isAllEmployeesRange || !rangeEmployee || !rangeStartDate || !rangeEndDate) return null;
     return calculateCustomRangeAttendanceStats(
       rangeEmployee,
       attendance,
@@ -156,7 +164,41 @@ export const Attendance = () => {
       rangeStartDate,
       rangeEndDate
     );
-  }, [rangeEmployee, attendance, leaves, rangeStartDate, rangeEndDate]);
+  }, [isAllEmployeesRange, rangeEmployee, attendance, leaves, rangeStartDate, rangeEndDate]);
+
+  const customRangeMasterStats = useMemo((): CustomRangeMasterStats | null => {
+    if (!isAllEmployeesRange || !rangeStartDate || !rangeEndDate) return null;
+    const allStats = employees.map(emp => 
+      calculateCustomRangeAttendanceStats(emp, attendance, leaves, rangeStartDate, rangeEndDate)
+    );
+    const totalPeriodDays = allStats[0]?.totalPeriodDays || 1;
+    const totalWorkdaysPresent = Number(allStats.reduce((acc, s) => acc + s.presentCount, 0).toFixed(1));
+    const totalGrossExtraDays = Number(allStats.reduce((acc, s) => acc + s.grossExtraDaysCount, 0).toFixed(1));
+    const totalLeavesTaken = Number(allStats.reduce((acc, s) => acc + s.grossAbsentCount, 0).toFixed(1));
+    const totalCancelledLeaves = Number(allStats.reduce((acc, s) => acc + s.cancelledLeavesCount, 0).toFixed(1));
+    const totalNetExtraDays = Number(allStats.reduce((acc, s) => acc + s.netExtraDaysCount, 0).toFixed(1));
+    const totalNetAbsentDays = Number(allStats.reduce((acc, s) => acc + s.netAbsentCount, 0).toFixed(1));
+    const totalExtraBonusAmount = totalNetExtraDays * 333;
+    const avgRate = (
+      allStats.reduce((acc, s) => acc + parseFloat(s.attendanceRate || '0'), 0) / (allStats.length || 1)
+    ).toFixed(1) + '%';
+
+    return {
+      startDate: rangeStartDate,
+      endDate: rangeEndDate,
+      totalPeriodDays,
+      employeesCount: employees.length,
+      allStats,
+      totalWorkdaysPresent,
+      totalGrossExtraDays,
+      totalLeavesTaken,
+      totalCancelledLeaves,
+      totalNetExtraDays,
+      totalNetAbsentDays,
+      totalExtraBonusAmount,
+      averageAttendanceRate: avgRate
+    };
+  }, [isAllEmployeesRange, rangeStartDate, rangeEndDate, employees, attendance, leaves]);
 
   // Helper to match employee attendance with whitespace-trimmed fallback
   const getEmployeeAttendance = (dateKey: string, empName: string | null) => {
@@ -680,6 +722,23 @@ export const Attendance = () => {
     );
   };
 
+  // Handler to download PDF for current date range selection (master or individual)
+  const handleDownloadRangePDF = () => {
+    if (isAllEmployeesRange && customRangeMasterStats) {
+      const html = generateCustomRangeMasterReceiptHTML(customRangeMasterStats);
+      downloadPDFReport(
+        html,
+        `Goodwin_Master_Attendance_Report_${customRangeMasterStats.startDate}_to_${customRangeMasterStats.endDate}`
+      );
+    } else if (customRangeStats) {
+      const html = generateCustomRangeReceiptHTML(customRangeStats);
+      downloadPDFReport(
+        html,
+        `Attendance_Receipt_${customRangeStats.employeeName.replace(/\s+/g, '_')}_${customRangeStats.startDate}_to_${customRangeStats.endDate}`
+      );
+    }
+  };
+
   // Dedicated Date Range & Receipt Generator Section (Requirement 3 & 4)
   const renderDateRangeSection = () => {
     return (
@@ -690,10 +749,10 @@ export const Attendance = () => {
             <div>
               <h3 className="text-lg font-bold text-secondary-dark flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-primary" />
-                Custom Attendance Range & Receipt Generator
+                Custom Attendance Range & PDF Report Generator
               </h3>
               <p className="text-xs text-secondary-light mt-0.5">
-                Examine attendance records from any date to date, track extra days worked on Sundays, and generate digitally authenticated receipts.
+                Examine attendance records from and to any date (e.g. 24 Aug to 24 Oct). Automatic compensatory off logic: 1 Extra Day worked cancels 1 Leave Day.
               </p>
             </div>
 
@@ -734,6 +793,30 @@ export const Attendance = () => {
               >
                 Last 30 Days
               </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs h-7 px-2.5"
+                onClick={() => {
+                  setRangeStartDate(format(subDays(new Date(), 59), 'yyyy-MM-dd'));
+                  setRangeEndDate(format(new Date(), 'yyyy-MM-dd'));
+                }}
+              >
+                Last 60 Days
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="text-xs h-7 px-2.5 font-bold border-primary/30 text-primary hover:bg-primary/10"
+                onClick={() => {
+                  // User prompt example: 24 Aug to 24 Oct
+                  const curYear = new Date().getFullYear();
+                  setRangeStartDate(`${curYear}-08-24`);
+                  setRangeEndDate(`${curYear}-10-24`);
+                }}
+              >
+                24 Aug - 24 Oct (Example)
+              </Button>
               {rangeEmployee?.joinDate && (
                 <Button
                   variant="secondary"
@@ -751,23 +834,33 @@ export const Attendance = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-canvas-variant">
-            {/* Employee Selector (Admin only or display name for employee) */}
+            {/* Employee Selector (Admin can view all or specific employee) */}
             <div>
-              <label className="enterprise-label">Employee</label>
+              <label className="enterprise-label">Employee / Scope</label>
               {isEmployee ? (
                 <Input value={myEmployeeObj?.name || employeeName} disabled className="bg-canvas/50 cursor-not-allowed" />
               ) : (
                 <Select
-                  value={rangeEmployeeId || employees[0]?.id || ''}
+                  value={rangeEmployeeId || 'ALL'}
                   onChange={(e) => setRangeEmployeeId(e.target.value)}
-                  options={employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.role})` }))}
+                  options={[
+                    { value: 'ALL', label: '👥 All Employees (Consolidated Report)' },
+                    ...employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.role})` }))
+                  ]}
                 />
               )}
             </div>
 
             {/* From Date */}
             <div>
-              <label className="enterprise-label">From Date</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="enterprise-label">From Date</label>
+                {rangeStartDate && (
+                  <span className="text-[10px] text-primary font-semibold">
+                    {format(parseISO(rangeStartDate), 'dd MMM yyyy')}
+                  </span>
+                )}
+              </div>
               <Input
                 type="date"
                 value={rangeStartDate}
@@ -778,7 +871,14 @@ export const Attendance = () => {
 
             {/* To Date */}
             <div>
-              <label className="enterprise-label">To Date</label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="enterprise-label">To Date</label>
+                {rangeEndDate && (
+                  <span className="text-[10px] text-primary font-semibold">
+                    {format(parseISO(rangeEndDate), 'dd MMM yyyy')}
+                  </span>
+                )}
+              </div>
               <Input
                 type="date"
                 value={rangeEndDate}
@@ -787,225 +887,429 @@ export const Attendance = () => {
               />
             </div>
 
-            {/* Generate Receipt Action Buttons */}
+            {/* PDF Report Download Action Button */}
             <div className="flex items-end gap-2">
               <Button
-                className="w-full font-semibold shadow-sm"
-                onClick={() => setIsRangeReceiptModalOpen(true)}
-                disabled={!customRangeStats}
+                className="w-full font-bold shadow-sm bg-primary hover:bg-primary-dark text-white flex items-center justify-center gap-1.5"
+                onClick={handleDownloadRangePDF}
+                disabled={!customRangeStats && !customRangeMasterStats}
               >
-                <Download className="w-4 h-4 mr-2" />
-                Generate Receipt Slip
+                <Download className="w-4 h-4 mr-1" />
+                {isAllEmployeesRange ? 'Download Master PDF' : 'Download PDF Report'}
+              </Button>
+              <Button
+                variant="secondary"
+                className="px-3"
+                title="Preview Report Slip"
+                onClick={() => setIsRangeReceiptModalOpen(true)}
+                disabled={!customRangeStats && !customRangeMasterStats}
+              >
+                <Eye className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Live Metrics for the Selected Range */}
-        {customRangeStats && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-secondary-light block">Period Days</span>
-              <span className="text-xl font-extrabold text-secondary-dark mt-1 block">
-                {customRangeStats.totalPeriodDays}
-              </span>
-              <span className="text-[11px] text-secondary-light mt-0.5 block">Total Calendar Days</span>
+        {/* =========================================================================
+            VIEW A: ALL EMPLOYEES CONSOLIDATED MASTER REPORT
+           ========================================================================= */}
+        {isAllEmployeesRange && customRangeMasterStats && (
+          <div className="space-y-6">
+            {/* Simplified KPI: Period Days | Avg Leave Days | Avg Attendance % */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20 shadow-sm text-center">
+                <span className="text-xs uppercase font-bold text-primary block">Period Days</span>
+                <span className="text-4xl font-black text-primary-dark mt-2 block">
+                  {customRangeMasterStats.totalPeriodDays}
+                </span>
+                <span className="text-xs text-primary/80 mt-1 block">{customRangeMasterStats.employeesCount} Employees</span>
+              </div>
+
+              <div className="p-6 bg-red-500/5 rounded-2xl border border-red-500/20 shadow-sm text-center">
+                <span className="text-xs uppercase font-bold text-danger block">Avg Total Leave Days</span>
+                <span className="text-4xl font-black text-danger mt-2 block">
+                  {customRangeMasterStats.employeesCount > 0 
+                    ? (customRangeMasterStats.totalNetAbsentDays / customRangeMasterStats.employeesCount).toFixed(1) 
+                    : '0'}
+                </span>
+                <span className="text-xs text-danger/70 mt-1 block">
+                  Leave − Extra Days = Net Leave (per employee avg)
+                </span>
+              </div>
+
+              <div className="p-6 bg-indigo-500/5 rounded-2xl border border-indigo-500/20 shadow-sm text-center">
+                <span className="text-xs uppercase font-bold text-indigo-700 block">Avg Attendance %</span>
+                <span className="text-4xl font-black text-indigo-800 mt-2 block">
+                  {customRangeMasterStats.averageAttendanceRate}
+                </span>
+                <span className="text-xs text-indigo-600/70 mt-1 block">
+                  (Period − Leave) / Period × 100
+                </span>
+              </div>
             </div>
 
-            <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20 shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-green-700 block">Workdays Present</span>
-              <span className="text-xl font-extrabold text-green-800 mt-1 block">
-                {customRangeStats.presentCount}
-              </span>
-              <span className="text-[11px] text-green-700 mt-0.5 block font-medium">Regular Workdays</span>
+            {/* Formula note */}
+            <div className="p-3 rounded-xl bg-canvas-surface border border-canvas-variant text-xs text-secondary-dark">
+              <strong>Total Leave Days</strong> = Leave Days − Extra Days Worked (1 extra cancels 1 leave) &nbsp;|&nbsp;
+              <strong>Attendance %</strong> = (Period Days − Total Leave Days) / Period Days × 100
             </div>
 
-            {/* Extra Days Worked (Govt Holiday & Sunday Worked) */}
-            <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/30 shadow-sm">
-              <span className="text-[10px] uppercase font-extrabold text-amber-900 dark:text-amber-300 block flex items-center gap-1">
-                ⭐ Extra Days (+₹333/day)
-              </span>
-              <span className="text-xl font-extrabold text-amber-950 dark:text-amber-100 mt-1 block">
-                {customRangeStats.sundayExtraDaysCount} <span className="text-xs font-semibold text-amber-800 dark:text-amber-400">Days (+₹{customRangeStats.sundayExtraDaysCount * 333})</span>
-              </span>
-              <span className="text-[11px] text-amber-800 dark:text-amber-400 mt-0.5 block font-medium">Govt Holiday / Sunday Worked</span>
+            {/* Master Action Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
+              <div>
+                <h4 className="font-bold text-secondary-dark text-sm">
+                  Attendance Report: {customRangeMasterStats.startDate} to {customRangeMasterStats.endDate}
+                </h4>
+                <p className="text-xs text-secondary-light">
+                  {customRangeMasterStats.employeesCount} employees
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleDownloadRangePDF}
+                  className="font-bold shadow-sm"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Download PDF
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsRangeReceiptModalOpen(true)}
+                >
+                  <Eye className="w-4 h-4 mr-1.5" />
+                  Preview
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => downloadCustomRangeMasterCSV(customRangeMasterStats)}
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-1.5" />
+                  CSV
+                </Button>
+              </div>
             </div>
 
-            <div className="p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-secondary-light block">Half Days</span>
-              <span className="text-xl font-extrabold text-secondary-dark mt-1 block">
-                {customRangeStats.halfDaysCount}
-              </span>
-              <span className="text-[11px] text-secondary-light mt-0.5 block">0.5 credit each</span>
-            </div>
-
-            <div className="p-4 bg-red-500/5 rounded-xl border border-red-500/20 shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-danger block">Absents & Leaves</span>
-              <span className="text-xl font-extrabold text-danger mt-1 block">
-                {customRangeStats.absentCount}
-              </span>
-              <span className="text-[11px] text-danger/80 mt-0.5 block font-medium">
-                {customRangeStats.sanctionedLeavesCount} Sanctioned
-              </span>
-            </div>
-
-            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-primary block">Presence Ratio</span>
-              <span className="text-xl font-extrabold text-primary-dark mt-1 block">
-                {customRangeStats.attendanceRate}
-              </span>
-              <span className="text-[11px] text-primary/80 mt-0.5 block font-medium">
-                {customRangeStats.effectiveAttendanceCount}d Effective
-              </span>
+            {/* Simplified Table: Employee | Total Leave Days | Attendance % */}
+            <div className="bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-canvas/50 text-secondary-light uppercase font-semibold border-b border-canvas-variant">
+                    <tr>
+                      <th className="py-3 px-4">Employee</th>
+                      <th className="py-3 px-4">Role</th>
+                      <th className="py-3 px-4 text-center bg-red-500/10 text-red-800">Total Leave Days</th>
+                      <th className="py-3 px-4 text-center text-secondary-light">Calculation</th>
+                      <th className="py-3 px-4 text-center bg-indigo-500/10 text-indigo-800">Attendance %</th>
+                      <th className="py-3 px-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-canvas-variant/60 font-medium">
+                    {customRangeMasterStats.allStats.map((s) => {
+                      const totalLeaveDays = s.netAbsentCount;
+                      const attendPct = customRangeMasterStats.totalPeriodDays > 0
+                        ? ((customRangeMasterStats.totalPeriodDays - totalLeaveDays) / customRangeMasterStats.totalPeriodDays * 100).toFixed(1)
+                        : '0.0';
+                      return (
+                      <tr key={s.employeeId} className="hover:bg-canvas/40 transition-colors">
+                        <td className="py-3 px-4 font-bold text-secondary-dark">{s.employeeName}</td>
+                        <td className="py-3 px-4 text-secondary-light">{s.role}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`text-lg font-black ${totalLeaveDays > 0 ? 'text-danger' : 'text-green-700'}`}>
+                            {totalLeaveDays}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center text-[10px] text-secondary-light">
+                          Leave {s.grossAbsentCount} − Extra {s.grossExtraDaysCount}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="text-lg font-black text-indigo-800">
+                            {attendPct}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="text-[11px] h-6 px-2"
+                            onClick={() => setRangeEmployeeId(s.employeeId)}
+                          >
+                            View Logs
+                          </Button>
+                        </td>
+                      </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Action Header for Receipt & Exports */}
-        {customRangeStats && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
-            <div>
-              <h4 className="font-bold text-secondary-dark text-sm">
-                Attendance Period: {customRangeStats.startDate} to {customRangeStats.endDate}
-              </h4>
-              <p className="text-xs text-secondary-light">
-                {customRangeStats.dailyRecords.length} recorded daily logs for {customRangeStats.employeeName}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setIsRangeReceiptModalOpen(true)}
-                className="font-semibold shadow-sm"
-              >
-                <Eye className="w-4 h-4 mr-1.5" />
-                Preview Receipt Slip
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  const html = generateCustomRangeReceiptHTML(customRangeStats);
-                  printReceiptDirectly(html);
-                }}
-              >
-                <Printer className="w-4 h-4 mr-1.5" />
-                Print / Save PDF
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  const html = generateCustomRangeReceiptHTML(customRangeStats);
-                  triggerDownload(
-                    html,
-                    `Attendance_Receipt_${customRangeStats.employeeName.replace(/\s+/g, '_')}_${customRangeStats.startDate}_to_${customRangeStats.endDate}.html`,
-                    'text/html;charset=utf-8;'
-                  );
-                }}
-              >
-                <Download className="w-4 h-4 mr-1.5" />
-                Download HTML
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => downloadCustomRangeCSV(customRangeStats)}
-              >
-                <FileSpreadsheet className="w-4 h-4 mr-1.5" />
-                Download CSV
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* =========================================================================
+            VIEW B: INDIVIDUAL EMPLOYEE ATTENDANCE & BREAKDOWN
+           ========================================================================= */}
+        {!isAllEmployeesRange && customRangeStats && (
+          <div className="space-y-6">
+            {/* Compensatory Off Applied Notice */}
+            {customRangeStats.cancelledLeavesCount > 0 ? (
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-950 dark:text-emerald-100 text-xs">
+                <div className="font-extrabold flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-sm mb-1">
+                  <span>⭐ Compensatory Off Active (1 Extra Day = 1 Leave Cancelled)</span>
+                </div>
+                <p className="leading-relaxed text-secondary-dark text-[12px]">
+                  <strong>{customRangeStats.cancelledLeavesCount} Extra Day(s)</strong> worked on holidays / Sundays were applied to cancel <strong>{customRangeStats.cancelledLeavesCount} Leave Day(s)</strong>.
+                  <br />
+                  • <strong>Cancelled Leaves:</strong> ₹0 salary deduction (saved from pay cut).
+                  <br />
+                  • <strong>Consumed Extra Days:</strong> Used as compensatory leave off, so they are <strong>NOT counted in extras or extra amount</strong>.
+                  <br />
+                  • <strong>Surplus Extra Days:</strong> {customRangeStats.netExtraDaysCount} day(s) remain bonus-eligible (+₹{customRangeStats.netExtraDaysCount * 333}).
+                  <br />
+                  • <strong>Net Chargeable Leaves:</strong> {customRangeStats.netAbsentCount} day(s).
+                </p>
+              </div>
+            ) : customRangeStats.grossExtraDaysCount > 0 ? (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-100 text-xs">
+                ⭐ <strong>{customRangeStats.grossExtraDaysCount} Extra Day(s)</strong> worked on holidays / Sundays. Since no leaves were taken in this period, all {customRangeStats.grossExtraDaysCount} Extra Day(s) are eligible for extra overtime bonus (+₹{customRangeStats.grossExtraDaysCount * 333}).
+              </div>
+            ) : null}
 
-        {/* Detailed Daily Breakdown Table */}
-        {customRangeStats && (
-          <div className="bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 bg-canvas border-b border-canvas-variant flex justify-between items-center">
-              <h5 className="font-bold text-secondary-dark text-sm">Daily Attendance Breakdown</h5>
-              <span className="text-xs text-secondary-light">{customRangeStats.dailyRecords.length} dates listed</span>
+            {/* Live Metrics for the Selected Range */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-secondary-light block">Period Days</span>
+                <span className="text-xl font-extrabold text-secondary-dark mt-1 block">
+                  {customRangeStats.totalPeriodDays}d
+                </span>
+                <span className="text-[11px] text-secondary-light mt-0.5 block">Calendar Window</span>
+              </div>
+
+              <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20 shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-green-700 block">Workdays Present</span>
+                <span className="text-xl font-extrabold text-green-800 mt-1 block">
+                  {customRangeStats.presentCount}d
+                </span>
+                <span className="text-[11px] text-green-700 mt-0.5 block font-medium">Regular Workdays</span>
+              </div>
+
+              {/* Extra Days Worked (Gross vs Net) */}
+              <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/30 shadow-sm">
+                <span className="text-[10px] uppercase font-extrabold text-amber-900 dark:text-amber-300 block flex items-center gap-1">
+                  ⭐ Extra Days (+₹333)
+                </span>
+                <span className="text-xl font-extrabold text-amber-950 dark:text-amber-100 mt-1 block">
+                  {customRangeStats.netExtraDaysCount}d <span className="text-xs font-semibold text-amber-800 dark:text-amber-400">(+₹{customRangeStats.netExtraDaysCount * 333})</span>
+                </span>
+                <span className="text-[11px] text-amber-800 dark:text-amber-400 mt-0.5 block font-medium">
+                  Gross: {customRangeStats.grossExtraDaysCount}d ({customRangeStats.cancelledLeavesCount}d offset)
+                </span>
+              </div>
+
+              {/* Compensatory Off Metric */}
+              <div className="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/30 shadow-sm">
+                <span className="text-[10px] uppercase font-extrabold text-emerald-800 dark:text-emerald-300 block">
+                  Compensatory Off
+                </span>
+                <span className="text-xl font-extrabold text-emerald-900 dark:text-emerald-100 mt-1 block">
+                  {customRangeStats.cancelledLeavesCount}d
+                </span>
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5 block font-medium">
+                  Leaves Cancelled 1:1
+                </span>
+              </div>
+
+              {/* Chargeable Leaves (Gross vs Net) */}
+              <div className="p-4 bg-red-500/5 rounded-xl border border-red-500/20 shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-danger block">Chargeable Leaves</span>
+                <span className="text-xl font-extrabold text-danger mt-1 block">
+                  {customRangeStats.netAbsentCount}d
+                </span>
+                <span className="text-[11px] text-danger/80 mt-0.5 block font-medium">
+                  Gross: {customRangeStats.grossAbsentCount}d ({customRangeStats.cancelledLeavesCount}d cancelled)
+                </span>
+              </div>
+
+              <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 shadow-sm">
+                <span className="text-[10px] uppercase font-bold text-primary block">Presence Ratio</span>
+                <span className="text-xl font-extrabold text-primary-dark mt-1 block">
+                  {customRangeStats.attendanceRate}
+                </span>
+                <span className="text-[11px] text-primary/80 mt-0.5 block font-medium">
+                  {customRangeStats.effectiveAttendanceCount}d Effective
+                </span>
+              </div>
             </div>
-            <div className="max-h-96 overflow-y-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-canvas/50 text-secondary-light uppercase font-semibold sticky top-0 border-b border-canvas-variant">
-                  <tr>
-                    <th className="py-2.5 px-4">Date</th>
-                    <th className="py-2.5 px-4">Day</th>
-                    <th className="py-2.5 px-4">Day Classification</th>
-                    <th className="py-2.5 px-4">Status</th>
-                    <th className="py-2.5 px-4">Check-In</th>
-                    <th className="py-2.5 px-4">Check-Out</th>
-                    <th className="py-2.5 px-4 text-right">Credit</th>
-                    <th className="py-2.5 px-4">Remarks / Overtime</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-canvas-variant/60 font-medium">
-                  {customRangeStats.dailyRecords.map((r, i) => (
-                    <tr 
-                      key={i} 
-                      className={`hover:bg-canvas/40 transition-colors ${
-                        r.isExtraDayWorked ? 'bg-amber-500/5' :
-                        r.isSanctionedLeave ? 'bg-red-500/5' : ''
-                      }`}
-                    >
-                      <td className="py-2.5 px-4 font-semibold text-secondary-dark">{r.date}</td>
-                      <td className="py-2.5 px-4 text-secondary-light">{r.dayOfWeek}</td>
-                      <td className="py-2.5 px-4">
-                        {r.isSunday ? (
-                          r.isExtraDayWorked ? (
+
+            {/* Action Header for Receipt & Exports */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm">
+              <div>
+                <h4 className="font-bold text-secondary-dark text-sm">
+                  Attendance Period: {customRangeStats.startDate} to {customRangeStats.endDate}
+                </h4>
+                <p className="text-xs text-secondary-light">
+                  {customRangeStats.dailyRecords.length} recorded daily logs for {customRangeStats.employeeName}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleDownloadRangePDF}
+                  className="font-bold shadow-sm"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Download PDF Report
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsRangeReceiptModalOpen(true)}
+                  className="font-semibold shadow-sm"
+                >
+                  <Eye className="w-4 h-4 mr-1.5" />
+                  Preview Receipt Slip
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    const html = generateCustomRangeReceiptHTML(customRangeStats);
+                    printReceiptDirectly(html);
+                  }}
+                >
+                  <Printer className="w-4 h-4 mr-1.5" />
+                  Print
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => downloadCustomRangeCSV(customRangeStats)}
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-1.5" />
+                  Download CSV
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    const html = generateCustomRangeReceiptHTML(customRangeStats);
+                    triggerDownload(
+                      html,
+                      `Attendance_Receipt_${customRangeStats.employeeName.replace(/\s+/g, '_')}_${customRangeStats.startDate}_to_${customRangeStats.endDate}.html`,
+                      'text/html;charset=utf-8;'
+                    );
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Download HTML
+                </Button>
+              </div>
+            </div>
+
+            {/* Detailed Daily Breakdown Table */}
+            <div className="bg-canvas-surface rounded-xl border border-canvas-variant shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 bg-canvas border-b border-canvas-variant flex justify-between items-center">
+                <h5 className="font-bold text-secondary-dark text-sm">Daily Attendance Breakdown</h5>
+                <span className="text-xs text-secondary-light">{customRangeStats.dailyRecords.length} dates listed</span>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-canvas/50 text-secondary-light uppercase font-semibold sticky top-0 border-b border-canvas-variant">
+                    <tr>
+                      <th className="py-2.5 px-4">Date</th>
+                      <th className="py-2.5 px-4">Day</th>
+                      <th className="py-2.5 px-4">Day Classification</th>
+                      <th className="py-2.5 px-4">Status</th>
+                      <th className="py-2.5 px-4">Check-In</th>
+                      <th className="py-2.5 px-4">Check-Out</th>
+                      <th className="py-2.5 px-4 text-right">Credit</th>
+                      <th className="py-2.5 px-4">Comp-Off & Overtime Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-canvas-variant/60 font-medium">
+                    {customRangeStats.dailyRecords.map((r, i) => (
+                      <tr 
+                        key={i} 
+                        className={`hover:bg-canvas/40 transition-colors ${
+                          r.isOffsetUsed ? 'bg-blue-500/5' :
+                          r.isOffsetByExtraDay ? 'bg-emerald-500/5' :
+                          r.isExtraDayWorked ? 'bg-amber-500/5' :
+                          r.isSanctionedLeave ? 'bg-red-500/5' : ''
+                        }`}
+                      >
+                        <td className="py-2.5 px-4 font-semibold text-secondary-dark">{r.date}</td>
+                        <td className="py-2.5 px-4 text-secondary-light">{r.dayOfWeek}</td>
+                        <td className="py-2.5 px-4">
+                          {r.isSunday ? (
+                            r.isExtraDayWorked ? (
+                              <span className="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1">
+                                ⭐ Sunday Extra Day Worked
+                              </span>
+                            ) : (
+                              <span className="text-secondary-light font-medium">Sunday Off</span>
+                            )
+                          ) : r.isPublicHoliday ? (
+                            <span className="text-sky-700 font-bold flex items-center gap-1">
+                              🌴 Public Holiday: {r.holidayName || 'Holiday'}
+                            </span>
+                          ) : r.isExtraDayWorked ? (
                             <span className="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1">
-                              ⭐ Sunday Extra Day (+₹333)
+                              ⭐ Holiday Extra Day Worked
                             </span>
                           ) : (
-                            <span className="text-secondary-light font-medium">Sunday Off</span>
-                          )
-                        ) : r.isExtraDayWorked ? (
-                          <span className="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1">
-                            ⭐ Govt Holiday Extra Day (+₹333)
-                          </span>
-                        ) : (
-                          <span className="text-secondary-dark font-medium">Regular Workday</span>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-4">
-                        {r.isExtraDayWorked ? (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-400 text-amber-950 border border-amber-500 shadow-sm">
-                            ⭐ Extra Day (+₹333)
-                          </span>
-                        ) : r.isSanctionedLeave ? (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
-                            Absent (Sanctioned Leave)
-                          </span>
-                        ) : (
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                            r.status === 'Present' ? 'bg-green-100 text-green-700' :
-                            r.status === 'Absent' ? 'bg-red-100 text-red-700' :
-                            r.status === 'Half-Day' ? 'bg-amber-100 text-amber-700' :
-                            r.status === 'Sunday Off' ? 'bg-neutral-900 text-white' :
-                            'bg-canvas-variant text-secondary-light'
-                          }`}>
-                            {r.status}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-4 text-secondary-dark">{r.arrival || '--'}</td>
-                      <td className="py-2.5 px-4 text-secondary-dark">{r.departure || '--'}</td>
-                      <td className="py-2.5 px-4 text-right font-bold text-secondary-dark">{r.credit}d</td>
-                      <td className="py-2.5 px-4">
-                        {r.isExtraDayWorked ? (
-                          <span className="text-amber-800 dark:text-amber-400 font-bold text-[11px]">⭐ Extra Day Worked (+₹333 Bonus)</span>
-                        ) : r.notes ? (
-                          <span className="text-secondary-light text-[11px]">{r.notes}</span>
-                        ) : (
-                          <span className="text-secondary-light/60">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                            <span className="text-secondary-dark font-medium">Regular Workday</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-4">
+                          {r.isOffsetUsed ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                              ⭐ Extra Day (Offset Leave - ₹0 Bonus)
+                            </span>
+                          ) : r.isOffsetByExtraDay ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              ✓ Absent (Cancelled by Extra Day)
+                            </span>
+                          ) : r.isExtraDayWorked ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-400 text-amber-950 border border-amber-500 shadow-sm">
+                              ⭐ Extra Day (+₹333 Bonus)
+                            </span>
+                          ) : r.isSanctionedLeave ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
+                              Absent (Sanctioned Leave)
+                            </span>
+                          ) : (
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                              r.status === 'Present' ? 'bg-green-100 text-green-700' :
+                              r.status === 'Absent' ? 'bg-red-100 text-red-700' :
+                              r.status === 'Half-Day' ? 'bg-amber-100 text-amber-700' :
+                              r.status === 'Sunday Off' ? 'bg-neutral-900 text-white' :
+                              r.status === 'Holiday Off' ? 'bg-sky-100 text-sky-800' :
+                              'bg-canvas-variant text-secondary-light'
+                            }`}>
+                              {r.status}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-4 text-secondary-dark">{r.arrival || '--'}</td>
+                        <td className="py-2.5 px-4 text-secondary-dark">{r.departure || '--'}</td>
+                        <td className="py-2.5 px-4 text-right font-bold text-secondary-dark">{r.credit}d</td>
+                        <td className="py-2.5 px-4">
+                          {r.notes ? (
+                            <span className="text-secondary-dark font-medium text-[11px]">{r.notes}</span>
+                          ) : (
+                            <span className="text-secondary-light/60">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -1047,7 +1351,7 @@ export const Attendance = () => {
               className="border-amber-400 bg-amber-500/10 text-amber-900 dark:text-amber-200 hover:bg-amber-500/20 font-semibold shadow-sm"
             >
               <Palmtree className="h-4 w-4 mr-2 text-amber-600" />
-              Public Holiday & Extra Day
+              Occasion Holiday & Extra Day
             </Button>
 
             <Button 
@@ -1092,7 +1396,7 @@ export const Attendance = () => {
           }`}
         >
           <FileSpreadsheet className="w-4 h-4" />
-          Date Range & Receipt Generator
+          Attendance Report & Date Range (PDF / View)
         </button>
       </div>
 
@@ -1589,7 +1893,7 @@ export const Attendance = () => {
                   { value: 'Present', label: 'Present' },
                   { value: 'Absent', label: 'Absent' },
                   { value: 'Half-Day', label: 'Half-Day' },
-                  { value: 'Extra Day', label: '⭐ Extra Day (Govt Holiday Worked - ₹333)' }
+                  { value: 'Extra Day', label: '⭐ Extra Day (Holiday Worked - Cancels 1 Leave Day / +₹333)' }
                 ]}
               />
             </div>
@@ -1605,10 +1909,10 @@ export const Attendance = () => {
                   <Star className={`w-4 h-4 ${formData.status === 'Extra Day' ? 'fill-amber-500 text-amber-500' : 'text-secondary-light'}`} />
                   <div>
                     <span className="text-xs font-bold block">
-                      Mark as Extra Day (Govt Holiday / Holiday Worked)
+                      Mark as Extra Day (Holiday Worked)
                     </span>
                     <span className="text-[11px] text-secondary-light">
-                      1 Extra Day = <strong className="text-amber-700 dark:text-amber-400">₹333</strong>. Excluded from regular attendance.
+                      Means it was a holiday and worked extra. Automatically cancels 1 leave day, or earns <strong className="text-amber-700 dark:text-amber-400">+₹333</strong>.
                     </span>
                   </div>
                 </div>
@@ -1638,7 +1942,7 @@ export const Attendance = () => {
                 <div className="mt-2.5 pt-2.5 border-t border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-300 font-medium flex items-start gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                   <span>
-                    This day will count toward <strong>Extra Days (+₹333 bonus)</strong> and will <strong>NOT</strong> count in regular attendance.
+                    This Extra Day will automatically <strong>cancel 1 Leave Day</strong> (0 salary deduction). If no leaves are taken, it earns <strong>+₹333 bonus</strong>.
                   </span>
                 </div>
               )}
@@ -1677,29 +1981,31 @@ export const Attendance = () => {
       <Modal
         isOpen={isGovtHolidayModalOpen}
         onClose={() => setIsGovtHolidayModalOpen(false)}
-        title="🌴 Public Holiday & Extra Day Manager"
+        title="🌴 Occasion Holiday & Extra Day Manager"
         className="max-w-3xl"
       >
         <div className="space-y-6 mt-3 max-h-[80vh] overflow-y-auto pr-1">
           {/* Policy Banner */}
-          <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-950 dark:text-sky-100 text-xs space-y-1.5">
-            <div className="font-bold flex items-center gap-2 text-sky-800 dark:text-sky-300 text-sm">
-              <Palmtree className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-              <span>Public Leave & Extra Day Policy</span>
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-950 dark:text-emerald-100 text-xs space-y-1.5">
+            <div className="font-bold flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-sm">
+              <Palmtree className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Occasion Holiday & Compensatory Off Policy</span>
             </div>
             <p className="text-[12px] leading-relaxed text-secondary-dark">
-              • A declared day is a <strong>Public Leave</strong> for all employees (like Sunday): everyone receives a paid day off with <strong>0 absent deductions</strong>.
+              • A declared day is a <strong>Paid Holiday Off</strong> for all employees: everyone receives a paid day off with <strong>0 absent deductions</strong>.
               <br />
-              • Employees who do <strong>not</strong> work will remain on <strong>Public Leave (Holiday Off)</strong> with ₹0 bonus and zero penalty.
+              • Employees who do <strong>not</strong> work will remain on <strong>Paid Holiday Off</strong> with ₹0 bonus and zero penalty.
               <br />
-              • If an employee <strong>actually worked</strong>, select them below to credit them with an <strong>⭐ Extra Day (+₹333 bonus)</strong>.
+              • If an employee <strong>actually works</strong>, select them below to credit them with an <strong>⭐ Extra Day</strong>.
+              <br />
+              • <strong>Compensatory Off Logic:</strong> 1 Extra Day cancels 1 Leave Day (1:1 offset). Cancelled leaves have ₹0 salary deduction, and the cancelling extra day is consumed (not counted in extras or extra amount). Surplus extra days exceeding leaves receive <strong>+₹333/day</strong> bonus.
             </p>
           </div>
 
           {/* Holiday Setup Form */}
           <div className="p-4 rounded-xl border border-canvas-variant bg-canvas/40 space-y-4">
             <h4 className="font-bold text-xs uppercase tracking-wider text-secondary-dark flex items-center gap-1.5">
-              <span>Step 1: Declare Public Holiday</span>
+              <span>Step 1: Declare Holiday for an Occasion</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -1714,7 +2020,7 @@ export const Attendance = () => {
                 <label className="enterprise-label">Occasion / Reason</label>
                 <Input
                   type="text"
-                  placeholder="e.g. Diwali / Gandhi Jayanti / Govt Holiday"
+                  placeholder="e.g. Diwali / Gandhi Jayanti / Festival / Company Occasion"
                   value={holidayName}
                   onChange={(e) => setHolidayName(e.target.value)}
                 />
@@ -1728,10 +2034,10 @@ export const Attendance = () => {
               <div>
                 <h4 className="font-bold text-xs uppercase tracking-wider text-secondary-dark flex items-center gap-1.5">
                   <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  <span>Step 2: Did Anyone Work? (Optional Extra Day +₹333)</span>
+                  <span>Step 2: Did Anyone Work? (Grant Extra Day)</span>
                 </h4>
                 <p className="text-[11px] text-secondary-light mt-0.5">
-                  Unselected employees will stay on Paid Public Leave (₹0 bonus, 0 absent).
+                  Working employees earn an Extra Day (cancels 1 leave day or +₹333 bonus). Unselected employees stay on Paid Holiday Off.
                 </p>
               </div>
               <div className="space-x-2 text-xs">
@@ -1861,7 +2167,7 @@ export const Attendance = () => {
                       )
                     );
                     setIsGovtHolidayModalOpen(false);
-                    alert(`Declared ${holidayDate} as Public Holiday and marked ${selectedEmps.length} working employee(s) with ⭐ Extra Day (+₹333 each). All other employees are on Paid Holiday Off.`);
+                    alert(`Declared ${holidayDate} as Occasion Holiday (${holidayName || 'Holiday'}) and marked ${selectedEmps.length} working employee(s) with ⭐ Extra Day. This automatically cancels 1 leave day, or pays +₹333 bonus if no leaves taken. All other employees receive Paid Holiday Off.`);
                   }}
                   className="bg-amber-600 hover:bg-amber-700 text-white font-bold"
                 >
@@ -1916,30 +2222,87 @@ export const Attendance = () => {
       <Modal
         isOpen={isRangeReceiptModalOpen}
         onClose={() => setIsRangeReceiptModalOpen(false)}
-        title={`Official Attendance Receipt: ${customRangeStats?.employeeName || ''}`}
+        title={isAllEmployeesRange 
+          ? `Official Consolidated Master Attendance Report (${rangeStartDate} to ${rangeEndDate})` 
+          : `Official Attendance Receipt: ${customRangeStats?.employeeName || ''}`}
         className="max-w-5xl"
       >
-        {customRangeStats && (
+        {isAllEmployeesRange && customRangeMasterStats ? (
           <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-1 pb-3">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/20">
               <div>
-                <h4 className="font-bold text-secondary-dark text-base">Verified Period Attendance Slip</h4>
+                <h4 className="font-bold text-secondary-dark text-base">Consolidated Master Team Statement</h4>
                 <p className="text-xs text-secondary-light">
-                  Period: <strong>{customRangeStats.startDate}</strong> to <strong>{customRangeStats.endDate}</strong> ({customRangeStats.totalPeriodDays} days) • Extra Sunday Days: <strong>{customRangeStats.sundayExtraDaysCount}</strong>
+                  Period: <strong>{customRangeMasterStats.startDate}</strong> to <strong>{customRangeMasterStats.endDate}</strong> ({customRangeMasterStats.totalPeriodDays} days) • {customRangeMasterStats.employeesCount} Staff • {customRangeMasterStats.totalCancelledLeaves} Leaves Cancelled (Comp-Off)
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <Button 
                   variant="primary" 
                   size="sm"
+                  onClick={handleDownloadRangePDF}
+                  className="font-bold shadow-sm"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Download Master PDF
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
+                  onClick={() => downloadCustomRangeMasterCSV(customRangeMasterStats)}
+                  className="font-semibold"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-1.5" />
+                  Download Master CSV
+                </Button>
+              </div>
+            </div>
+
+            {/* Embedded Live Slip Preview */}
+            <div className="border border-canvas-variant rounded-xl overflow-hidden bg-white shadow-inner">
+              <iframe
+                title="Master Attendance Receipt Preview"
+                srcDoc={generateCustomRangeMasterReceiptHTML(customRangeMasterStats)}
+                className="w-full h-[600px] border-none"
+              />
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-canvas-variant">
+              <Button variant="secondary" onClick={() => setIsRangeReceiptModalOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        ) : customRangeStats ? (
+          <div className="space-y-4 max-h-[85vh] overflow-y-auto pr-1 pb-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <div>
+                <h4 className="font-bold text-secondary-dark text-base">Verified Period Attendance Slip</h4>
+                <p className="text-xs text-secondary-light">
+                  Period: <strong>{customRangeStats.startDate}</strong> to <strong>{customRangeStats.endDate}</strong> ({customRangeStats.totalPeriodDays} days) • Comp-Off Cancelled Leaves: <strong>{customRangeStats.cancelledLeavesCount}</strong> • Net Extra Days: <strong>{customRangeStats.netExtraDaysCount}</strong>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button 
+                  variant="primary" 
+                  size="sm"
+                  onClick={handleDownloadRangePDF}
+                  className="font-bold shadow-sm"
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Download PDF Report
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm"
                   onClick={() => {
                     const html = generateCustomRangeReceiptHTML(customRangeStats);
                     printReceiptDirectly(html);
                   }}
-                  className="font-semibold shadow-sm"
+                  className="font-semibold"
                 >
                   <Printer className="w-4 h-4 mr-1.5" />
-                  Print / Save PDF
+                  Print
                 </Button>
                 <Button 
                   variant="secondary" 
@@ -1984,7 +2347,7 @@ export const Attendance = () => {
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
       </Modal>
     </div>
   );

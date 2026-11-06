@@ -89,64 +89,25 @@ export const Payroll = () => {
   }, [syncPayrollsFromJoiningDate]);
 
   /**
-   * Helper: Calculate Sunday Extra Days worked for a given employee & month
+   * Helper: Calculate Sunday Extra Days worked & Compensatory Off for a given employee & month
    */
   const getSundayInfoForMonth = (employeeName: string, monthStr: string, basicSalary: number) => {
-    let parsedMonth: Date;
-    try {
-      parsedMonth = parse(monthStr, 'MMM yyyy', new Date());
-      if (!isValid(parsedMonth)) {
-        parsedMonth = new Date();
-      }
-    } catch {
-      parsedMonth = new Date();
-    }
-
-    const mStart = startOfMonth(parsedMonth);
-    const mEnd = endOfMonth(parsedMonth);
-    const today = new Date();
-
-    let sundayExtraDays = 0;
-    const sundayDates: string[] = [];
-    const trimmedEmpName = (employeeName || '').trim().toLowerCase();
-    const publicHolidays = useStore.getState().publicHolidays || [];
-
-    let cur = new Date(mStart);
-    while (cur <= mEnd && cur <= today) {
-      const isSunday = getDay(cur) === 0;
-      const dStr = format(cur, 'yyyy-MM-dd');
-      const holiday = publicHolidays.find(h => h.date === dStr);
-      const isOffDay = isSunday || !!holiday;
-
-      const dayRec = attendance[dStr];
-      if (dayRec) {
-        const empRec = dayRec[employeeName] || 
-          Object.entries(dayRec).find(([k]) => k.trim().toLowerCase() === trimmedEmpName)?.[1];
-
-        const didWork = empRec && (empRec.status === 'Present' || empRec.status === 'Half-Day' || empRec.status === 'Extra Day');
-
-        if (isOffDay) {
-          if (didWork) {
-            const extra = empRec.status === 'Half-Day' ? 0.5 : 1.0;
-            sundayExtraDays += extra;
-            const label = isSunday ? 'Sun' : (holiday?.name ? `Holiday: ${holiday.name}` : 'Govt Hol');
-            sundayDates.push(`${format(cur, 'd MMM')} (${label})${extra === 0.5 ? ' (Half-Day)' : ''}`);
-          }
-        } else if (empRec?.status === 'Extra Day' || empRec?.isExtraDay) {
-          sundayExtraDays += 1.0;
-          sundayDates.push(`${format(cur, 'd MMM')} (Extra Day)`);
-        }
-      }
-      cur = addDays(cur, 1);
-    }
-
-    // User rule: 1 extraday equals 333 rupees
-    const overtimeBonus = Math.round(sundayExtraDays * 333);
+    const attStats = calculateMonthAttendancePayroll(
+      employeeName,
+      monthStr,
+      basicSalary,
+      attendance
+    );
 
     return {
-      sundayExtraDays,
-      overtimeBonus,
-      sundayDates
+      sundayExtraDays: attStats.sundayExtraDays,
+      grossSundayExtraDays: attStats.grossSundayExtraDays,
+      cancelledLeaveDays: attStats.cancelledLeaveDays,
+      overtimeBonus: attStats.sundayBonus,
+      sundayDates: attStats.sundayDates,
+      absentDays: attStats.absentDays,
+      grossAbsentDays: attStats.grossAbsentDays,
+      attendanceDeduction: attStats.attendanceDeduction
     };
   };
 
@@ -277,6 +238,9 @@ export const Payroll = () => {
       totalDaysInMonth: attStats.totalDaysInMonth,
       perDaySalary: attStats.perDaySalary,
       presentDays: attStats.presentDays,
+      grossAbsentDays: attStats.grossAbsentDays,
+      grossSundayExtraDays: attStats.grossSundayExtraDays,
+      cancelledLeaveDays: attStats.cancelledLeaveDays,
       absentDays: attStats.absentDays,
       attendanceDeduction: attStats.attendanceDeduction,
       allowances: record.allowances > 0 ? record.allowances : attStats.sundayBonus,
@@ -309,6 +273,9 @@ export const Payroll = () => {
       totalDaysInMonth: editDynamicCalculation.totalDaysInMonth,
       perDaySalary: editDynamicCalculation.perDaySalary,
       presentDays: editDynamicCalculation.presentDays,
+      grossAbsentDays: editDynamicCalculation.grossAbsentDays,
+      grossSundayExtraDays: editDynamicCalculation.grossSundayExtraDays,
+      cancelledLeaveDays: editDynamicCalculation.cancelledLeaveDays,
       absentDays: editDynamicCalculation.absentDays,
       attendanceDeduction: editDynamicCalculation.attendanceDeduction,
       allowances: editDynamicCalculation.sundayBonus + (Number(editAllowances) || 0),
@@ -792,8 +759,23 @@ export const Payroll = () => {
                   <div className="bg-canvas-surface p-2 rounded-lg border border-canvas-variant">
                     <span className="text-[11px] text-secondary-light block">Leaves / Absent</span>
                     <span className="font-bold text-danger">{editDynamicCalculation.absentDays} Day(s)</span>
+                    {editDynamicCalculation.cancelledLeaveDays > 0 && (
+                      <span className="text-[9px] text-emerald-600 font-semibold block">
+                        ({editDynamicCalculation.cancelledLeaveDays} cancelled by extra)
+                      </span>
+                    )}
                   </div>
                 </div>
+
+                {editDynamicCalculation.cancelledLeaveDays > 0 && (
+                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-[11px] leading-relaxed">
+                    ⭐ <strong>Compensatory Off Applied:</strong> {editDynamicCalculation.cancelledLeaveDays} Extra Day(s) worked on holidays/Sundays cancelled {editDynamicCalculation.cancelledLeaveDays} Leave Day(s).
+                    <br />
+                    • <strong>Leaves Cancelled:</strong> ₹0 deduction (saved ₹{editDynamicCalculation.cancelledLeaveDays * editDynamicCalculation.perDaySalary}). Net deductible: <strong>{editDynamicCalculation.absentDays}d</strong>.
+                    <br />
+                    • <strong>Extra Days:</strong> Consumed to cancel leaves (₹0 extra bonus). Net payable: <strong>{editDynamicCalculation.sundayExtraDays}d</strong> (+{formatCurrency(editDynamicCalculation.sundayBonus)}).
+                  </div>
+                )}
 
                 <div className="space-y-2 pt-1 text-[11px]">
                   <div className="grid grid-cols-2 gap-2 bg-canvas-surface/80 p-2 rounded-lg border border-primary/10">

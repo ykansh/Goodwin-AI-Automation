@@ -1,0 +1,1505 @@
+[
+  {
+    "id": "prod-tz4lb",
+    "name": "GW-TZ4LB (48 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-tz4lb",
+    "voltage": "12V",
+    "ah": "4Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "48 Months",
+    "warranty_options": [
+      "48 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/TZ4LB /TZ4LB__Green 48M.png",
+    "description": "Reliable starting power designed for Indian riding conditions.",
+    "dimensions": "113 x 70 x 85 mm",
+    "weight": "1.45 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-tz4lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Vibration Resistant",
+      "Zero Maintenance",
+      "High Cranking Power"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB__Green 48M.png",
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB 3.png",
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB 4.png",
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB 5.png",
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB Side_GREEN 48M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ4LB__Green 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ4LB Side_GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ4LB__Green 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ4LB Side_GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/TZ4LB Side_GREEN 48M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/TZ4LB__Green 48M.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ4LB 3.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ4LB 4.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ4LB 5.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ4LB Side_GREEN 48M.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ4LB__Green 48M.png",
+      "/assets/products/TZ4LB Side_GREEN 48M.png",
+      "/assets/products/TZ4LB__Green 48M.png",
+      "/assets/products/goodwin-12vgw-tz4lb-main.png",
+      "/assets/products/goodwin-12vgw-tz4lb.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB.mp4",
+      "/assets/products/Goodwin mockups/mockups video/TZ4LB.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 48,
+    "free_replacement_months": 24,
+    "pro_rata_months": 24,
+    "warranty_breakdown": "48 Months (24M Free Replacement + 24M Pro-Rata)"
+  },
+  {
+    "id": "prod-xl5lb",
+    "name": "GW-XL5LB (48 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-xl5lb",
+    "voltage": "12V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "48 Months",
+    "warranty_options": [
+      "48 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/XL5LB /XL5LB__BLACK GREEN 48M.png",
+    "description": "High performance battery providing quick and consistent starts.",
+    "dimensions": "120 x 60 x 130 mm",
+    "weight": "1.80 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-xl5lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Spill Proof",
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB__BLACK GREEN 48M.png",
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB 5.png",
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB 3.png",
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB 4 (2).png",
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB__Side GREEN 48M.png",
+      "/assets/products/mockup-xl5lb.jpg",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL5LB__BLACK GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL5LB__Side GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL5LB__BLACK GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL5LB__Side GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/XL5LB__BLACK GREEN 48M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/XL5LB__Side GREEN 48M.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL5LB 3.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL5LB 4 (2).png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL5LB 5.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL5LB__BLACK GREEN 48M.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL5LB__Side GREEN 48M.png",
+      "/assets/products/XL5LB__BLACK GREEN 48M.png",
+      "/assets/products/XL5LB__Side GREEN 48M.png",
+      "/assets/products/goodwin-12vgw-xl5lb-side.png",
+      "/assets/products/goodwin-12vgw-xl5lb.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB VIDEO.mp4",
+      "/assets/products/Goodwin mockups/mockups video/XL5LB VIDEO.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 48,
+    "free_replacement_months": 24,
+    "pro_rata_months": 24,
+    "warranty_breakdown": "48 Months (24M Free Replacement + 24M Pro-Rata)"
+  },
+  {
+    "id": "prod-xl25lc",
+    "name": "GW-XL2.5LC (48 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-xl2-5lc",
+    "voltage": "12V",
+    "ah": "2.5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle",
+      "Kick Start"
+    ],
+    "warranty": "48 Months",
+    "warranty_options": [
+      "48 Months"
+    ],
+    "image": "/assets/products/mockup-xl25lc.png",
+    "description": "Compact and powerful battery optimized for kick-start and basic electricals.",
+    "dimensions": "80 x 70 x 105 mm",
+    "weight": "0.95 kg",
+    "terminalLayout": "Left Positive (+)",
+    "datasheet": "/assets/datasheets/gw-xl2-5lc-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Compact Design",
+      "Rapid Charge",
+      "Durable"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC GREEN 48M.png",
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC 3.png",
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC 5.png",
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC 4.png",
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC Side GREEN 48M.png",
+      "/assets/products/mockup-xl25lc.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL2.5LC GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL2.5LC Side GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL2.5LC GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL2.5LC Side GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/XL2.5LC GREEN 48M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/XL2.5LC Side GREEN 48M.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL2.5LC 3.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL2.5LC 4.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL2.5LC 5.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL2.5LC GREEN 48M.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/XL2.5LC Side GREEN 48M.png",
+      "/assets/products/XL2.5LC GREEN 48M.png",
+      "/assets/products/XL2.5LC Side GREEN 48M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC.mp4",
+      "/assets/products/Goodwin mockups/mockups video/XL2.5LC.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 48,
+    "free_replacement_months": 24,
+    "pro_rata_months": 24,
+    "warranty_breakdown": "48 Months (24M Free Replacement + 24M Pro-Rata)"
+  },
+  {
+    "id": "prod-tz5lb",
+    "name": "GW-TZ5LB (48 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-tz5lb",
+    "voltage": "12V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "48 Months",
+    "warranty_options": [
+      "48 Months"
+    ],
+    "image": "/assets/products/mockup-tz5lb.png",
+    "description": "Advanced power delivery for modern two wheelers with extra electronics.",
+    "dimensions": "113 x 70 x 105 mm",
+    "weight": "1.75 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-tz5lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "High Capacity",
+      "Electronic Ready",
+      "Weather Proof"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB GREEN.png",
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB 4.png",
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB 5.png",
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB 3.png",
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB Side GREEN.png",
+      "/assets/products/mockup-tz5lb.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ5LB GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ5LB Side GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ5LB GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ5LB Side GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/TZ5LB GREEN 48M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 48 Months/TZ5LB Side GREEN.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ5LB 3.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ5LB 4.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ5LB 5.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ5LB GREEN.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/TZ5LB Side GREEN.png",
+      "/assets/products/TZ5LB GREEN.png",
+      "/assets/products/TZ5LB Side GREEN.png",
+      "/assets/products/goodwin-12vgw-tz5lb-side.png",
+      "/assets/products/goodwin-12vgw-tz5lb.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB.mp4",
+      "/assets/products/Goodwin mockups/mockups video/TZ5LB.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 48,
+    "free_replacement_months": 24,
+    "pro_rata_months": 24,
+    "warranty_breakdown": "48 Months (24M Free Replacement + 24M Pro-Rata)"
+  },
+  {
+    "id": "prod-12smf8",
+    "name": "GW-12SMF8-UPS (12 Months)",
+    "series": "Goodwin Industrial",
+    "slug": "gw-12smf8-ups",
+    "voltage": "12V",
+    "ah": "8Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "UPS & Inverters",
+      "Emergency Lighting",
+      "Security Systems"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/vrla 12v 8ah/vrla 12v 8ah png.png",
+    "description": "Highly reliable VRLA battery for UPS and backup power applications.",
+    "dimensions": "151 x 65 x 94 mm",
+    "weight": "2.10 kg",
+    "terminalLayout": "F1 / F2 Faston",
+    "datasheet": "/assets/datasheets/gw-12smf8-ups-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Deep Cycle",
+      "Sealed",
+      "Standby Use"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/vrla 12v 8ah png.png",
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/Vrla 12v8ah 2.png",
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/Vrla 12v8ah 3.png",
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/Vrla 12v8ah 4.png",
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/Vrla 12v8ah 5.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/Vrla 12v8ah.mp4",
+      "/assets/products/Goodwin mockups/vrla 12v 8ah/Vrla 12v 8ahhh.mp4",
+      "/assets/products/Goodwin mockups/mockups video/Vrla 12v 8ahhh.mp4",
+      "/assets/products/Goodwin mockups/mockups video/Vrla 12v8ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla",
+      "cat-inverter"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-4smf5",
+    "name": "GW-4SMF5 (6 Months)",
+    "series": "Goodwin Industrial",
+    "slug": "gw-4smf5",
+    "voltage": "4V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Torch & Emergency Lights",
+      "Toys",
+      "Scales"
+    ],
+    "warranty": "6 Months",
+    "warranty_options": [
+      "6 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/Vrla 4v5ah/Black Battery 04 FRONT.png",
+    "description": "Compact SMF battery optimized for portable lighting and small electronics.",
+    "dimensions": "47 x 47 x 101 mm",
+    "weight": "0.45 kg",
+    "terminalLayout": "Wire Leads / Solder Tabs",
+    "datasheet": "/assets/datasheets/gw-4smf5-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Lightweight",
+      "Constant Voltage",
+      "VRLA"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/Vrla 4v5ah/Black Battery 04 FRONT.png",
+      "/assets/products/Goodwin mockups/Vrla 4v5ah/Black Battery 04 FRONT 3.png",
+      "/assets/products/Goodwin mockups/Vrla 4v5ah/Black Battery 04 FRONT 4.png",
+      "/assets/products/Goodwin mockups/Vrla 4v5ah/Black Battery 04 FRONT 5.png",
+      "/assets/products/Goodwin mockups/Vrla 4v5ah/Black Battery 04 Side.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Vrla 4v5ah/vrla 4v5ah.mp4",
+      "/assets/products/Goodwin mockups/mockups video/vrla 4v5ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 6,
+    "free_replacement_months": 6,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "6 Months Free Replacement"
+  },
+  {
+    "id": "prod-4v7ah",
+    "name": "GW-4V7AH-VRLA (6 Months)",
+    "series": "Goodwin Industrial",
+    "slug": "gw-4v7ah-vrla",
+    "voltage": "4V",
+    "ah": "7Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Scales & Emergency Lights",
+      "Medical Equipment"
+    ],
+    "warranty": "6 Months",
+    "warranty_options": [
+      "6 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/Vrla 4v7ah/Black Battery 01 FRONT.png",
+    "description": "Reliable power for electronic weighing scales and emergency lamps.",
+    "dimensions": "47 x 47 x 101 mm",
+    "weight": "0.65 kg",
+    "terminalLayout": "F1 Faston",
+    "datasheet": "/assets/datasheets/gw-4v7ah-vrla-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Eco Friendly",
+      "Recycle",
+      "High Performance"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/Vrla 4v7ah/Black Battery 01 FRONT.png",
+      "/assets/products/Goodwin mockups/Vrla 4v7ah/Black Battery 01 FRONT 4.png",
+      "/assets/products/Goodwin mockups/Vrla 4v7ah/Black Battery 01 FRONT 5.png",
+      "/assets/products/Goodwin mockups/Vrla 4v7ah/Black Battery 01 FRONT 3.png",
+      "/assets/products/Goodwin mockups/Vrla 4v7ah/Black Battery 01 Side.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Vrla 4v7ah/Vrla 4v 7ah vid.mp4",
+      "/assets/products/Goodwin mockups/mockups video/Vrla 4v 7ah vid.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 6,
+    "free_replacement_months": 6,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "6 Months Free Replacement"
+  },
+  {
+    "id": "prod-6v5ah",
+    "name": "GW-6V5AH (6 Months)",
+    "series": "Goodwin Industrial",
+    "slug": "gw-6v5ah",
+    "voltage": "6V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Toys & Medical Devices"
+    ],
+    "warranty": "6 Months",
+    "warranty_options": [
+      "6 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/Vrla 6v5ah/Black Battery 03 FRONT.png",
+    "description": "Deep discharge capable SMF battery for ride-on toys and medical equipment.",
+    "dimensions": "70 x 47 x 101 mm",
+    "weight": "0.75 kg",
+    "terminalLayout": "F1 Faston",
+    "datasheet": "/assets/datasheets/gw-6v5ah-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Safe",
+      "Leak Proof",
+      "Deep Cycle"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/Vrla 6v5ah/Black Battery 03 FRONT.png",
+      "/assets/products/Goodwin mockups/Vrla 6v5ah/Black Battery 03 FRONT 4.png",
+      "/assets/products/Goodwin mockups/Vrla 6v5ah/Black Battery 03 FRONT 5.png",
+      "/assets/products/Goodwin mockups/Vrla 6v5ah/Black Battery 03 FRONT 3.png",
+      "/assets/products/Goodwin mockups/Vrla 6v5ah/Black Battery 03 Side.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Vrla 6v5ah/vrla 6v 5ah.mp4",
+      "/assets/products/Goodwin mockups/mockups video/vrla 6v 5ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 6,
+    "free_replacement_months": 6,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "6 Months Free Replacement"
+  },
+  {
+    "id": "prod-li-agro14",
+    "name": "GW-LITHIUM-AGRO-14AH (12 Months)",
+    "series": "Goodwin Lithium",
+    "slug": "gw-lithium-agro-14ah",
+    "voltage": "12V",
+    "ah": "14Ah",
+    "cca": "N/A",
+    "category": "cat-lithium",
+    "technology": "Lithium-Ion (LiFePO4)",
+    "application": [
+      "Agricultural & Sprayers",
+      "Solar"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/goodwin-lithium-agro-12v-14ah.png",
+    "description": "Ultra lightweight, high life-cycle lithium battery designed for agricultural sprayers.",
+    "dimensions": "151 x 98 x 95 mm",
+    "weight": "1.30 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "/assets/datasheets/gw-lithium-agro-14ah-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Lightweight",
+      "Long Cycle Life",
+      "Fast Charging"
+    ],
+    "gallery": [
+      "/assets/products/goodwin-lithium-agro-12v-14ah.png"
+    ],
+    "categories": [
+      "cat-lithium",
+      "cat-agriculture"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-li-ups8",
+    "name": "GW-LITHIUM-UPS-8AH (12 Months)",
+    "series": "Goodwin Lithium",
+    "slug": "gw-lithium-ups-8ah",
+    "voltage": "12V",
+    "ah": "8Ah",
+    "cca": "N/A",
+    "category": "cat-lithium",
+    "technology": "Lithium-Ion (LiFePO4)",
+    "application": [
+      "UPS & Inverters"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/LI-ion 12v8ah/Black Battery 05  LI.png",
+    "description": "Premium lithium drop-in replacement for standard 12V 7Ah/8Ah lead acid UPS batteries.",
+    "dimensions": "151 x 65 x 94 mm",
+    "weight": "0.95 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "/assets/datasheets/gw-lithium-ups-8ah-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Drop-in Replacement",
+      "BMS Protected",
+      "Extended Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/LI-ion 12v8ah/Black Battery 05  LI.png",
+      "/assets/products/Goodwin mockups/LI-ion 12v8ah/Black Battery 05  LI 3.png",
+      "/assets/products/Goodwin mockups/LI-ion 12v8ah/Black Battery 05  LI 4.png",
+      "/assets/products/Goodwin mockups/LI-ion 12v8ah/Black Battery 05  LI 5.png",
+      "/assets/products/Goodwin mockups/LI-ion 12v8ah/Black Battery 05 Side.png",
+      "/assets/products/goodwin-lithium-ups-12v-8ah.png"
+    ],
+    "videos": [],
+    "categories": [
+      "cat-lithium",
+      "cat-inverter"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-vrla-agro14",
+    "name": "GW-VRLA-AGRO-14AH (6 Months)",
+    "series": "Goodwin Industrial",
+    "slug": "gw-vrla-agro-14ah",
+    "voltage": "12V",
+    "ah": "14Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Agricultural & Sprayers"
+    ],
+    "warranty": "6 Months",
+    "warranty_options": [
+      "6 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/Vrla 12v14ah/Black Battery 02 FRONT.png",
+    "description": "Heavy duty VRLA battery optimized for continuous cyclic use in agricultural sprayers.",
+    "dimensions": "151 x 98 x 95 mm",
+    "weight": "3.80 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "/assets/datasheets/gw-vrla-agro-14ah-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Heavy Duty",
+      "Cyclic Use",
+      "Robust Case"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/Black Battery 02 FRONT.png",
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/Black Battery 02 LI FRONT.png",
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/Black Battery 02 FRONT 3.png",
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/Black Battery 02 FRONT 5.png",
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/Black Battery 02 FRONT 4.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/vrla 12v14ah.mp4",
+      "/assets/products/Goodwin mockups/Vrla 12v14ah/Vrla 12v14ah vid.mp4",
+      "/assets/products/Goodwin mockups/mockups video/Vrla 12v14ah vid.mp4",
+      "/assets/products/Goodwin mockups/mockups video/vrla 12v14ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla",
+      "cat-agriculture"
+    ],
+    "warranty_months": 6,
+    "free_replacement_months": 6,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "6 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-14ah",
+    "name": "GW-GOLD 14AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gw-gold-14ah",
+    "voltage": "12V",
+    "ah": "14Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "E-Bikes",
+      "Agricultural & Sprayers"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/Gold Series 12v14ah/Gold Series.png",
+    "description": "Premium Gold Series 12V 14Ah VRLA battery engineered for E-Bikes and Agricultural Sprayers.",
+    "dimensions": "151 x 98 x 95 mm",
+    "weight": "3.80 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "Gold Series Durability",
+      "VRLA Technology",
+      "Deep Discharge Recovery"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/Gold Series 12v14ah/Gold Series.png",
+      "/assets/products/Goodwin mockups/Gold Series 12v14ah/Gold Series 3.png",
+      "/assets/products/Goodwin mockups/Gold Series 12v14ah/Gold Series 2.png",
+      "/assets/products/Goodwin mockups/Gold Series 12v14ah/Gold Series 5.png",
+      "/assets/products/Goodwin mockups/Gold Series 12v14ah/Gold Series 4.png"
+    ],
+    "videos": [],
+    "categories": [
+      "cat-vrla",
+      "cat-agriculture"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-inverter-tubular",
+    "name": "GW-INVERTER TUBULAR 150AH (72 Months)",
+    "series": "Goodwin Home",
+    "slug": "gw-inverter-tubular",
+    "voltage": "12V",
+    "ah": "150Ah",
+    "cca": "N/A",
+    "category": "cat-inverter",
+    "technology": "Tall Tubular",
+    "application": [
+      "Home Inverter",
+      "Solar",
+      "UPS"
+    ],
+    "warranty": "72 Months",
+    "warranty_options": [
+      "72 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 150AH.png",
+    "description": "High capacity 150Ah tall tubular battery for uninterrupted power supply in homes and offices.",
+    "dimensions": "505 x 190 x 410 mm",
+    "weight": "54.0 kg",
+    "terminalLayout": "L-Type",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "Tall Tubular",
+      "Low Maintenance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/Inverter Batteries/Inverter Batteries.png",
+      "/assets/products/Goodwin mockups/Inverter Batteries/Inverter Batteries 4.png",
+      "/assets/products/Goodwin mockups/Inverter Batteries/Inverter Batteries 5.png",
+      "/assets/products/Goodwin mockups/Inverter Batteries/Inverter Batteries 2.png",
+      "/assets/products/Goodwin mockups/Inverter Batteries/Inverter Batteries 3.png",
+      "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 150AH.png",
+      "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 200AH.png",
+      "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 250AH.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/Inverter Batteries 2.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/Inverter Batteries 3.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/Inverter Batteries 4.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/Inverter Batteries 5.png",
+      "/assets/products/Goodwin mockups/Goodwin Mockups/Inverter Batteries.png",
+      "/assets/products/Inverter Batteries.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Inverter Batteries/INVERTER BATTERIES.mp4",
+      "/assets/products/Goodwin mockups/mockups video/INVERTER BATTERIES.mp4"
+    ],
+    "categories": [
+      "cat-inverter"
+    ],
+    "warranty_months": 72,
+    "free_replacement_months": 36,
+    "pro_rata_months": 36,
+    "warranty_breakdown": "72 Months (36M Free Replacement + 36M Pro-Rata)"
+  },
+  {
+    "id": "prod-gold-series-6v-4-2ah",
+    "name": "GOLD SERIES 6V 4.2AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-6v-4-2ah",
+    "voltage": "6V",
+    "ah": "4.2Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Emergency Lighting",
+      "Weighing Scales",
+      "General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 6v 4.2ah/Gold series 2 1.png",
+    "description": "Premium 6V 4.2Ah battery by Goodwin.",
+    "dimensions": "70 x 47 x 101 mm",
+    "weight": "0.90 kg",
+    "terminalLayout": "F1 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 6v 4.2ah/Gold series 2 1.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.2ah/Gold series 2 5.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.2ah/Gold series 2 4.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.2ah/Gold series 2 3.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.2ah/Gold series 2 2.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 6v 4.2ah/gold 6v 4.2ah vid.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-series-12v-12ah",
+    "name": "GOLD SERIES 12V 12AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-12v-12ah",
+    "voltage": "12V",
+    "ah": "12Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Agricultural & Sprayers",
+      "E-Bikes & Light EV",
+      "UPS & General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold series 6 1.png",
+    "description": "Premium 12V 12Ah battery by Goodwin.",
+    "dimensions": "151 x 98 x 95 mm",
+    "weight": "3.80 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold series 6 1.png",
+      "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold series 6 2.png",
+      "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold series 6 3.png",
+      "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold series 6 4.png",
+      "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold series 6 5.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 12v 12ah/Gold 12v 12ah vid.mp4"
+    ],
+    "categories": [
+      "cat-vrla",
+      "cat-agriculture"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-series-12v-15ah",
+    "name": "GOLD SERIES 12V 15AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-12v-15ah",
+    "voltage": "12V",
+    "ah": "15Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "E-Bikes & Light EV",
+      "Solar & Backup",
+      "General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold series 7 1.png",
+    "description": "Premium 12V 15Ah battery by Goodwin.",
+    "dimensions": "151 x 98 x 95 mm",
+    "weight": "4.20 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold series 7 1.png",
+      "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold series 7 2.png",
+      "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold series 7 3.png",
+      "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold series 7 4.png",
+      "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold series 7 5.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 12v 15ah/Gold 12v 15ah vid.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-series-6v-4-5ah",
+    "name": "GOLD SERIES 6V 4.5AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-6v-4-5ah",
+    "voltage": "6V",
+    "ah": "4.5Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "Emergency Lighting",
+      "Ride-On Toys & Scales",
+      "General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 6v 4.5ah/Gold series 3.png",
+    "description": "Premium 6V 4.5Ah battery by Goodwin.",
+    "dimensions": "70 x 47 x 101 mm",
+    "weight": "0.95 kg",
+    "terminalLayout": "F1 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 6v 4.5ah/Gold series 3.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.5ah/Gold series 3 5.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.5ah/Gold series 3 4.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.5ah/Gold series 3 3.png",
+      "/assets/products/Goodwin mockups/gold series 6v 4.5ah/Gold series 3 2.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 6v 4.5ah/gold 6v 4.5ah vid.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-series-12v-7-2ah",
+    "name": "GOLD SERIES 12V 7.2AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-12v-7-2ah",
+    "voltage": "12V",
+    "ah": "7.2Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "UPS & Inverters",
+      "Security & CCTV",
+      "General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 12v 7.2ah/Gold series 4 1.png",
+    "description": "Premium 12V 7.2Ah battery by Goodwin.",
+    "dimensions": "151 x 65 x 94 mm",
+    "weight": "2.00 kg",
+    "terminalLayout": "F1 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 12v 7.2ah/Gold series 4 1.png",
+      "/assets/products/Goodwin mockups/gold series 12v 7.2ah/Gold series 4 3.png",
+      "/assets/products/Goodwin mockups/gold series 12v 7.2ah/Gold series 4 2.png",
+      "/assets/products/Goodwin mockups/gold series 12v 7.2ah/Gold series 4 4.png",
+      "/assets/products/Goodwin mockups/gold series 12v 7.2ah/Gold series 4  5.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 12v 7.2ah/gold 12v 7.2ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-series-12v-9ah",
+    "name": "GOLD SERIES 12V 9AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-12v-9ah",
+    "voltage": "12V",
+    "ah": "9Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "UPS & Inverters",
+      "High-Output Backup",
+      "General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 12v 9ah/Gold series 5 1.png",
+    "description": "Premium 12V 9Ah battery by Goodwin.",
+    "dimensions": "151 x 65 x 94 mm",
+    "weight": "2.60 kg",
+    "terminalLayout": "F2 Faston",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 12v 9ah/Gold series 5 1.png",
+      "/assets/products/Goodwin mockups/gold series 12v 9ah/Gold series 5 3.png",
+      "/assets/products/Goodwin mockups/gold series 12v 9ah/Gold series 5 2.png",
+      "/assets/products/Goodwin mockups/gold series 12v 9ah/Gold series 5 5.png",
+      "/assets/products/Goodwin mockups/gold series 12v 9ah/Gold series 5 4.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 12v 9ah/gold 12v 9ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-gold-series-12v-17ah",
+    "name": "GOLD SERIES 12V 17AH (12 Months)",
+    "series": "Goodwin Gold",
+    "slug": "gold-series-12v-17ah",
+    "voltage": "12V",
+    "ah": "17Ah",
+    "cca": "N/A",
+    "category": "cat-vrla",
+    "technology": "SMF / VRLA",
+    "application": [
+      "E-Bikes & Light EV",
+      "Medical & Industrial UPS",
+      "General Purpose"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin mockups/gold series 12v 17ah/Gold series 8 1.png",
+    "description": "Premium 12V 17Ah battery by Goodwin.",
+    "dimensions": "181 x 76 x 167 mm",
+    "weight": "5.30 kg",
+    "terminalLayout": "Nut & Bolt",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin mockups/gold series 12v 17ah/Gold series 8 1.png",
+      "/assets/products/Goodwin mockups/gold series 12v 17ah/Gold series 8 4.png",
+      "/assets/products/Goodwin mockups/gold series 12v 17ah/Gold series 8 5.png",
+      "/assets/products/Goodwin mockups/gold series 12v 17ah/Gold series 8 2.png",
+      "/assets/products/Goodwin mockups/gold series 12v 17ah/Gold series 8 3.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/gold series 12v 17ah/gold 12v 17ah.mp4"
+    ],
+    "categories": [
+      "cat-vrla"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-tz4lb-12m",
+    "name": "GW-TZ4LB (12 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-tz4lb-12m",
+    "voltage": "12V",
+    "ah": "4Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ4LB__Green 12M.png",
+    "description": "Reliable starting power designed for Indian riding conditions.",
+    "dimensions": "113 x 70 x 85 mm",
+    "weight": "1.45 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-tz4lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Vibration Resistant",
+      "Zero Maintenance",
+      "High Cranking Power"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ4LB__Green 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ4LB Side_GREEN 12M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB.mp4",
+      "/assets/products/Goodwin mockups/mockups video/TZ4LB.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-tz4lb-18m",
+    "name": "GW-TZ4LB (18 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-tz4lb-18m",
+    "voltage": "12V",
+    "ah": "4Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "18 Months",
+    "warranty_options": [
+      "18 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ4LB__Green 18M.png",
+    "description": "Reliable starting power designed for Indian riding conditions.",
+    "dimensions": "113 x 70 x 85 mm",
+    "weight": "1.45 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-tz4lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Vibration Resistant",
+      "Zero Maintenance",
+      "High Cranking Power"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ4LB__Green 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ4LB Side_GREEN 18M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/TZ4LB /TZ4LB.mp4",
+      "/assets/products/Goodwin mockups/mockups video/TZ4LB.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 18,
+    "free_replacement_months": 18,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "18 Months Free Replacement"
+  },
+  {
+    "id": "prod-tz5lb-12m",
+    "name": "GW-TZ5LB (12 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-tz5lb-12m",
+    "voltage": "12V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ5LB GREEN 12M.png",
+    "description": "Advanced power delivery for modern two wheelers with extra electronics.",
+    "dimensions": "113 x 70 x 105 mm",
+    "weight": "1.75 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-tz5lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "High Capacity",
+      "Electronic Ready",
+      "Weather Proof"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ5LB GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/TZ5LB Side GREEN 12M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB.mp4",
+      "/assets/products/Goodwin mockups/mockups video/TZ5LB.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-tz5lb-18m",
+    "name": "GW-TZ5LB (18 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-tz5lb-18m",
+    "voltage": "12V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "18 Months",
+    "warranty_options": [
+      "18 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ5LB GREEN 18M.png",
+    "description": "Advanced power delivery for modern two wheelers with extra electronics.",
+    "dimensions": "113 x 70 x 105 mm",
+    "weight": "1.75 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-tz5lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "High Capacity",
+      "Electronic Ready",
+      "Weather Proof"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ5LB GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/TZ5LB Side GREEN 18M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/TZ5LB /TZ5LB.mp4",
+      "/assets/products/Goodwin mockups/mockups video/TZ5LB.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 18,
+    "free_replacement_months": 18,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "18 Months Free Replacement"
+  },
+  {
+    "id": "prod-xl5lb-12m",
+    "name": "GW-XL5LB (12 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-xl5lb-12m",
+    "voltage": "12V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL5LB__BLACK GREEN 12M.png",
+    "description": "High performance battery providing quick and consistent starts.",
+    "dimensions": "120 x 60 x 130 mm",
+    "weight": "1.80 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-xl5lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Spill Proof",
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL5LB__BLACK GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL5LB__Side GREEN 12M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB VIDEO.mp4",
+      "/assets/products/Goodwin mockups/mockups video/XL5LB VIDEO.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-xl5lb-18m",
+    "name": "GW-XL5LB (18 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-xl5lb-18m",
+    "voltage": "12V",
+    "ah": "5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle"
+    ],
+    "warranty": "18 Months",
+    "warranty_options": [
+      "18 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL5LB__BLACK GREEN 18M.png",
+    "description": "High performance battery providing quick and consistent starts.",
+    "dimensions": "120 x 60 x 130 mm",
+    "weight": "1.80 kg",
+    "terminalLayout": "Right Positive (+)",
+    "datasheet": "/assets/datasheets/gw-xl5lb-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Spill Proof",
+      "High Performance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL5LB__BLACK GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL5LB__Side GREEN 18M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/XL5LB /XL5LB VIDEO.mp4",
+      "/assets/products/Goodwin mockups/mockups video/XL5LB VIDEO.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 18,
+    "free_replacement_months": 18,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "18 Months Free Replacement"
+  },
+  {
+    "id": "prod-xl25lc-12m",
+    "name": "GW-XL2.5LC (12 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-xl2-5lc-12m",
+    "voltage": "12V",
+    "ah": "2.5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle",
+      "Kick Start"
+    ],
+    "warranty": "12 Months",
+    "warranty_options": [
+      "12 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL2.5LC GREEN 12M.png",
+    "description": "Compact and powerful battery optimized for kick-start and basic electricals.",
+    "dimensions": "80 x 70 x 105 mm",
+    "weight": "0.95 kg",
+    "terminalLayout": "Left Positive (+)",
+    "datasheet": "/assets/datasheets/gw-xl2-5lc-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Compact Design",
+      "Rapid Charge",
+      "Durable"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL2.5LC GREEN 12M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 12 Months/XL2.5LC Side GREEN 12M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC.mp4",
+      "/assets/products/Goodwin mockups/mockups video/XL2.5LC.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 12,
+    "free_replacement_months": 12,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "12 Months Free Replacement"
+  },
+  {
+    "id": "prod-xl25lc-18m",
+    "name": "GW-XL2.5LC (18 Months)",
+    "series": "Goodwin SMF",
+    "slug": "gw-xl2-5lc-18m",
+    "voltage": "12V",
+    "ah": "2.5Ah",
+    "cca": "N/A",
+    "category": "cat-two-wheeler",
+    "technology": "SMF / Maintenance Free",
+    "application": [
+      "Two Wheeler",
+      "Motorcycle",
+      "Kick Start"
+    ],
+    "warranty": "18 Months",
+    "warranty_options": [
+      "18 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL2.5LC GREEN 18M.png",
+    "description": "Compact and powerful battery optimized for kick-start and basic electricals.",
+    "dimensions": "80 x 70 x 105 mm",
+    "weight": "0.95 kg",
+    "terminalLayout": "Left Positive (+)",
+    "datasheet": "/assets/datasheets/gw-xl2-5lc-datasheet.pdf",
+    "is_published": true,
+    "features": [
+      "Compact Design",
+      "Rapid Charge",
+      "Durable"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL2.5LC GREEN 18M.png",
+      "/assets/products/Goodwin Batteries/Goodwin Battery Mockup_2026 18 Months/XL2.5LC Side GREEN 18M.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/xl2.5lc/XL2.5LC.mp4",
+      "/assets/products/Goodwin mockups/mockups video/XL2.5LC.mp4"
+    ],
+    "categories": [
+      "cat-two-wheeler"
+    ],
+    "warranty_months": 18,
+    "free_replacement_months": 18,
+    "pro_rata_months": 0,
+    "warranty_breakdown": "18 Months Free Replacement"
+  },
+  {
+    "id": "prod-inverter-tubular-200ah",
+    "name": "GW-INVERTER TUBULAR 200AH (72 Months)",
+    "series": "Goodwin Home",
+    "slug": "gw-inverter-tubular-200ah",
+    "voltage": "12V",
+    "ah": "200Ah",
+    "cca": "N/A",
+    "category": "cat-inverter",
+    "technology": "Tall Tubular",
+    "application": [
+      "Home Inverter",
+      "Solar",
+      "UPS"
+    ],
+    "warranty": "72 Months",
+    "warranty_options": [
+      "72 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 200AH.png",
+    "description": "Heavy-duty 200Ah tall tubular battery engineered for extended power backup during prolonged outages in homes and offices.",
+    "dimensions": "505 x 190 x 410 mm",
+    "weight": "64.0 kg",
+    "terminalLayout": "L-Type",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "Tall Tubular",
+      "Low Maintenance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 200AH.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Inverter Batteries/INVERTER BATTERIES.mp4",
+      "/assets/products/Goodwin mockups/mockups video/INVERTER BATTERIES.mp4"
+    ],
+    "categories": [
+      "cat-inverter"
+    ],
+    "warranty_months": 72,
+    "free_replacement_months": 36,
+    "pro_rata_months": 36,
+    "warranty_breakdown": "72 Months (36M Free Replacement + 36M Pro-Rata)"
+  },
+  {
+    "id": "prod-inverter-tubular-250ah",
+    "name": "GW-INVERTER TUBULAR 250AH (72 Months)",
+    "series": "Goodwin Home",
+    "slug": "gw-inverter-tubular-250ah",
+    "voltage": "12V",
+    "ah": "250Ah",
+    "cca": "N/A",
+    "category": "cat-inverter",
+    "technology": "Tall Tubular",
+    "application": [
+      "Home Inverter",
+      "Solar",
+      "UPS"
+    ],
+    "warranty": "72 Months",
+    "warranty_options": [
+      "72 Months"
+    ],
+    "image": "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 250AH.png",
+    "description": "Extra heavy-duty 250Ah tall tubular deep-cycle battery providing maximum energy reserve for heavy loads and solar applications.",
+    "dimensions": "505 x 190 x 440 mm",
+    "weight": "74.5 kg",
+    "terminalLayout": "L-Type",
+    "datasheet": "",
+    "is_published": true,
+    "features": [
+      "Tall Tubular",
+      "Low Maintenance",
+      "Long Life"
+    ],
+    "gallery": [
+      "/assets/products/Goodwin Batteries/Goodwin Inverter Battery 250AH.png"
+    ],
+    "videos": [
+      "/assets/products/Goodwin mockups/Inverter Batteries/INVERTER BATTERIES.mp4",
+      "/assets/products/Goodwin mockups/mockups video/INVERTER BATTERIES.mp4"
+    ],
+    "categories": [
+      "cat-inverter"
+    ],
+    "warranty_months": 72,
+    "free_replacement_months": 36,
+    "pro_rata_months": 36,
+    "warranty_breakdown": "72 Months (36M Free Replacement + 36M Pro-Rata)"
+  }
+]

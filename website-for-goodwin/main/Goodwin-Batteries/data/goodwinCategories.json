@@ -1,0 +1,92 @@
+[
+  {
+    "id": "cat-two-wheeler",
+    "name": "Two Wheeler",
+    "slug": "two-wheeler",
+    "aliases": ["two-wheelers", "motorcycle-2w", "bike"],
+    "status": "active",
+    "statusLabel": "In Stock • Ready to Dispatch",
+    "capacityRange": "2.5Ah – 5Ah (12V)",
+    "warrantyRange": "12, 18 & 48 Months",
+    "description": "Zero-maintenance VRLA AGM batteries for motorcycles and scooters across India.",
+    "longDescription": "Engineered specifically for Indian road vibration and daily self-start commuter traffic. Goodwin Two-Wheeler SMF VRLA batteries feature spill-proof Absorbed Glass Mat (AGM) separators, high cold-cranking amps, and flexible 12, 18, and 48-month warranty plans.",
+    "highlights": [
+      "100% Spill-Proof Sealed VRLA AGM Technology",
+      "Available in 12M, 18M, and 48M (24M Free + 24M Pro-Rata) Warranty Tiers",
+      "Direct OEM Fitment: GW-TZ4LB, GW-TZ5LB, GW-XL5LB & GW-XL2.5LC"
+    ],
+    "image": "/assets/categories/two-wheelers.jpg"
+  },
+  {
+    "id": "cat-inverter",
+    "name": "Inverter & UPS",
+    "slug": "inverter",
+    "aliases": ["inverter-batteries", "ups", "home-inverter", "solar"],
+    "status": "active",
+    "statusLabel": "In Stock • Up to 72M Warranty",
+    "capacityRange": "8Ah – 250Ah (12V)",
+    "warrantyRange": "12 to 72 Months",
+    "description": "High-capacity Tall Tubular inverter batteries (150Ah–250Ah) and compact UPS backup solutions.",
+    "longDescription": "Uninterrupted power backup for homes, offices, and commercial establishments. Choose from our heavy-duty 150Ah, 200Ah, and 250Ah Tall Tubular batteries backed by a 72-Month Warranty, or compact 12V 8Ah VRLA and Lithium-Ion computer UPS batteries.",
+    "highlights": [
+      "Tall Tubular Series (150Ah, 200Ah, 250Ah) with 72 Months Warranty",
+      "Compact 12V 8Ah SMF VRLA & LiFePO4 Drop-In Computer UPS Batteries",
+      "Deep-Cycle High-Pressure Die-Cast Spines for Frequent Power Cuts"
+    ],
+    "image": "/assets/products/Inverter Batteries.png"
+  },
+  {
+    "id": "cat-vrla",
+    "name": "VRLA & SMF",
+    "slug": "vrla-smf",
+    "aliases": ["vrla", "smf", "industrial", "gold-series"],
+    "status": "active",
+    "statusLabel": "In Stock • 13 Models",
+    "capacityRange": "4V / 6V / 12V (4.2Ah – 17Ah)",
+    "warrantyRange": "6 to 12 Months",
+    "description": "Sealed maintenance-free VRLA and Gold Series batteries for UPS, scales, sprayers, toys, and emergency lighting.",
+    "longDescription": "Versatile Valve Regulated Lead-Acid (VRLA) and Goodwin Gold Series batteries engineered for standby and cyclic equipment. Covers 4V, 6V, and 12V configurations for electronic weighing scales, medical equipment, emergency lamps, kids ride-on toys, and general industrial backup.",
+    "highlights": [
+      "Complete 4V, 6V & 12V Industrial SMF and Gold Series Lineup",
+      "Leak-Proof Sealed Construction for Any Mounting Orientation",
+      "Deep Discharge Recovery for Cyclic & Standby Equipment"
+    ],
+    "image": "/assets/products/goodwin-12smf8-ups-12v-8ah.png"
+  },
+  {
+    "id": "cat-agriculture",
+    "name": "Agricultural Sprayers",
+    "slug": "agriculture",
+    "aliases": ["agro", "sprayers", "agricultural-sprayers"],
+    "status": "active",
+    "statusLabel": "In Stock • 4 Models",
+    "capacityRange": "12V (12Ah – 14Ah)",
+    "warrantyRange": "6 to 12 Months",
+    "description": "Cyclic VRLA and ultra-lightweight Lithium-Ion batteries for agricultural knapsack sprayers and farm equipment.",
+    "longDescription": "Purpose-built for continuous daily cyclic duty in agricultural knapsack sprayers, solar farm fencing, and portable rural equipment. Available in heavy-duty VRLA (12V 12Ah & 14Ah), Gold Series 14Ah, and featherlight 1.3 kg Lithium-Ion (LiFePO4) 12V 14Ah packs.",
+    "highlights": [
+      "Dedicated 12V 14Ah VRLA, Gold Series & Lithium-Ion Sprayer Batteries",
+      "High Cyclic Endurance for Full-Day Field Spraying Operations",
+      "Lightweight 12V 14Ah LiFePO4 Option for Reduced Operator Fatigue"
+    ],
+    "image": "/assets/categories/agricultural-tractors.jpg"
+  },
+  {
+    "id": "cat-lithium",
+    "name": "Lithium-Ion",
+    "slug": "lithium-ion",
+    "aliases": ["lithium", "lifepo4", "li-ion"],
+    "status": "active",
+    "statusLabel": "In Stock • Smart LiFePO4",
+    "capacityRange": "12V (8Ah – 14Ah)",
+    "warrantyRange": "12 Months",
+    "description": "Ultra-lightweight LiFePO4 lithium batteries with integrated BMS for UPS and agricultural sprayers.",
+    "longDescription": "Next-generation Lithium Iron Phosphate (LiFePO4) drop-in replacements that weigh up to 65% less than conventional lead-acid batteries while delivering 3x cycle life and rapid charge acceptance. Equipped with built-in multi-stage BMS protection.",
+    "highlights": [
+      "Integrated Battery Management System (BMS) Against Overcharge & Short Circuit",
+      "Up to 65% Lighter Weight than Equivalent Lead-Acid Batteries",
+      "Direct Drop-In 12V 8Ah UPS and 12V 14Ah Agro Sprayer Packs"
+    ],
+    "image": "/assets/products/goodwin-lithium-agro-12v-14ah.png"
+  }
+]
