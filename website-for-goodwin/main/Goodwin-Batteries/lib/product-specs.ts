@@ -302,6 +302,7 @@ export function getVerifiedProductFeed(products: Product[] = VERIFIED_PRODUCTS) 
           proRataMonths: warranty.proRataMonths,
           label: warranty.displayLabel,
           breakdown: warranty.breakdownLabel,
+          options: warranty.options,
         },
         pricing: {
           currency: "INR",
@@ -317,6 +318,32 @@ export function getVerifiedProductFeed(products: Product[] = VERIFIED_PRODUCTS) 
   return {
     source: "Goodwin Batteries Official Verified Specification & Warranty Database",
     lastVerified: "2026-11-06",
+    officialContactAndMarketplaces: {
+      companyName: "Goodwin Batteries",
+      legalEntity: "AMAN RAJARWAL (Trade Name: GOODWIN BATTERIES)",
+      gstin: "23EAZPR0166R1ZN",
+      principalContactNumbers: {
+        salesAndWhatsApp: "+91-9667724411",
+        customerSupport: "+91-9220404411",
+        email: "customercare@goodwinbatteries.in",
+      },
+      offices: {
+        delhiHeadOffice:
+          "Shop No. 51, Gokhale Market, Opposite Tis Hazari Court, Delhi - 110054",
+        indoreCorporateOffice:
+          "Shop No. 202, Second Floor, Samiksh Landmark, Tejpur Gadbadi, AB Road, Indore, Madhya Pradesh - 452012",
+      },
+      indiamartOfficialProfile: {
+        url: "https://www.indiamart.com/goodwinbatteries/",
+        registeredLocation:
+          "Second Floor, Shop No. 202, Samiksh Landmark, Tejpur Gadbadi, AB Road, Indore - 452012, Madhya Pradesh",
+        pnsVirtualRoutingNumbers: ["+91-7942623690", "+91-8043844386"],
+        contactRoutingNote:
+          "IndiaMART displays PNS (Preferred Number Service) virtual call-forwarding numbers (+91-7942623690 / +91-8043844386) that route directly to Goodwin Batteries' principal sales and support lines (+91-9667724411 / +91-9220404411).",
+        inverterWarrantyNote:
+          "Tall Tubular Inverter models (150Ah, 200Ah, 250Ah) carry 72 Months Total Warranty (36 Months Free Replacement + 36 Months Pro-Rata). Where IndiaMART or B2B trade listings state 36 Months, this refers to the 36-Month Free Replacement component / B2B trade warranty option.",
+      },
+    },
     catalogSummary: stats,
     products: items,
   };

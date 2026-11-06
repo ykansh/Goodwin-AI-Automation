@@ -9,6 +9,7 @@ export const GOODWIN_CONFIG = {
   phone: "9667724411",
   alternatePhone: "9220404411",
   whatsapp: "9667724411",
+  indiamartVirtualPhones: ["07942623690", "08043844386"],
   email: "customercare@goodwinbatteries.in",
   supportEmail: "customercare@goodwinbatteries.in",
   
@@ -49,7 +50,9 @@ export const GOODWIN_CONFIG = {
   
   // Marketplaces
   marketplaces: {
-    indiamart: "https://www.indiamart.com/goodwinbatteries",
+    indiamart: "https://www.indiamart.com/goodwinbatteries/",
+    indiamartLocation:
+      "Second Floor, Shop No. 202, Samiksh Landmark, Tejpur Gadbadi, AB Road, Indore - 452012, Madhya Pradesh",
     amazon: null,
     tradeIndia: null,
   }

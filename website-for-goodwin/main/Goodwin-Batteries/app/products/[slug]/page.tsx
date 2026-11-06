@@ -308,7 +308,10 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                   { label: "Dimensions (L x W x H)", val: product.dimensions || "Standard JIS/DIN Case Specification", bold: false },
                   { label: "Total Filled Weight", val: product.weight || "Engineered Heavy-Duty Mass", bold: false },
                   { label: "Terminal Layout & Polarity", val: product.terminalLayout || "Left / Right Terminal (Standard Post)", bold: false },
-                  { label: "Warranty Coverage", val: warrantyInfo.breakdownLabel, bold: true }
+                  { label: "Warranty Coverage", val: warrantyInfo.breakdownLabel, bold: true },
+                  ...(warrantyInfo.options && warrantyInfo.options.length > 1
+                    ? [{ label: "Available Warranty Tiers", val: warrantyInfo.options.join("  •  "), bold: false }]
+                    : [])
                 ].map((row, idx) => (
                   <div key={idx} className="grid grid-cols-1 sm:grid-cols-3 hover:bg-slate-50/50 transition-colors">
                     <div className="p-4 sm:p-5 sm:border-r sm:border-slate-100 bg-slate-50/60 text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center">
@@ -345,6 +348,22 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                   </a>
                 </div>
               </div>
+
+              {/* Official Warranty & Marketplace (IndiaMART) Verification Notice for Inverter Batteries */}
+              {isInverterOrUPS && (
+                <div className="mt-6 p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-slate-800 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-900">
+                    <ShieldCheck size={16} className="text-[#00843D] shrink-0" />
+                    Official Warranty Breakdown &amp; IndiaMART B2B Listing Note
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">
+                    Goodwin Tall Tubular Inverter batteries carry a <strong>72 Months Total Warranty</strong> comprising <strong>36 Months Full Free Replacement + 36 Months Pro-Rata Discount</strong>. On our verified <strong>IndiaMART B2B profile</strong> (Goodwin Batteries, Indore) and select wholesale trade invoices, the single-number warranty attribute is listed as <strong>36 Months</strong>—which refers specifically to the <strong>36-Month Free Replacement</strong> coverage (or standard B2B trade option). Both 36M and 72M warranty cards are genuine and can be verified online via serial number on our{" "}
+                    <Link href="/warranty" className="text-[#00843D] font-bold underline hover:text-[#006830]">
+                      E-Warranty Verification Portal
+                    </Link>.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Side Column: Application Compatibility & Care Guide */}

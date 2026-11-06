@@ -109,9 +109,13 @@ export default function ContactPage() {
                       <Phone size={24} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-foreground mb-1">Call Us</h4>
-                      <a href="tel:9667724411" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors text-lg font-mono mb-1 block">Sales: 96677 24411</a>
-                      <a href="tel:9220404411" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors text-lg font-mono mb-1 block">Support: 92204 04411</a>
+                      <h4 className="font-bold text-foreground mb-1">Call Us (Principal Direct Lines)</h4>
+                      <a href="tel:9667724411" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors text-lg font-mono mb-1 block">Sales &amp; WhatsApp: +91 96677 24411</a>
+                      <a href="tel:9220404411" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors text-lg font-mono mb-2 block">Customer Support: +91 92204 04411</a>
+                      <div className="text-xs text-muted-foreground bg-surface border border-border/60 rounded-lg p-3 max-w-md leading-relaxed">
+                        <span className="font-bold text-foreground block mb-0.5">Official IndiaMART B2B Profile Routing Numbers:</span>
+                        Our verified IndiaMART profile (Goodwin Batteries, Indore) uses IndiaMART PNS virtual call-routing numbers (<span className="font-mono font-semibold text-foreground">+91-7942623690</span> / <span className="font-mono font-semibold text-foreground">+91-8043844386</span>) which automatically forward buyer calls to our principal sales and support desks above.
+                      </div>
                     </div>
                   </div>
 
@@ -122,23 +126,22 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h4 className="font-bold text-foreground mb-1">Email Us</h4>
-                      <a href="mailto:sales@goodwinbatteries.com" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors block mb-1">sales@goodwinbatteries.com (Sales)</a>
-                      <a href="mailto:support@goodwinbatteries.com" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors block">support@goodwinbatteries.com (Support)</a>
+                      <a href="mailto:customercare@goodwinbatteries.in" className="text-muted-foreground leading-relaxed hover:text-primary transition-colors block mb-1">customercare@goodwinbatteries.in (Sales &amp; Customer Care)</a>
                     </div>
                   </div>
 
-                  {/* Social Links */}
+                  {/* Social & Official Marketplace Links */}
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-surface border border-border/50 rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,102,0.1)]">
                       <ExternalLink size={24} className="text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-foreground mb-3">Connect With Us</h4>
+                      <h4 className="font-bold text-foreground mb-3">Connect &amp; Verified Marketplaces</h4>
                       <div className="flex flex-wrap gap-2">
+                        <a href="https://www.indiamart.com/goodwinbatteries/" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-primary/10 border border-primary/40 text-primary rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition-colors">Official IndiaMART Profile</a>
                         <a href="https://facebook.com/goodwinbatteries" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-surface border border-border/50 rounded-lg text-sm font-bold hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">Facebook</a>
                         <a href="https://instagram.com/goodwinbatteries" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-surface border border-border/50 rounded-lg text-sm font-bold hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">Instagram</a>
                         <a href="https://youtube.com/@goodwinbatteries" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-surface border border-border/50 rounded-lg text-sm font-bold hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">YouTube</a>
-                        <a href="https://twitter.com/goodwinbattery" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-surface border border-border/50 rounded-lg text-sm font-bold hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">Twitter (X)</a>
                         <a href="https://linkedin.com/company/goodwinbatteries" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-surface border border-border/50 rounded-lg text-sm font-bold hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">LinkedIn</a>
                       </div>
                     </div>

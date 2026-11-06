@@ -1,25 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronRight, ShieldCheck, Upload, CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { useEffect } from "react";
+import { VERIFIED_PRODUCTS } from "@/lib/product-specs";
+
+const DEFAULT_WARRANTY_PLANS = [
+  { id: "wp-6m", warranty_months: 6, free_replacement_months: 6, pro_rata_months: 0, label: "6 Months (6M Free Replacement)" },
+  { id: "wp-12m", warranty_months: 12, free_replacement_months: 12, pro_rata_months: 0, label: "12 Months (12M Free Replacement)" },
+  { id: "wp-18m", warranty_months: 18, free_replacement_months: 18, pro_rata_months: 0, label: "18 Months (18M Free Replacement)" },
+  { id: "wp-36m", warranty_months: 36, free_replacement_months: 36, pro_rata_months: 0, label: "36 Months (36M Free Replacement — B2B / IndiaMART Tier)" },
+  { id: "wp-48m", warranty_months: 48, free_replacement_months: 24, pro_rata_months: 24, label: "48 Months (24M Free + 24M Pro-Rata)" },
+  { id: "wp-72m", warranty_months: 72, free_replacement_months: 36, pro_rata_months: 36, label: "72 Months (36M Free + 36M Pro-Rata)" },
+];
 
 export default function WarrantyRegistrationPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [warrantyId, setWarrantyId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [products, setProducts] = useState<any[]>([]);
-  const [allPlans, setAllPlans] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>(
+    VERIFIED_PRODUCTS.map((p) => ({ id: p.id, name: p.name, ah: p.ah }))
+  );
+  const [allPlans, setAllPlans] = useState<any[]>(DEFAULT_WARRANTY_PLANS);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   useEffect(() => {
     supabase.from('products').select('id, name, ah').eq('is_published', true).order('name').then(({ data }) => {
-      if (data) setProducts(data);
+      if (data && data.length > 0) setProducts(data);
     });
     supabase.from('warranty_plans').select('*').eq('active', true).then(({ data }) => {
-      if (data) {
-        const uniquePlans = Array.from(new Map(data.map(p => [p.warranty_months, p])).values());
+      if (data && data.length > 0) {
+        const planMap = new Map<number, any>();
+        DEFAULT_WARRANTY_PLANS.forEach((p) => planMap.set(p.warranty_months, p));
+        data.forEach((p: any) => planMap.set(p.warranty_months, p));
+        const uniquePlans = Array.from(planMap.values());
         uniquePlans.sort((a: any, b: any) => a.warranty_months - b.warranty_months);
         setAllPlans(uniquePlans);
       }
@@ -331,9 +345,11 @@ export default function WarrantyRegistrationPage() {
                       className="w-full bg-background border border-border rounded p-3 text-foreground focus:outline-none focus:border-brand transition-colors appearance-none"
                     >
                       <option value="">Select Platform</option>
-                      <option value="Goodwin Website">Goodwin Website</option>
+                      <option value="Authorized Goodwin Dealer / Distributor">Authorized Goodwin Dealer / Distributor</option>
+                      <option value="Goodwin Website">Goodwin Official Website</option>
+                      <option value="IndiaMART (Official B2B Profile)">IndiaMART (Official Goodwin B2B Profile)</option>
                       <option value="Amazon">Amazon</option>
-                      <option value="Online Marketplace">Online Marketplace</option>
+                      <option value="Online Marketplace">Other Online Marketplace</option>
                       <option value="Other">Other</option>
                     </select>
                   </div>
