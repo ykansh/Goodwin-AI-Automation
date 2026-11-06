@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getCategories, getProducts } from "@/lib/data";
 import { getCategorySpecSummary } from "@/lib/product-specs";
 import Link from "next/link";
@@ -10,6 +11,16 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title:
+    "Battery Applications — Two-Wheeler, Home Inverter & Solar, VRLA UPS, Agriculture & Lithium | Goodwin Batteries",
+  description:
+    "Explore Goodwin Batteries by application: Two-Wheeler motorcycles & scooters (48M warranty), Home Inverter & Solar Tall Tubular (up to 72M warranty), VRLA/SMF UPS standby, Agricultural Sprayers, and LiFePO4 Lithium.",
+  alternates: {
+    canonical: "/applications",
+  },
+};
 
 export default async function ApplicationsPage() {
   const categories = await getCategories();

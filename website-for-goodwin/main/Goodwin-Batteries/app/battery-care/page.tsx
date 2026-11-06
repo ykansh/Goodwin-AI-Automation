@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { BatteryCharging, AlertTriangle, PenTool, BatteryWarning } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Battery Care, Maintenance Tips & Warning Signs Guide | Goodwin Batteries",
+  description:
+    "Expert battery care and maintenance guidelines from Goodwin Batteries. Learn how to clean terminals, prevent deep discharge, maintain inverter water levels, and spot early battery failure signs.",
+  alternates: {
+    canonical: "/battery-care",
+  },
+};
 
 export default function BatteryCarePage() {
   const tips = [

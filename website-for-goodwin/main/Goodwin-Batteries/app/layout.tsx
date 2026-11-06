@@ -21,11 +21,17 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://goodwinbatteries.in'),
-  title: {
-    default: "Goodwin",
-    template: "%s | Goodwin",
-  },
+  title:
+    "Goodwin Batteries — Two-Wheeler (48M), Inverter Tubular (72M), VRLA & Lithium Batteries in India",
   description: GOODWIN_CONFIG.description,
+  openGraph: {
+    siteName: "Goodwin Batteries",
+    type: "website",
+    locale: "en_IN",
+    title:
+      "Goodwin Batteries — Two-Wheeler (48M), Inverter Tubular (72M), VRLA & Lithium Batteries in India",
+    description: GOODWIN_CONFIG.description,
+  },
   icons: {
     icon: [
       { url: '/icon.png', sizes: '512x512', type: 'image/png' },

@@ -2,7 +2,8 @@ export const GOODWIN_CONFIG = {
   companyName: "Goodwin Batteries",
   brandName: "Goodwin",
   tagline: "YOUR TRUSTED POWER SOURCE",
-  description: "India's everyday power choice. Reliable, affordable, trusted.",
+  description:
+    "Goodwin Batteries manufactures BIS-certified Two-Wheeler VRLA (48-month warranty), Tall Tubular Home Inverter & Solar (up to 72-month warranty), SMF/UPS, Agricultural Sprayer, and LiFePO4 Lithium batteries across India.",
   
   // Contact Information
   phone: "9667724411",

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, ShieldCheck, Download, CheckCircle2, Wrench, FileText, Phone, Zap, Search, Sparkles } from "lucide-react";
@@ -12,6 +13,83 @@ export async function generateStaticParams() {
   return products.map((product) => ({
     slug: product.slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
+
+  if (!product) {
+    return {
+      title: "Battery Product Not Found | Goodwin Batteries",
+      description: "Explore BIS-certified Goodwin batteries across Two-Wheeler, Inverter Tubular, VRLA/SMF, Agricultural Sprayer, and Lithium categories.",
+    };
+  }
+
+  const categories = await getCategories();
+  const category = categories.find((c) => c.id === product.category);
+  const warrantyInfo = getProductWarrantyInfo(product);
+
+  const isAgroProduct =
+    product.category === "cat-agriculture" ||
+    product.secondaryCategories?.includes("cat-agriculture") ||
+    product.slug.includes("agro");
+
+  const categoryLabel =
+    product.category === "cat-inverter"
+      ? "Tall Tubular Inverter & Solar Battery"
+      : product.category === "cat-two-wheeler"
+      ? "Two-Wheeler VRLA Battery"
+      : product.category === "cat-lithium" && isAgroProduct
+      ? "Agricultural Sprayer LiFePO4 Lithium Battery"
+      : isAgroProduct
+      ? "Agricultural Sprayer VRLA SMF Battery"
+      : product.category === "cat-vrla"
+      ? "VRLA SMF UPS & Standby Battery"
+      : product.category === "cat-lithium"
+      ? "LiFePO4 Lithium-Ion Battery"
+      : `${category?.name || "Heavy-Duty"} Battery`;
+
+  const specPrefix = [product.voltage || "12V", product.ah]
+    .filter(Boolean)
+    .join(" ");
+
+  const cleanModelName = product.name
+    .replace(/\s*\(\d+\s*Months?\)\s*$/i, "")
+    .trim();
+
+  const seoTitle = `${cleanModelName} — ${specPrefix} ${categoryLabel} (${warrantyInfo.displayLabel} Warranty) | Goodwin Batteries`;
+
+  const appsPreview =
+    product.applications && product.applications.length > 0
+      ? ` Compatible with ${product.applications.slice(0, 3).join(", ")}.`
+      : "";
+
+  const dimsPreview =
+    product.dimensions && product.weight
+      ? ` Specs: ${product.dimensions}, ${product.weight}.`
+      : "";
+
+  const seoDescription = `${cleanModelName} (${specPrefix}) ${categoryLabel} by Goodwin Batteries. Backed by ${warrantyInfo.breakdownLabel}.${dimsPreview}${appsPreview}`;
+
+  return {
+    title: seoTitle,
+    description: seoDescription,
+    alternates: {
+      canonical: `/products/${product.slug}`,
+    },
+    openGraph: {
+      title: seoTitle,
+      description: seoDescription,
+      url: `/products/${product.slug}`,
+      images: product.image ? [{ url: product.image, alt: product.name }] : undefined,
+      type: "website",
+    },
+  };
 }
 
 export default async function ProductDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -127,6 +205,9 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-slate-900 tracking-tight mb-4">
                 {product.name}
+                <span className="block text-base sm:text-lg font-bold text-[#00843D] mt-2 tracking-normal">
+                  {product.voltage || "12V"} {product.ah ? `${product.ah} ` : ""}{category?.name || "Battery"} • {warrantyInfo.breakdownLabel}
+                </span>
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 mb-8 leading-relaxed font-normal">

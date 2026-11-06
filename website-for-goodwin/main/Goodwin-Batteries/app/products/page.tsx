@@ -1,7 +1,56 @@
+import type { Metadata } from "next";
 import { getProducts, getCategories } from "@/lib/data";
-import { getCatalogWarrantyStats } from "@/lib/product-specs";
+import {
+  getCatalogWarrantyStats,
+  resolveCategory,
+  getCategorySpecSummary,
+} from "@/lib/product-specs";
 import ProductsClient from "@/components/products/ProductsClient";
 import { Zap, ShieldCheck, BatteryCharging } from "lucide-react";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const categories = await getCategories();
+  const products = await getProducts();
+
+  if (resolvedParams.category) {
+    const category = resolveCategory(resolvedParams.category, categories);
+    if (category) {
+      const summary = getCategorySpecSummary(category.id, products, categories);
+      return {
+        title: `${category.name} Batteries (${summary.capacityRangeLabel}) — ${summary.warrantyRangeLabel} Warranty | Goodwin Batteries`,
+        description:
+          category.longDescription ||
+          category.description ||
+          `Browse ${summary.activeProductCount} BIS-certified Goodwin ${category.name} batteries (${summary.capacityRangeLabel}) with ${summary.warrantyRangeLabel} verified warranty.`,
+        alternates: {
+          canonical: `/products/category/${category.slug}`,
+        },
+      };
+    }
+  }
+
+  return {
+    title:
+      "Battery Catalogue — Two-Wheeler (48M), Inverter Tubular (72M), VRLA, Agricultural & Lithium Batteries | Goodwin Batteries",
+    description:
+      "Browse all 30 BIS-certified Goodwin batteries with verified specifications and warranties from 6 to 72 months: Two-Wheeler VRLA (2.5Ah–9Ah), Tall Tubular Inverter (150Ah–300Ah), SMF/UPS, Agricultural Sprayers, and LiFePO4 Lithium.",
+    alternates: {
+      canonical: "/products",
+    },
+    openGraph: {
+      title:
+        "Goodwin Battery Catalogue — Two-Wheeler, Inverter Tubular (72M), VRLA & Lithium Batteries",
+      description:
+        "Filter 30+ BIS-certified Goodwin batteries by application, capacity (Ah), voltage, and verified warranty coverage (6M to 72M).",
+      url: "/products",
+    },
+  };
+}
 
 export default async function ProductsPage({
   searchParams,

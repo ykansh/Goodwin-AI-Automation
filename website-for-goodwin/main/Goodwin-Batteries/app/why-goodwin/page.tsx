@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
 import { ShieldCheck, Zap, Activity, Users, Settings, Wrench } from "lucide-react";
+
+export const metadata: Metadata = {
+  title:
+    "Why Choose Goodwin Batteries — BIS-Certified Quality, High CCA & Up to 72M Warranty | Goodwin Batteries",
+  description:
+    "Discover why thousands of vehicle owners, homes, and dealers across India trust Goodwin Batteries: 99.99% pure lead grids, extreme tropical heat resistance, paperless e-warranty, and up to 72 months coverage.",
+  alternates: {
+    canonical: "/why-goodwin",
+  },
+};
 
 export default function WhyGoodwinPage() {
   const reasons = [

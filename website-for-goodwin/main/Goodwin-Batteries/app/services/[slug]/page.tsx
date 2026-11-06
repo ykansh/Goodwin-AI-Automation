@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Settings, Truck, Zap, Activity, BatteryCharging, CheckCircle2, Phone } from "lucide-react";
@@ -70,6 +71,29 @@ export function generateStaticParams() {
   return SERVICES.map((service) => ({
     slug: service.slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const service = SERVICES.find((s) => s.slug === slug);
+
+  if (!service) {
+    return {
+      title: "Battery Service Not Found | Goodwin Batteries",
+    };
+  }
+
+  return {
+    title: `${service.title} — Doorstep Battery Support & Diagnostics | Goodwin Batteries`,
+    description: `${service.description} Highlights: ${service.details.join(", ")}. Book authorized Goodwin Batteries service across India.`,
+    alternates: {
+      canonical: `/services/${service.slug}`,
+    },
+  };
 }
 
 export default async function ServicePage({ params }: { params: Promise<{ slug: string }> }) {
